@@ -5,7 +5,7 @@ set traindir=classdir
 set classifdirs=testdata testdata2
 
 if not exist %traindir%\config.xml (
-	@echo æ²¡æœ‰æ‰¾åˆ°æ–‡ä»¶ï¼š%traindir%\config.xmlï¼Œåœ¨æ‰§è¡Œåˆ†ç±»å‰ï¼Œè¯·å…ˆè®­ç»ƒæ ·æœ¬æ–‡ä»¶ï¼
+	@echo Ã»ÓĞÕÒµ½ÎÄ¼ş£º%traindir%\config.xml£¬ÔÚÖ´ĞĞ·ÖÀàÇ°£¬ÇëÏÈÑµÁ·Ñù±¾ÎÄ¼ş£¡
 	exit
 )
 
