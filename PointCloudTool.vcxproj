@@ -1,0 +1,197 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{4A6EB188-893B-4795-B379-8A670E8BCEF6}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>PointCloudTool</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>_SCL_SECURE_NO_WARNINGS;WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>E:\thlibrary\CGAL-4.12\demo\Polyhedron\Plugins\Classification;E:\thlibrary\CGAL-4.12\demo\Polyhedron\Plugins\Classification\classification_plugin_autogen\include_Release;E:\thlibrary\CGAL-4.12\demo\Polyhedron\.\CGAL_demo;E:\thlibrary\CGAL-4.12\demo\Polyhedron\..\..\include;E:\thlibrary\CGAL-4.12\demo\Polyhedron\.\include;E:\thlibrary\CGAL-4.12\demo\Polyhedron\.;E:\thlibrary\CGAL-4.12\include;E:\thlibrary\CGAL-4.12\auxiliary\gmp\include;E:\thlibrary\CGAL-4.12\demo\Polyhedron;E:\thlibrary\Eigen\include\eigen3;E:\thlibrary\libQGLViewer-2.7.1;E:\thlibrary\LAStools\LASlib\inc;E:\thlibrary\LAStools\LASzip\src;E:\thlibrary\opencv2.4.12\opencv\build\include;E:\thlibrary\opencv2.4.12\opencv\build\include\opencv;E:\pcl\bulid\boost_1_67_0;E:\thlibrary\5.10\5.10.1\msvc2013_64\include;E:\thlibrary\5.10\5.10.1\msvc2013_64\include\QtOpenGL;E:\thlibrary\5.10\5.10.1\msvc2013_64\include\QtWidgets;E:\thlibrary\5.10\5.10.1\msvc2013_64\include\QtGui;E:\thlibrary\5.10\5.10.1\msvc2013_64\include\QtANGLE;E:\thlibrary\5.10\5.10.1\msvc2013_64\include\QtCore;E:\thlibrary\5.10\5.10.1\msvc2013_64\.\mkspecs\win32-msvc;E:\thlibrary\5.10\5.10.1\msvc2013_64\include\QtSvg;E:\thlibrary\zlib-1.2.11\include;E:\thlibrary\5.10\5.10.1\msvc2013_64\include\QtScript;E:\thlibrary\5.10\5.10.1\msvc2013_64\include\QtXml;E:\thlibrary\tbb2018_20180411oss\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>E:/thlibrary/CGAL-4.12/lib;E:/thlibrary/CGAL-4.12/lib/$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>E:\thlibrary\CGAL-4.12\auxiliary\gmp\lib\libmpfr-4.lib;E:\thlibrary\CGAL-4.12\auxiliary\gmp\lib\libgmp-10.lib;E:\thlibrary\CGAL-4.12\lib\Release\libCGAL_Qt5-vc120-mt-4.12.lib;E:\thlibrary\CGAL-4.12\lib\Release\libCGAL_ImageIO-vc120-mt-4.12.lib;E:\thlibrary\CGAL-4.12\lib\Release\libCGAL-vc120-mt-4.12.lib;E:\thlibrary\CGAL-4.12\demo\Polyhedron\Release\scene_points_with_normal_item.lib;E:\thlibrary\CGAL-4.12\demo\Polyhedron\Release\scene_polylines_item.lib;E:\thlibrary\CGAL-4.12\demo\Polyhedron\Release\scene_polygon_soup_item.lib;E:\thlibrary\CGAL-4.12\demo\Polyhedron\Release\scene_color_ramp.lib;E:\pcl\bulid\boost_1_67_0\lib64-msvc-12.0\libboost_zlib-vc120-mt-x64-1_67.lib;E:\pcl\bulid\boost_1_67_0\lib64-msvc-12.0\libboost_serialization-vc120-mt-x64-1_67.lib;E:\pcl\bulid\boost_1_67_0\lib64-msvc-12.0\libboost_iostreams-vc120-mt-x64-1_67.lib;E:\thlibrary\opencv2.4.12\opencv\build\x64\vc12\lib\opencv_videostab2412.lib;E:\thlibrary\opencv2.4.12\opencv\build\x64\vc12\lib\opencv_ts2412.lib;E:\thlibrary\opencv2.4.12\opencv\build\x64\vc12\lib\opencv_superres2412.lib;E:\thlibrary\opencv2.4.12\opencv\build\x64\vc12\lib\opencv_stitching2412.lib;E:\thlibrary\opencv2.4.12\opencv\build\x64\vc12\lib\opencv_contrib2412.lib;E:\thlibrary\LAStools\LASlib\lib\LASlib.lib;E:\thlibrary\tbb2018_20180411oss\lib\intel64\vc12\tbb.lib;E:\thlibrary\tbb2018_20180411oss\lib\intel64\vc12\tbbmalloc.lib;E:\thlibrary\CGAL-4.12\demo\Polyhedron\Release\scene_basic_objects.lib;E:\thlibrary\CGAL-4.12\demo\Polyhedron\Release\scene_polyhedron_item.lib;E:\thlibrary\CGAL-4.12\demo\Polyhedron\Release\scene_surface_mesh_item.lib;E:\thlibrary\CGAL-4.12\demo\Polyhedron\Release\demo_framework.lib;E:\thlibrary\5.10\5.10.1\msvc2013_64\lib\Qt5Xml.lib;opengl32.lib;glu32.lib;E:\thlibrary\libQGLViewer-2.7.1\lib\QGLViewer2.lib;E:\thlibrary\5.10\5.10.1\msvc2013_64\lib\Qt5Script.lib;E:\pcl\bulid\boost_1_67_0\lib64-msvc-12.0\libboost_filesystem-vc120-mt-x64-1_67.lib;E:\thlibrary\5.10\5.10.1\msvc2013_64\lib\Qt5OpenGL.lib;E:\thlibrary\5.10\5.10.1\msvc2013_64\lib\Qt5Svg.lib;E:\thlibrary\5.10\5.10.1\msvc2013_64\lib\Qt5Widgets.lib;E:\thlibrary\5.10\5.10.1\msvc2013_64\lib\Qt5Gui.lib;E:\thlibrary\zlib-1.2.11\lib\zlibstatic.lib;E:\pcl\bulid\boost_1_67_0\lib64-msvc-12.0\libboost_program_options-vc120-mt-x64-1_67.lib;E:\pcl\bulid\boost_1_67_0\lib64-msvc-12.0\libboost_thread-vc120-mt-x64-1_67.lib;E:\pcl\bulid\boost_1_67_0\lib64-msvc-12.0\libboost_system-vc120-mt-x64-1_67.lib;E:\pcl\bulid\boost_1_67_0\lib64-msvc-12.0\libboost_chrono-vc120-mt-x64-1_67.lib;E:\pcl\bulid\boost_1_67_0\lib64-msvc-12.0\libboost_date_time-vc120-mt-x64-1_67.lib;E:\pcl\bulid\boost_1_67_0\lib64-msvc-12.0\libboost_atomic-vc120-mt-x64-1_67.lib;E:\thlibrary\5.10\5.10.1\msvc2013_64\lib\Qt5Core.lib;E:\thlibrary\opencv2.4.12\opencv\build\x64\vc12\lib\opencv_nonfree2412.lib;E:\thlibrary\opencv2.4.12\opencv\build\x64\vc12\lib\opencv_ocl2412.lib;E:\thlibrary\opencv2.4.12\opencv\build\x64\vc12\lib\opencv_gpu2412.lib;E:\thlibrary\opencv2.4.12\opencv\build\x64\vc12\lib\opencv_photo2412.lib;E:\thlibrary\opencv2.4.12\opencv\build\x64\vc12\lib\opencv_objdetect2412.lib;E:\thlibrary\opencv2.4.12\opencv\build\x64\vc12\lib\opencv_legacy2412.lib;E:\thlibrary\opencv2.4.12\opencv\build\x64\vc12\lib\opencv_video2412.lib;E:\thlibrary\opencv2.4.12\opencv\build\x64\vc12\lib\opencv_ml2412.lib;E:\thlibrary\opencv2.4.12\opencv\build\x64\vc12\lib\opencv_calib3d2412.lib;E:\thlibrary\opencv2.4.12\opencv\build\x64\vc12\lib\opencv_features2d2412.lib;E:\thlibrary\opencv2.4.12\opencv\build\x64\vc12\lib\opencv_highgui2412.lib;E:\thlibrary\opencv2.4.12\opencv\build\x64\vc12\lib\opencv_imgproc2412.lib;E:\thlibrary\opencv2.4.12\opencv\build\x64\vc12\lib\opencv_flann2412.lib;E:\thlibrary\opencv2.4.12\opencv\build\x64\vc12\lib\opencv_core2412.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_LIB;_SCL_SECURE_NO_DEPRECATE;_SCL_SECURE_NO_WARNINGS;NOMINMAX;CGAL_LINKED_WITH_TBB;CGAL_LINKED_WITH_OPENCV;CGAL_USE_MPFR;CGAL_USE_GMP;QT_NO_KEYWORDS;SCENE_IMAGE_GL_BUFFERS_AVAILABLE;CGAL_EIGEN3_ENABLED;CGAL_LINKED_WITH_LASLIB;USE_FORWARD_DECL;QT_OPENGL_LIB;QT_WIDGETS_LIB;QT_GUI_LIB;QT_CORE_LIB;QT_NO_DEBUG;CGAL_USE_ZLIB=1;QT_XML_LIB;_CRT_SECURE_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>E:\project\powerline\solution\PointCloudTool\PointCloudTool\Classification;E:\project\powerline\solution\PointCloudTool\PointCloudTool;E:\project\powerline\solution\PointCloudTool\PointCloudTool\Polyhedron;E:\project\powerline\solution\PointCloudTool\PointCloudTool\include\Polyhedron;E:\thlibrary\CGAL-4.12\include;E:\thlibrary\CGAL-4.12\auxiliary\gmp\include;E:\thlibrary\CGAL-4.12\include\CGAL\Three;E:\thlibrary\Eigen\include\eigen3;E:\thlibrary\LAStools\LASlib\inc;E:\thlibrary\LAStools\LASzip\src;E:\thlibrary\opencv2.4.12\opencv\build\include;E:\pcl\bulid\boost_1_67_0;E:\thlibrary\5.10\5.10.1\msvc2013_64\include;E:\thlibrary\5.10\5.10.1\msvc2013_64\include\QtWidgets;E:\thlibrary\5.10\5.10.1\msvc2013_64\include\QtGui;E:\thlibrary\5.10\5.10.1\msvc2013_64\include\QtANGLE;E:\thlibrary\5.10\5.10.1\msvc2013_64\include\QtCore;E:\thlibrary\5.10\5.10.1\msvc2013_64\.\mkspecs\win32-msvc;E:\thlibrary\5.10\5.10.1\msvc2013_64\include\QtSvg;E:\thlibrary\zlib-1.2.11\include;E:\thlibrary\5.10\5.10.1\msvc2013_64\include\QtScript;E:\thlibrary\5.10\5.10.1\msvc2013_64\include\QtXml;E:\thlibrary\tbb2018_20180411oss\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalLibraryDirectories>E:/thlibrary/CGAL-4.12/lib;E:/thlibrary/CGAL-4.12/lib/$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>E:\thlibrary\CGAL-4.12\auxiliary\gmp\lib\libmpfr-4.lib;E:\thlibrary\CGAL-4.12\auxiliary\gmp\lib\libgmp-10.lib;E:\thlibrary\CGAL-4.12\lib\Release\libCGAL_Qt5-vc120-mt-4.12.lib;E:\thlibrary\CGAL-4.12\lib\Release\libCGAL_ImageIO-vc120-mt-4.12.lib;E:\thlibrary\CGAL-4.12\lib\Release\libCGAL-vc120-mt-4.12.lib;E:\pcl\bulid\boost_1_67_0\lib64-msvc-12.0\libboost_zlib-vc120-mt-x64-1_67.lib;E:\pcl\bulid\boost_1_67_0\lib64-msvc-12.0\libboost_serialization-vc120-mt-x64-1_67.lib;E:\pcl\bulid\boost_1_67_0\lib64-msvc-12.0\libboost_iostreams-vc120-mt-x64-1_67.lib;E:\thlibrary\LAStools\LASlib\lib\LASlib.lib;E:\thlibrary\tbb2018_20180411oss\lib\intel64\vc12\tbb.lib;E:\thlibrary\tbb2018_20180411oss\lib\intel64\vc12\tbbmalloc.lib;E:\thlibrary\5.10\5.10.1\msvc2013_64\lib\Qt5Xml.lib;opengl32.lib;glu32.lib;E:\thlibrary\5.10\5.10.1\msvc2013_64\lib\Qt5Script.lib;E:\pcl\bulid\boost_1_67_0\lib64-msvc-12.0\libboost_filesystem-vc120-mt-x64-1_67.lib;E:\thlibrary\5.10\5.10.1\msvc2013_64\lib\Qt5Svg.lib;E:\thlibrary\5.10\5.10.1\msvc2013_64\lib\Qt5Widgets.lib;E:\thlibrary\5.10\5.10.1\msvc2013_64\lib\Qt5Gui.lib;E:\thlibrary\zlib-1.2.11\lib\zlibstatic.lib;E:\pcl\bulid\boost_1_67_0\lib64-msvc-12.0\libboost_program_options-vc120-mt-x64-1_67.lib;E:\pcl\bulid\boost_1_67_0\lib64-msvc-12.0\libboost_thread-vc120-mt-x64-1_67.lib;E:\pcl\bulid\boost_1_67_0\lib64-msvc-12.0\libboost_system-vc120-mt-x64-1_67.lib;E:\pcl\bulid\boost_1_67_0\lib64-msvc-12.0\libboost_chrono-vc120-mt-x64-1_67.lib;E:\pcl\bulid\boost_1_67_0\lib64-msvc-12.0\libboost_date_time-vc120-mt-x64-1_67.lib;E:\pcl\bulid\boost_1_67_0\lib64-msvc-12.0\libboost_atomic-vc120-mt-x64-1_67.lib;E:\thlibrary\5.10\5.10.1\msvc2013_64\lib\Qt5Core.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="Classification\Point_set_item_classification.cpp" />
+    <ClCompile Include="pctClassification.cpp" />
+    <ClCompile Include="pctio.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="commonfunctions.cpp" />
+    <ClCompile Include="Polyhedron\Color_ramp.cpp">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o ".\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp"</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing QPowerLineClassification.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
+    </ClCompile>
+    <ClCompile Include="Polyhedron\moc_Scene_item.cpp" />
+    <ClCompile Include="Polyhedron\moc_Scene_points_with_normal_item.cpp" />
+    <ClCompile Include="Polyhedron\Scene_item.cpp" />
+    <ClCompile Include="Polyhedron\Scene_points_with_normal_item.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Classification\Item_classification_base.h" />
+    <ClInclude Include="Classification\Point_set_item_classification.h" />
+    <ClInclude Include="pctClassification.h" />
+    <ClInclude Include="commonfunctions.h" />
+    <ClInclude Include="pctio.h" />
+    <CustomBuild Include="Polyhedron\Scene_item.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o ".\Polyhedron\moc_%(Filename).cpp"</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing QPowerLineClassification.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\Polyhedron\moc_%(Filename).cpp</Outputs>
+    </CustomBuild>
+    <ClInclude Include="Polyhedron\Color_ramp.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o ".\Polyhedron\moc_%(Filename).cpp"</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing QPowerLineClassification.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\Polyhedron\moc_%(Filename).cpp</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
+    </ClInclude>
+    <CustomBuild Include="Polyhedron\Scene_points_with_normal_item.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o ".\Polyhedron\moc_%(Filename).cpp"</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing QPowerLineClassification.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\Polyhedron\moc_%(Filename).cpp</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
+    </CustomBuild>
+    <ClInclude Include="setting.hpp" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

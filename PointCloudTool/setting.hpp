@@ -1,0 +1,85 @@
+#ifndef SETTING_HPP
+#define SETTING_HPP
+
+ #include <boost/property_tree/ptree.hpp>
+ #include <boost/property_tree/json_parser.hpp>
+ #include <boost/foreach.hpp>
+
+namespace pct
+{
+    struct Setting
+    {
+        static Setting& ins()
+        {
+            static Setting s;
+            return s;
+        }
+
+    private:
+        Setting()
+        {
+            // 获得程序目录
+            char *tmpstr;
+            _get_pgmptr(&tmpstr);
+            char drive[_MAX_DRIVE];
+            char dir[_MAX_DIR];
+            char fname[_MAX_FNAME];
+            char ext[_MAX_EXT];
+            _splitpath(tmpstr, drive, dir, fname, ext);
+            appdir = std::string(drive) + dir;
+
+            // 读取配置文件
+            std::ifstream is(appdir + "\\pctconfig.json");
+            if (is.open(appdir + "\\pctconfig.json"), std::ios::in)
+            {
+                try {
+                    read_json(is, pt);          //parse json
+                    is.close();
+                }
+                catch (...) {
+                    return;
+                }
+                
+                is.close();
+            }
+        }
+
+        // 配置文件
+        boost::property_tree::ptree pt;                       //define property_tree object
+
+    public:
+        template<class Type>
+        Type value(const std::string &key) const
+        {
+            return pt.get_optional<Type>(key).value();
+        }
+
+        QColor cls_color(const std::string &cls) const
+        {
+            QString color_str = pt.get_child("classif_color").get_optional<std::string>(cls).value().c_str();
+            color_str.remove(' ');
+            QStringList cl = color_str.split(',');
+
+            if (cl.size() != 3)
+            {
+                return QColor(64 + rand() % 192,  64 + rand() % 192, 64 + rand() % 192);
+            }
+            else
+            {
+                return QColor(cl[0].toInt(), cl[1].toInt(), cl[2].toInt());
+            }
+        }
+
+        // 程序路径之类
+        std::string appdir;
+
+        // 命令行参数
+        std::string inputfile; //点云路径｛*.las *.xyz *.ply｝
+        std::string outputdir; //样本文件目录 <dir>
+        std::string classdir; //输出结果目录 [dir]
+        bool retrain; //重新训练样本 [bool]
+        int method; //分类处理方法 [int]
+    };
+}
+
+#endif
