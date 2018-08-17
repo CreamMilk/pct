@@ -17,6 +17,7 @@ namespace pct
 
     private:
         Setting()
+            :gridsize(0)
         {
             // 获得程序目录
             char *tmpstr;
@@ -70,6 +71,26 @@ namespace pct
             }
         }
 
+        unsigned int cls_intcolor(const std::string &cls) const
+        {
+            QString color_str = pt.get_child("classif_color").get_optional<std::string>(cls).value().c_str();
+            color_str.remove(' ');
+            QStringList l = color_str.split(',');
+
+            if (l.size() != 3)
+            {
+                return rand();
+            }
+            else
+            {
+                unsigned int colorint = 0;
+                *(((unsigned char *)&colorint) + 2) = l[0].toUInt();
+                *(((unsigned char *)&colorint) + 1) = l[1].toUInt();
+                *(((unsigned char *)&colorint) + 0) = l[2].toUInt();
+                return colorint;
+            }
+        }
+
         // 程序路径之类
         std::string appdir;
 
@@ -79,6 +100,7 @@ namespace pct
         std::string classdir; //输出结果目录 [dir]
         bool retrain; //重新训练样本 [bool]
         int method; //分类处理方法 [int]
+        float gridsize;
     };
 }
 

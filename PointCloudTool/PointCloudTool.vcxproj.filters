@@ -19,6 +19,9 @@
     <Filter Include="Polyhedron">
       <UniqueIdentifier>{b179668d-34a4-4c34-b705-26aafd0510f0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Types">
+      <UniqueIdentifier>{ccc9bc52-f6b0-4628-9b88-eaf6d5360013}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -51,6 +54,9 @@
     <ClCompile Include="Polyhedron\Color_ramp.cpp">
       <Filter>Polyhedron</Filter>
     </ClCompile>
+    <ClCompile Include="types\vector3.cpp">
+      <Filter>Types</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="setting.hpp">
@@ -73,6 +79,9 @@
     </ClInclude>
     <ClInclude Include="Polyhedron\Color_ramp.h">
       <Filter>Polyhedron</Filter>
+    </ClInclude>
+    <ClInclude Include="mydef.h">
+      <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

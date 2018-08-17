@@ -5,6 +5,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/typeof/typeof.hpp>   
+#include <boost/locale.hpp>
 #include <chrono>   
 #include <Scene_points_with_normal_item.h> //点
 #include <Item_classification_base.h>
@@ -12,15 +13,28 @@
 #include <QFileInfo>
 #include <QMessageBox>
 
+#include <pcl/io/io.h>
+#include <pcl/filters/extract_indices.h>
+#include <pcl/kdtree/kdtree_flann.h>
+
 #include "commonfunctions.h"
 #include "setting.hpp"
 #include "pctio.h"
+#include "mydef.h"
+
+#ifdef _WIN32
+#include <process.h>
+#else
+#include <unistd.h>
+#endif
 
 
 //#pragma comment( linker, "/subsystem:\"windows\" /entry:\"mainCRTStartup\"" )  // 隐藏程序
 bool ParserCmdline(int argc, char *argv[]);
 bool train();
 bool classif();
+void correct();
+void sample(std::string inputfile, std::string outputfile);
 
 int main(int argc, char *argv[])
 {
@@ -39,6 +53,7 @@ int main(int argc, char *argv[])
 
     // 分类
     classif();
+    correct();
 
     return EXIT_SUCCESS;
 }
@@ -56,6 +71,7 @@ bool ParserCmdline(int argc, char *argv[])
         ("outputdir", boost::program_options::value<std::string>(), "输出结果目录 [dir]")
         ("retrain", boost::program_options::value<bool>(), "重新训练样本 [bool]")
         ("method", boost::program_options::value<int>(), "分类方法 [int] 0-普通 1-平滑 2-非常平滑")
+        ("gridsize", boost::program_options::value<float>(), "叶节点尺寸 [float]")
         ("help", "帮助");
 
     try{
@@ -107,6 +123,8 @@ bool ParserCmdline(int argc, char *argv[])
         setsettingitem(retrain, bool, false, false);
 
         setsettingitem(method, int, false, 0);
+
+        setsettingitem(gridsize, float, false, 0.3);
     }
 
     return true;
@@ -142,9 +160,18 @@ bool train()
                 {
                     std::string laspath = fileiter->path().string(); // 得到文件路径
                     std::string lasname = fileiter->path().stem().string(); // 得到文件名
+                    
+                    // 抽稀  
+                    std::ostringstream tempfile;
+                    tempfile << getpid() << "temp2018.las";
+                    pct::sample(laspath, tempfile.str(), setting.gridsize);
+                    boost::shared_ptr<Scene_points_with_normal_item> scene_item(pct::io::lasload(tempfile.str()));
+                    boost::filesystem::remove(boost::filesystem::path(tempfile.str()));
+
+
+                    //boost::shared_ptr<Scene_points_with_normal_item> scene_item(pct::io::lasload(laspath));
+
                     std::cout << "文件：" << lasname << "..." << std::endl;
-                    // 加载点云 ,并检查是否含有颜色信息
-                    boost::shared_ptr<Scene_points_with_normal_item> scene_item(pct::io::lasload(laspath));
                     if (scene_item && scene_item->point_set()->check_colors())
                     {
                         auto start = std::chrono::system_clock::now();
@@ -155,7 +182,7 @@ bool train()
 
                         // 添加label
                         classif->add_new_label(classname.c_str());
-                        classif->add_new_label("unselect");
+                        classif->add_new_label(unselect_str);
 
                        // 选择红色的
                         classif->change_color(0);
@@ -216,7 +243,17 @@ bool classif()
 
     std::string labelname_traverse;
     std::string config_xml = setting.classdir + "\\config.xml";
-    boost::shared_ptr<Scene_points_with_normal_item> scene_item(pct::io::lasload(setting.inputfile));
+
+
+    // 抽稀  
+    std::ostringstream tempfile;
+    tempfile << getpid() << "temp2018.las";
+    pct::sample(setting.inputfile, tempfile.str(), setting.gridsize);
+    boost::shared_ptr<Scene_points_with_normal_item> scene_item(pct::io::lasload(tempfile.str()));
+    boost::filesystem::remove(boost::filesystem::path(tempfile.str()));
+
+    //boost::shared_ptr<Scene_points_with_normal_item> scene_item(pct::io::lasload(setting.inputfile));
+
     if (scene_item)
     {
         // 计算特征
@@ -240,5 +277,169 @@ bool classif()
         pct::io::lassave(scene_item.get(), setting.outputdir + "\\out.las");
     }
     return true;
+}
+
+void correct()
+{
+    const pct::Setting & setting = pct::Setting::ins();
+    std::string inputfile = setting.outputdir + "\\out.las";
+    std::string outputfile = setting.outputdir + "\\out.las";
+    const int tower_intersectline_threshold = 3;
+
+    std::cout << "correct begin：" << inputfile << std::endl;
+
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
+    pct::io::Load_las(cloud, inputfile);
+    std::cout << "离群点过滤" << std::endl;
+    pct::OutlierRemoval(cloud);
+
+    // 聚类
+    std::vector <pcl::PointIndices> jlClusters;
+    std::vector <pcl::PointIndices> lineClusters;
+    std::vector <pcl::PointIndices> towerClusters;
+    pct::io::save_las(cloud, setting.outputdir + "\\cgalclassif.las");
+
+
+
+    pct::colorClusters(cloud, jlClusters);
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr tmpcloud(new pcl::PointCloud<pcl::PointXYZRGB>);
+    pcl::copyPointCloud(*cloud, *tmpcloud);
+    pcl::PointXYZRGB *tmppt1;
+    for (auto it = jlClusters.begin(); it != jlClusters.end(); ++it)
+    {
+        unsigned char r = rand() % 256;
+        unsigned char g = rand() % 256;
+        unsigned char b = rand() % 256;
+        for (auto itt = it->indices.begin(); itt != it->indices.end(); ++itt)
+        {
+            tmppt1 = &tmpcloud->at(*itt);
+            tmppt1->r = r;
+            tmppt1->g = g;
+            tmppt1->b = b;
+        }
+    }
+    pct::io::save_las(tmpcloud, setting.outputdir + "\\pcljl.las");
+    tmpcloud.reset();
+   ///////////////
+    std::cout << "聚类数量：" << jlClusters.size() << std::endl;
+
+    std::cout << "提取地面点" << std::endl;
+    pcl::PointIndicesPtr cloud_indices(new pcl::PointIndices);
+    pcl::PointIndicesPtr ground_indices(new pcl::PointIndices);
+    pct::ExtractGround(cloud, cloud_indices, ground_indices);
+    std::cout << "非地面点：" << cloud_indices->indices.size()
+        << "地面点：" <<  ground_indices->indices.size() <<std::endl;
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr ground(new pcl::PointCloud<pcl::PointXYZRGB>);
+    pcl::ExtractIndices<pcl::PointXYZRGB> extract;
+    extract.setInputCloud(cloud);
+    extract.setIndices(ground_indices);
+    std::cout << "提取地面点开始" << std::endl;
+    extract.filter(*ground);
+    std::cout << "提取地面点结束" << std::endl;
+
+    int satisfycolor_count = 0; 
+    // 聚类结果是否含有70%以上的电力线点，如果是，就说明是电力线点
+    for (auto it = jlClusters.begin(); it != jlClusters.end(); )
+    {
+        if (pct::pointsCountsForColor(cloud, *it, setting.cls_intcolor(power_line_str)) > it->indices.size()*0.25)  // power_line":"255, 255, 0
+        {
+            satisfycolor_count++;
+            pct::LineInfo line = pct::lineInfoFactory(cloud, *it);
+            
+            if (pct::LikePowerLine1(ground, line, 10, 0.1, 0.5, 0.5))
+            {
+                lineClusters.push_back(*it);
+                it = jlClusters.erase(it);
+                continue;
+            }
+        }
+        ++it;
+    }
+
+    
+    std::cout << "电力线识别数量：" << lineClusters.size() << std::endl;
+
+
+    std::vector<int> indices;
+    std::vector<float> sqr_distances;
+    for (auto it = jlClusters.begin(); it != jlClusters.end(); )
+    {
+        pcl::PointCloud<pcl::PointXYZRGB>::Ptr unknowclass(new pcl::PointCloud<pcl::PointXYZRGB>);
+        pcl::ExtractIndices<pcl::PointXYZRGB> extract;
+        extract.setInputCloud(cloud);
+        extract.setIndices(boost::make_shared<std::vector<int>>(it->indices));
+        extract.filter(*unknowclass);
+        pcl::KdTreeFLANN<pcl::PointXYZRGB> unknowclass_kdtree;
+        unknowclass_kdtree.setInputCloud(unknowclass);
+        int insrt_size = 0;
+
+        // 遍历每条电力线，是否与当前聚类相距小于一米
+        for (int j = 0; j < lineClusters.size(); ++j)
+        {
+            // 遍历聚类的每一个点
+            for (int k = 0; k < lineClusters[j].indices.size(); ++k)
+            {
+                if (unknowclass_kdtree.radiusSearch(cloud->at(lineClusters[j].indices[k]), 1, indices, sqr_distances))
+                {
+                    insrt_size++;
+                    break;
+                }
+            }
+        }
+
+        if (insrt_size >= tower_intersectline_threshold)  // 有3根电力线和他相交了，基本可以确定他就是铁塔了
+        {
+            towerClusters.push_back(*it);
+            jlClusters.erase(it++);
+        }
+        else
+        {
+            ++it;
+        }
+    }
+    std::cout << "铁塔识别数量：" << towerClusters.size() << std::endl;
+    std::cout << "其他类别数量：" << jlClusters.size() << std::endl;
+
+    // 电力线上色
+    pcl::PointXYZRGB *tmppt;
+    for (auto it = lineClusters.begin(); it != lineClusters.end(); ++it)
+    {
+        for (auto itt = it->indices.begin(); itt != it->indices.end(); ++itt)
+        {
+            tmppt = &cloud->at(*itt);      //  暂时把电力线的点都弄成红色，方便调试
+            tmppt->r = 255;
+            tmppt->g = 0;
+            tmppt->b = 0;
+        }
+    }
+    // 铁塔上色
+    for (auto it = towerClusters.begin(); it != towerClusters.end(); ++it)
+    {
+        for (auto itt = it->indices.begin(); itt != it->indices.end(); ++itt)
+        {
+            tmppt = &cloud->at(*itt);      //  暂时把电力线的点都弄成红色，方便调试
+            tmppt->r = 0;
+            tmppt->g = 255;
+            tmppt->b = 0;
+        }
+
+        std::cout << "检测到铁塔聚类，点数为：" << it->indices.size() << std::endl;
+    }
+    // 其他点上色
+    for (auto it = jlClusters.begin(); it != jlClusters.end(); ++it)
+    {
+        for (auto itt = it->indices.begin(); itt != it->indices.end(); ++itt)
+        {
+            tmppt = &cloud->at(*itt);      //  暂时把电力线的点都弄成红色，方便调试
+            tmppt->r = 0;
+            tmppt->g = 0;
+            tmppt->b = 0;
+        }
+    }
+
+
+
+    pct::io::save_las(cloud, outputfile);
+    std::cout << "correct end：" << inputfile << std::endl;
 }
 
