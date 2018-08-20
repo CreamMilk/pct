@@ -495,6 +495,26 @@ void pct::colorClusters(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, std:
     reg.extract(jlClusters);
 }
 
+void pct::colorClusters(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, const pcl::PointIndices& inputindices, std::vector <pcl::PointIndices>& jlClusters)
+{
+    float distanceThreshold = 0.5;
+    float pointColorThreshold = 0;
+    float regionColorThreshold = 0;
+    int minClusterSize = 50;
+
+    pcl::search::Search<pcl::PointXYZRGB>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZRGB>);
+    pcl::RegionGrowingRGB<pcl::PointXYZRGB> reg;//创建基于颜色的区域生长分割类的对象
+    reg.setInputCloud(cloud);//设置分割原始点云
+    reg.setIndices(boost::make_shared<pcl::PointIndices>(inputindices));
+    reg.setSearchMethod(tree);//设置搜索方法，最近临搜索
+    reg.setDistanceThreshold(/*10*/distanceThreshold);//设置距离阈值，小于该值的视为邻域点
+    reg.setPointColorThreshold(/*8*/pointColorThreshold);//设置点之间的色差阈值，小于该值的视为一个聚类
+    reg.setRegionColorThreshold(/*15*/regionColorThreshold);//设置聚类之间的色差阈值，小于该值的应用合并算法，合并为同一个聚类
+    reg.setMinClusterSize(/*200*/minClusterSize);//设置聚类中点的数量下限，如果点数量少于该值，应用合并算法，合并到最近临的一个聚类
+
+    reg.extract(jlClusters);
+}
+
 unsigned int pct::colorstr2int(QString c)
 {
     c.remove(' ');

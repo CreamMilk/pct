@@ -400,6 +400,19 @@ void correct()
     std::cout << "铁塔识别数量：" << towerClusters.size() << std::endl;
     std::cout << "其他类别数量：" << jlClusters.size() << std::endl;
 
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr tower_cloud(new pcl::PointCloud<pcl::PointXYZRGB>());
+    for (auto it = towerClusters.begin(); it != towerClusters.end(); ++it)
+    {
+        pcl::PointCloud<pcl::PointXYZRGB>::Ptr temp_cloud(new pcl::PointCloud<pcl::PointXYZRGB>());
+        pcl::ExtractIndices<pcl::PointXYZRGB> extract;
+        extract.setInputCloud(cloud);
+        extract.setIndices(boost::make_shared<std::vector<int>>(it->indices));
+        extract.filter(*temp_cloud);
+        *tower_cloud += *temp_cloud;
+    }
+    pct::io::save_las(tower_cloud, setting.outputdir + "\\towers.las");
+    tower_cloud.reset();
+
     // 电力线上色
     pcl::PointXYZRGB *tmppt;
     for (auto it = lineClusters.begin(); it != lineClusters.end(); ++it)
