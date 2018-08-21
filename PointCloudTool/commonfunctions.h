@@ -11,7 +11,7 @@
 namespace pct
 {
     bool combineTrainXmlFiles(std::vector<std::string> xmls, std::string dst_xml);
-    void sample(std::string inputfile, std::string outputfile, float gridsize);
+    void simple(std::string inputfile, std::string outputfile, float gridsize);
 
     void OutlierRemoval(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, pcl::PointIndicesPtr cloud_indices = nullptr);
     void colorClusters(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, std::vector <pcl::PointIndices>& jlClusters);
@@ -24,6 +24,8 @@ namespace pct
     void getMinMax3D(const pcl::PointCloud<pcl::PointXYZRGB> &cloud, const pcl::PointIndices &indices,
         pcl::PointXYZRGB &min_pt, pcl::PointXYZRGB &max_pt);
     void ExtractGround(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, pcl::PointIndicesPtr cloud_indices, pcl::PointIndicesPtr ground_indices);
+
+    bool likeTower(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, std::vector<uint> indices);
 }
 
 

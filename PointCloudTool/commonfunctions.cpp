@@ -14,6 +14,7 @@
 #include <pcl/segmentation/region_growing_rgb.h>
 #include <pcl/features/normal_3d_omp.h>
 #include <Eigen/src/Core/Matrix.h>
+#include <pcl/filters/voxel_grid.h>
 #include "pctio.h"
 
 bool pct::combineTrainXmlFiles(std::vector<std::string> xmls, std::string dst_xml)
@@ -185,16 +186,22 @@ bool pct::combineTrainXmlFiles(std::vector<std::string> xmls, std::string dst_xm
     return true;
 }
 
-void pct::sample(std::string inputfile, std::string outputfile, float gridsize)
+void pct::simple(std::string inputfile, std::string outputfile, float gridsize)
 {
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
     pct::io::Load_las(cloud, inputfile);
 
-    //均匀采样点云并提取关键点      体素下采样，重心代替
-    pcl::UniformSampling<pcl::PointXYZRGB> uniform_sampling;
-    uniform_sampling.setInputCloud(cloud);  //输入点云
-    uniform_sampling.setRadiusSearch(gridsize);   //设置半径 
-    uniform_sampling.filter(*cloud);   //滤波
+    //    //均匀采样点云并提取关键点      体素下采样，重心代替
+    //    pcl::UniformSampling<pcl::PointXYZRGB> uniform_sampling;
+    //    uniform_sampling.setInputCloud(cloud);  //输入点云
+    //    uniform_sampling.setRadiusSearch(gridsize);   //设置半径 
+    //    uniform_sampling.filter(*cloud);   //滤波
+
+    pcl::VoxelGrid<pcl::PointXYZRGB> grid;
+    grid.setLeafSize(gridsize, gridsize, gridsize);
+    grid.setInputCloud(cloud);
+    grid.filter(*cloud);
+
     pct::io::save_las(cloud, outputfile);
 }
 
@@ -859,4 +866,52 @@ void pct::getMinMax3D(const pcl::PointCloud<pcl::PointXYZRGB> &cloud,
     max_pt.x = fmax_pt.x();
     max_pt.y = fmax_pt.y();
     max_pt.z = fmax_pt.z();
+}
+
+bool pct::likeTower(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, std::vector<uint> indices)
+{
+    float minX = std::numeric_limits<float>::max();
+    float maxX = -std::numeric_limits<float>::max();
+    float minY = std::numeric_limits<float>::max();
+    float maxY = -std::numeric_limits<float>::max();
+    float minZ = std::numeric_limits<float>::max();
+    float maxZ = -std::numeric_limits<float>::max();
+    for (int i = 0; i < indices.size(); ++i)
+    {
+        const float &curX = cloud->at((int)indices[i]).x;
+        if (curX > maxX)
+        {
+            maxX = curX;
+        }
+        if (curX < minX)
+        {
+            minX = curX;
+        }
+        const float &curY = cloud->at((int)indices[i]).y;
+        if (curY > maxY)
+        {
+            maxY = curY;
+        }
+        if (curY < minY)
+        {
+            minY = curY;
+        }
+        const float &curZ = cloud->at((int)indices[i]).z;
+        if (curZ > maxZ)
+        {
+            maxZ = curZ;
+        }
+        if (curZ < minZ)
+        {
+            minZ = curZ;
+        }
+    }
+
+    float subx = maxX - minX;
+    float suby = maxY - minY;
+    float subz = maxZ - minZ;
+    if (subz > subx && subz > suby && subz > 10)
+        return true;
+    else
+        return false;
 }

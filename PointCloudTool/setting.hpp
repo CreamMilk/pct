@@ -102,6 +102,7 @@ namespace pct
         int method; //分类处理方法 [int]
         float gridsize;
     };
+  
 }
 
 #endif

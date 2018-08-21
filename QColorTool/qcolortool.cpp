@@ -8,6 +8,7 @@
 #include <pcl/filters/extract_indices.h>
 #include <pcl/PointIndices.h>
 #include <vtkEventQtSlotConnect.h>
+#include <pcl/filters/voxel_grid.h>
 
 QMutex QColorTool::operaing_;
 
@@ -285,10 +286,15 @@ void QColorTool::on_simple()
 
 
     //均匀采样点云并提取关键点      体素下采样，重心代替
-    pcl::UniformSampling<pcl::PointXYZRGB> uniform_sampling;
-    uniform_sampling.setInputCloud(cloud_);  //输入点云
-    uniform_sampling.setRadiusSearch(leaf);   //设置半径 model_ss_初值是0.01可以通过agv修改
-    uniform_sampling.filter(*cloud_);   //滤波
+//     pcl::UniformSampling<pcl::PointXYZRGB> uniform_sampling;
+//     uniform_sampling.setInputCloud(cloud_);  //输入点云
+//     uniform_sampling.setRadiusSearch(leaf);   //设置半径 model_ss_初值是0.01可以通过agv修改
+//     uniform_sampling.filter(*cloud_);   //滤波
+    pcl::VoxelGrid<pcl::PointXYZRGB> grid;
+    grid.setLeafSize(leaf, leaf, leaf);
+    grid.setInputCloud(cloud_);
+    grid.filter(*cloud_);
+
 
     CleanSelects();
     ui.view->UpdateView(true);

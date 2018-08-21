@@ -16,7 +16,7 @@ void save_las(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, std::string path);
 
 int main(int argc, char *argv[])
 {
-    boost::program_options::options_description opts("pointcloud tool sample");
+    boost::program_options::options_description opts("pointcloud tool simple");
     boost::program_options::variables_map vm;
 
     opts.add_options()
