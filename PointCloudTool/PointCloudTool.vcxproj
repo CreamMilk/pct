@@ -153,6 +153,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Classification\Point_set_item_classification.cpp" />
+    <ClCompile Include="kdtree.cpp" />
     <ClCompile Include="pctClassification.cpp" />
     <ClCompile Include="pctio.cpp" />
     <ClCompile Include="main.cpp" />
@@ -172,6 +173,8 @@
   <ItemGroup>
     <ClInclude Include="Classification\Item_classification_base.h" />
     <ClInclude Include="Classification\Point_set_item_classification.h" />
+    <ClInclude Include="dbscan.h" />
+    <ClInclude Include="kdtree.h" />
     <ClInclude Include="mydef.h" />
     <ClInclude Include="pctClassification.h" />
     <ClInclude Include="commonfunctions.h" />
