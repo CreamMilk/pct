@@ -7,10 +7,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PointCloudTool", "PointClou
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "QColorTool", "QColorTool\QColorTool.vcxproj", "{B12702AD-ABFB-343A-A199-8E24837244A3}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "QtGuiApplication1", "QtGuiApplication1\QtGuiApplication1.vcxproj", "{41D06577-19CB-4546-9764-CE122D4064F3}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ConsoleApplication1", "ConsoleApplication1\ConsoleApplication1.vcxproj", "{7997FE8E-1A97-4466-A154-D6F981705FE1}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Mixed Platforms = Debug|Mixed Platforms
@@ -43,27 +39,6 @@ Global
 		{B12702AD-ABFB-343A-A199-8E24837244A3}.Release|Win32.ActiveCfg = Release|x64
 		{B12702AD-ABFB-343A-A199-8E24837244A3}.Release|x64.ActiveCfg = Release|x64
 		{B12702AD-ABFB-343A-A199-8E24837244A3}.Release|x64.Build.0 = Release|x64
-		{41D06577-19CB-4546-9764-CE122D4064F3}.Debug|Mixed Platforms.ActiveCfg = Debug|x64
-		{41D06577-19CB-4546-9764-CE122D4064F3}.Debug|Mixed Platforms.Build.0 = Debug|x64
-		{41D06577-19CB-4546-9764-CE122D4064F3}.Debug|Win32.ActiveCfg = Debug|x64
-		{41D06577-19CB-4546-9764-CE122D4064F3}.Debug|x64.ActiveCfg = Debug|x64
-		{41D06577-19CB-4546-9764-CE122D4064F3}.Debug|x64.Build.0 = Debug|x64
-		{41D06577-19CB-4546-9764-CE122D4064F3}.Release|Mixed Platforms.ActiveCfg = Release|x64
-		{41D06577-19CB-4546-9764-CE122D4064F3}.Release|Mixed Platforms.Build.0 = Release|x64
-		{41D06577-19CB-4546-9764-CE122D4064F3}.Release|Win32.ActiveCfg = Release|x64
-		{41D06577-19CB-4546-9764-CE122D4064F3}.Release|x64.ActiveCfg = Release|x64
-		{41D06577-19CB-4546-9764-CE122D4064F3}.Release|x64.Build.0 = Release|x64
-		{7997FE8E-1A97-4466-A154-D6F981705FE1}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
-		{7997FE8E-1A97-4466-A154-D6F981705FE1}.Debug|Mixed Platforms.Build.0 = Debug|Win32
-		{7997FE8E-1A97-4466-A154-D6F981705FE1}.Debug|Win32.ActiveCfg = Debug|Win32
-		{7997FE8E-1A97-4466-A154-D6F981705FE1}.Debug|Win32.Build.0 = Debug|Win32
-		{7997FE8E-1A97-4466-A154-D6F981705FE1}.Debug|x64.ActiveCfg = Debug|Win32
-		{7997FE8E-1A97-4466-A154-D6F981705FE1}.Release|Mixed Platforms.ActiveCfg = Release|Win32
-		{7997FE8E-1A97-4466-A154-D6F981705FE1}.Release|Mixed Platforms.Build.0 = Release|Win32
-		{7997FE8E-1A97-4466-A154-D6F981705FE1}.Release|Win32.ActiveCfg = Release|Win32
-		{7997FE8E-1A97-4466-A154-D6F981705FE1}.Release|Win32.Build.0 = Release|Win32
-		{7997FE8E-1A97-4466-A154-D6F981705FE1}.Release|x64.ActiveCfg = Release|Win32
-		{7997FE8E-1A97-4466-A154-D6F981705FE1}.Release|x64.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
