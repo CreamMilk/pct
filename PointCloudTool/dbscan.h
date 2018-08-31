@@ -22,13 +22,13 @@
 #include <functional>
 
 
-#if TRUE
+
 /* 
 * @author: Scott Deming, John Tsiombikas
 * @github:https://github.com/sdeming/kdtree
 */
 #include "kdtree.h"
-#endif
+
 
 typedef unsigned int uint;
 
@@ -93,9 +93,9 @@ private:
     uint                _datadim;
 
     DistanceFunc        _disfunc;
-#if TRUE
+
     kdtree*             _kdtree;
-#endif //!BRUTEFORCE
+
 
     std::vector<T>*     _data;  //Not owner, just holder, no responsible for deallocate
 
@@ -128,10 +128,8 @@ int DBSCAN<T, Float>::Run(
     this->_epsilon = eps;
     this->_datadim = dim;
 
-#if FALSE
-#else
+
 this->buildKdtree(this->_data);
-#endif // !BRUTEFORCE
 
 
     for (uint pid = 0; pid < this->_datalen; ++pid) {
@@ -162,10 +160,8 @@ this->buildKdtree(this->_data);
         }
     }
 
-#if FALSE
-#else
+
     this->destroyKdtree();
-#endif // !BRUTEFORCE
     
     return ERROR_TYPE::SUCCESS;
 
@@ -198,11 +194,7 @@ std::vector<uint> DBSCAN<T, Float>::regionQuery(const uint pid) const {
 
     std::vector<uint> neighbors;
 
-#if FALSE //brute force  O(n^2)
-    for (uint i = 0; i < this->_data->size(); ++i)
-        if (i != pid &&  this->_disfunc((*this->_data)[pid], (*this->_data)[i]) < this->_epsilon)
-            neighbors.push_back(i);
-#else //kdtree
+
     std::unique_ptr<double[]> v(new double[this->_datadim]);
     for (uint c = 0; c < this->_datadim; ++c) {
         v[c] = (double)((*this->_data)[pid][c]);
@@ -219,7 +211,6 @@ std::vector<uint> DBSCAN<T, Float>::regionQuery(const uint pid) const {
     }
     kd_res_free(presults);
 
-#endif // !BRUTEFORCE
     
     return neighbors;
 }

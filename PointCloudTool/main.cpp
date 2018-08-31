@@ -21,7 +21,7 @@
 #include "setting.hpp"
 #include "pctio.h"
 #include "mydef.h"
-#include "dbscan.h"
+
 
 #ifdef _WIN32
 #include <process.h>
@@ -35,7 +35,6 @@ bool ParserCmdline(int argc, char *argv[]);
 bool train();
 bool classif();
 void correct();
-void simple(std::string inputfile, std::string outputfile);
 
 int main(int argc, char *argv[])
 {
@@ -54,6 +53,8 @@ int main(int argc, char *argv[])
 
     // 分类
     classif();
+
+    // 提取铁塔与电力线。
     correct();
 
     return EXIT_SUCCESS;
@@ -73,6 +74,8 @@ bool ParserCmdline(int argc, char *argv[])
         ("retrain", boost::program_options::value<bool>(), "重新训练样本 [bool]")
         ("method", boost::program_options::value<int>(), "分类方法 [int] 0-普通 1-平滑 2-非常平滑")
         ("gridsize", boost::program_options::value<float>(), "叶节点尺寸 [float]")
+        ("dbscaneps", boost::program_options::value<float>(), "密度聚类时考虑计算范围 [float]")
+        ("dbscanmin", boost::program_options::value<int>(), "密度聚类时最小聚类数量 [int]")
         ("help", "帮助");
 
     try{
@@ -126,6 +129,10 @@ bool ParserCmdline(int argc, char *argv[])
         setsettingitem(method, int, false, 0);
 
         setsettingitem(gridsize, float, false, 0.3);
+
+        setsettingitem(dbscanmin, int, false, 30);
+
+        setsettingitem(dbscaneps, float, false, 1.f);
     }
 
     return true;
@@ -292,19 +299,16 @@ void correct()
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
     pct::io::Load_las(src_cloud, inputfile);
     std::cout << "离群点过滤" << std::endl;
-    pct::OutlierRemoval(src_cloud);
+    //pct::OutlierRemoval(src_cloud);
 
-    // 聚类
+    // 因为cgal分类结果是整体的，并不能把每个个体提取出来
     std::vector <pcl::PointIndices> jlClusters;
     std::vector <pcl::PointIndices> lineClusters;
     std::vector <pcl::PointIndices> towerClusters;
     pct::io::save_las(src_cloud, setting.outputdir + "\\cgalclassif.las");
 
 
-
-
-
-    std::cout << "提取地面点" << std::endl;
+    // 提取地面点索引
     pcl::PointIndicesPtr cloud_indices(new pcl::PointIndices);
     pcl::PointIndicesPtr ground_indices(new pcl::PointIndices);
     pct::ExtractGround(src_cloud, cloud_indices, ground_indices);
@@ -314,63 +318,14 @@ void correct()
     pcl::ExtractIndices<pcl::PointXYZRGB> extract;
     extract.setInputCloud(src_cloud);
     extract.setIndices(ground_indices);
-    std::cout << "提取地面点开始" << std::endl;
     extract.filter(*ground);
-    std::cout << "提取地面点结束" << std::endl;
+
+    // 粗略的找出铁塔
+    std::vector<std::vector<int>>  clusters;
+    pct::FindLikeTower(src_cloud, cloud_indices, clusters, setting.dbscaneps, setting.dbscanmin);
 
 
-    struct vec2f {
-        float data[2];
-        vec2f(float x, float y){ data[0] = x; data[1] = y; };
-        float operator[](int idx) const { return data[idx]; }
-    };
-
-    auto dbscan = DBSCAN<vec2f, float>();
-
-    auto data = std::vector<vec2f>();
-    for (int i = 0; i < cloud_indices->indices.size(); ++i)
-    {
-        data.push_back(vec2f(src_cloud->at(cloud_indices->indices[i]).x, src_cloud->at(cloud_indices->indices[i]).y));
-    }
-
-
-    //参数：数据， 维度（二维）， 考虑半径， 聚类最小
-    dbscan.Run(&data, 2, 1.0f, 30);
-    auto noise = dbscan.Noise;
-    auto clusters = dbscan.Clusters;
-
-    
-    for (auto it = dbscan.Noise.begin(); it != dbscan.Noise.end(); ++it)
-    {
-        *it = cloud_indices->indices[*it];
-    }
-    for (auto it = clusters.begin(); it != clusters.end(); ++it)
-    {
-        for (auto itt = it->begin(); itt != it->end(); ++itt)
-        {
-            *itt = cloud_indices->indices[*itt];
-        }
-    }
-
-
-    std::cout<< "高密度区域数量" <<  clusters.size() << std::endl;
-    for (auto it = clusters.begin(); it != clusters.end();)
-    {
-        if (!pct::likeTower(src_cloud, *it))
-        {
-            dbscan.Noise.insert(dbscan.Noise.end(), it->begin(), it->end());
-            it = clusters.erase(it);
-        }
-        else
-            ++it;
-    }
-
-    cloud_indices->indices.clear();
-    for (int i = 0; i < dbscan.Noise.size(); ++i)
-    {
-        cloud_indices->indices.push_back(dbscan.Noise[i]);
-    }
-
+    // 再对剩余的点颜色聚类
     pct::colorClusters(src_cloud, *cloud_indices, jlClusters);
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr tmpcloud(new pcl::PointCloud<pcl::PointXYZRGB>);
     pcl::copyPointCloud(*src_cloud, *tmpcloud);
@@ -400,11 +355,9 @@ void correct()
     }
     pct::io::save_las(tmpcloud, setting.outputdir + "\\pcljl.las");
     tmpcloud.reset();
-   ///////////////
     std::cout << "聚类数量：" << jlClusters.size() << std::endl;
 
-
-
+    // 电力线提取
     // 聚类结果是否含有70%以上的电力线点，如果是，就说明是电力线点
     for (auto it = jlClusters.begin(); it != jlClusters.end(); )
     {
@@ -421,8 +374,6 @@ void correct()
         }
         ++it;
     }
-
-    
     std::cout << "电力线识别数量：" << lineClusters.size() << std::endl;
 
 
@@ -456,7 +407,7 @@ void correct()
         if (insrt_size >= tower_intersectline_threshold)  // 有3根电力线和他相交了，基本可以确定他就是铁塔了
         {
             towerClusters.push_back(*it);
-            jlClusters.erase(it++);
+            it = jlClusters.erase(it);
         }
         else
         {
@@ -515,8 +466,6 @@ void correct()
             tmppt->b = 0;
         }
     }
-
-
 
     pct::io::save_las(src_cloud, outputfile);
     std::cout << "correct end：" << inputfile << std::endl;

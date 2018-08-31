@@ -18,6 +18,7 @@ namespace pct
     private:
         Setting()
             :gridsize(0)
+            , dbscaneps(0)
         {
             // 获得程序目录
             char *tmpstr;
@@ -101,8 +102,12 @@ namespace pct
         bool retrain; //重新训练样本 [bool]
         int method; //分类处理方法 [int]
         float gridsize;
+        int dbscanmin;
+        float dbscaneps;
     };
   
+
+
 }
 
 #endif
