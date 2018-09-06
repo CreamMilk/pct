@@ -18,7 +18,6 @@ namespace pct
     private:
         Setting()
             :gridsize(0)
-            , dbscaneps(0)
         {
             // 获得程序目录
             char *tmpstr;
@@ -96,16 +95,16 @@ namespace pct
         std::string appdir;
 
         // 命令行参数
+        std::string cmdtype;
         std::string inputfile; //点云路径｛*.las *.xyz *.ply｝
         std::string outputdir; //样本文件目录 <dir>
         std::string classdir; //输出结果目录 [dir]
-        bool retrain; //重新训练样本 [bool]
         int method; //分类处理方法 [int]
         float gridsize;
-        int dbscanmin;
-        float dbscaneps;
+        
     };
   
+
 
 
 }

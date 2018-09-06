@@ -7,6 +7,8 @@
 	"budding":"245, 121, 0",
 	"power_line":"255, 255, 0",
 	"tower":"136, 138, 133",
-	"unselect":"1, 1, 1"
+	"unselect":"1, 1, 1",
+	"crash_line":"255,0,0",
+	"crash_other":"255,0,0"
   }
 }

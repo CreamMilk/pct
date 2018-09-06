@@ -11,6 +11,8 @@
 
 namespace pct
 {
+    std::string GetExeName();
+    std::string GetExePath();
     bool combineTrainXmlFiles(std::vector<std::string> xmls, std::string dst_xml);
     void simple(std::string inputfile, std::string outputfile, float gridsize);
 
@@ -30,7 +32,9 @@ namespace pct
     bool likeTower(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, std::vector<int> indices);
     void FindLikeTower(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud, pcl::PointIndicesPtr cloud_indices, std::vector<std::vector<int>> &clusters, float dbscaneps, int dbscanmin);
     void ouShiFenGe(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud, const std::vector<int> &indeces, std::vector<pcl::PointIndices>& cluster_indices, double k);
+    void ouShiFenGe(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud, std::vector<pcl::PointIndices>& cluster_indices, double k);
     void deleteObbErrorPoints(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud, std::vector<int> &indeces, std::set<int> &error_points);
+    
 }
 
 

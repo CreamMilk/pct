@@ -21,7 +21,7 @@
 #include "setting.hpp"
 #include "pctio.h"
 #include "mydef.h"
-
+#include "DangerousDistanceCheck.h"
 
 #ifdef _WIN32
 #include <process.h>
@@ -29,15 +29,28 @@
 #include <unistd.h>
 #endif
 
+#include <vtkOutputWindow.h>
+#include <QVTKOpenGLWidget.h>
+#include <vtkOpenGLRenderWindow.h>
+#include <QSurfaceFormat>
 
 //#pragma comment( linker, "/subsystem:\"windows\" /entry:\"mainCRTStartup\"" )  // 隐藏程序
 bool ParserCmdline(int argc, char *argv[]);
 bool train();
 bool classif();
 void correct();
+void correct(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud, pcl::PointIndicesPtr ground_indices, std::vector <pcl::PointIndices>& jlClusters, std::vector <pcl::PointIndices>& lineClusters, std::vector <pcl::PointIndices>& towerClusters);
+bool ReadyTrainOpts(pct::Setting& setting, boost::program_options::variables_map &vm);
+bool ReadyClassifOpts(pct::Setting& setting, boost::program_options::variables_map &vm);
+bool ReadyDistancecheckOpts(pct::Setting& setting, boost::program_options::variables_map &vm);
+void checkLinesDistanceDangerous(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud,  pcl::PointIndicesPtr ground_indices, std::vector <pcl::PointIndices>& otheCluster, std::vector <pcl::PointIndices>& lineClusters, std::vector <pcl::PointIndices>& towerClusters, double dangerousDistance);
 
 int main(int argc, char *argv[])
 {
+    QSurfaceFormat::setDefaultFormat(QVTKOpenGLWidget::defaultFormat());
+    vtkOutputWindow::SetGlobalWarningDisplay(0);
+    vtkOpenGLRenderWindow::SetGlobalMaximumNumberOfMultiSamples(8); //1     
+
     srand((unsigned)time(NULL));
     const pct::Setting & setting = pct::Setting::ins();
     if (false == ParserCmdline(argc, argv))
@@ -45,37 +58,147 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    // 如果训练文件为空,或者要求重新训练
-    if (_access((setting.classdir + "\\config.xml").c_str(), 0) == -1 || setting.retrain)
+
+    if (setting.cmdtype == "train")
     {
         train();
     }
+    else if (setting.cmdtype == "classif")
+    {
+        classif();
+        correct();
+    }
+    else if (setting.cmdtype == "distancecheck")
+    {
+        classif();
+        const pct::Setting & setting = pct::Setting::ins();
+        std::string inputfile = setting.outputdir + "\\out.las";
+        pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
+        pct::io::Load_las(src_cloud, inputfile);
+        std::cout << "离群点过滤" << std::endl;
+        //pct::OutlierRemoval(src_cloud);
 
-    // 分类
-    classif();
-
-    // 提取铁塔与电力线。
-    correct();
+        // 因为cgal分类结果是整体的，并不能把每个个体提取出来
+        pcl::PointIndicesPtr ground_indices(new pcl::PointIndices);
+        std::vector <pcl::PointIndices> otheCluster;
+        std::vector <pcl::PointIndices> lineClusters;
+        std::vector <pcl::PointIndices> towerClusters;
+       
+        correct(src_cloud, ground_indices, otheCluster, lineClusters, towerClusters);
+        checkLinesDistanceDangerous(src_cloud, ground_indices, otheCluster, lineClusters, towerClusters, 5);
+    }
+    else
+    {
+        return EXIT_FAILURE;
+    }
+    
 
     return EXIT_SUCCESS;
 }
 
+void checkLinesDistanceDangerous(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud,
+    pcl::PointIndicesPtr ground_indices,
+    std::vector <pcl::PointIndices>& otheCluster,
+    std::vector <pcl::PointIndices>& lineClusters,
+    std::vector <pcl::PointIndices>& towerClusters,
+    double dangerousDistance)
+{
+    DangerousDistanceCheck ddc;
+    ddc.setData(src_cloud 
+        , ground_indices
+        , otheCluster
+        , lineClusters
+        , towerClusters
+        , dangerousDistance);
+    ddc.TooNearCheck();
+    std::cout << "TooNearCheck endl." << std::endl;
+    ddc.showNearCheck();
+}
+
+bool ReadyTrainOpts(pct::Setting& setting, boost::program_options::variables_map &vm)
+{
+    setsettingitem(classdir, std::string, true, "");
+    if (!boost::filesystem::exists(classdir) || !boost::filesystem::is_directory(classdir)) //如果文件夹不存在，或者不是文件夹
+    {
+        std::cout << "选项classdir文件夹路径错误！" << std::endl;
+        std::cout << classdir << std::endl;
+        return false;
+    }
+    setsettingitem(gridsize, float, false, 0.3);
+
+    return true;
+}
+
+bool ReadyClassifOpts(pct::Setting& setting, boost::program_options::variables_map &vm)
+{
+    setsettingitem(inputfile, std::string, true, "");
+    boost::filesystem::path path_file(inputfile);
+    boost::filesystem::path path_dir(path_file.parent_path().string());
+
+    if (!boost::filesystem::exists(path_file) || !boost::filesystem::is_regular_file(path_file))
+    {
+        std::cout << "选项inputfile文件路径错误！" << std::endl;
+        std::cout << inputfile << std::endl;
+        return false;
+    }
+
+    setsettingitem(outputdir, std::string, false, path_dir.string() + "\\" + path_file.stem().string());
+    boost::filesystem::path out_dir = boost::filesystem::path(outputdir);
+    if (!boost::filesystem::exists(out_dir))
+    {
+        boost::filesystem::create_directories(out_dir);
+    }
+    if (!boost::filesystem::is_directory(out_dir))
+    {
+        std::cout << "选项outputdir目录错误！" << std::endl;
+        std::cout << outputdir << std::endl;
+        return false;
+    }
+
+    setsettingitem(classdir, std::string, true, "");
+    if (!boost::filesystem::exists(classdir) || !boost::filesystem::is_directory(classdir) || _access((classdir + "\\config.xml").c_str(), 0) == -1) //如果文件夹不存在，或者不是文件夹
+    {
+        std::cout << "样本文件夹中没有训练文件config.xml，请先训练样本！" << std::endl;
+        std::cout << classdir << std::endl;
+        return false;
+    }
+    setsettingitem(method, int, false, 0);
+
+    setsettingitem(gridsize, float, false, 0.3);
+
+    return true;
+}
+
+bool ReadyDistancecheckOpts(pct::Setting& setting, boost::program_options::variables_map &vm)
+{
+    if (!ReadyClassifOpts(setting, vm))
+    {
+        return false;
+    }
+
+    return true;
+}
+
 bool ParserCmdline(int argc, char *argv[])
 {
+    std::string exe_name = pct::GetExeName();
     pct::Setting& setting = pct::Setting::ins();
     // 解析命令行
-    boost::program_options::options_description opts("pointcloud tool options");
     boost::program_options::variables_map vm;
+     boost::program_options::options_description opts("pointcloud tool options"
+         "\n示例："
+         "\n（1）" + exe_name + " --cmdtype train --classdir classdir --gridsize 0.3"
+         "\n（2）" + exe_name + " --cmdtype classif --inputfile inputfile --outputdir outputdir --classdir classdir --method 2"
+         "\n（3）" + exe_name + " --cmdtype distancecheck --inputfile inputfile --outputdir outputdir --classdir classdir --method 2"
+         "\n参数");
 
     opts.add_options()
+        ("cmdtype", boost::program_options::value<std::string>(), "命令类型｛train classif distancecheck｝")
         ("inputfile", boost::program_options::value<std::string>(), "点云路径｛*.las *.xyz *.ply｝")
         ("classdir", boost::program_options::value<std::string>(), "样本文件目录 <dir>")
         ("outputdir", boost::program_options::value<std::string>(), "输出结果目录 [dir]")
-        ("retrain", boost::program_options::value<bool>(), "重新训练样本 [bool]")
         ("method", boost::program_options::value<int>(), "分类方法 [int] 0-普通 1-平滑 2-非常平滑")
         ("gridsize", boost::program_options::value<float>(), "叶节点尺寸 [float]")
-        ("dbscaneps", boost::program_options::value<float>(), "密度聚类时考虑计算范围 [float]")
-        ("dbscanmin", boost::program_options::value<int>(), "密度聚类时最小聚类数量 [int]")
         ("help", "帮助");
 
     try{
@@ -93,46 +216,27 @@ bool ParserCmdline(int argc, char *argv[])
     }
     else
     {
-        setsettingitem(inputfile, std::string, true, ""); 
-        boost::filesystem::path path_file(inputfile);
-        boost::filesystem::path path_dir(path_file.parent_path().string());
-       
-        if (!boost::filesystem::exists(path_file) || !boost::filesystem::is_regular_file(path_file))
+        setsettingitem(cmdtype, std::string, true, "");
+        if (cmdtype == "train")
         {
-            std::cout << "选项inputfile文件路径错误！"  << std::endl; 
-            std::cout <<  inputfile << std::endl;
+            if (!ReadyTrainOpts(setting, vm))
+                return false;
+        }
+        else if (cmdtype == "classif")
+        {
+            if (!ReadyClassifOpts(setting, vm))
+                return false;
+        }
+        else if (cmdtype == "distancecheck")
+        {
+            if (!ReadyDistancecheckOpts(setting, vm))
+                return false;
+        }
+        else
+        {
+            std::cout << "参数cmdtype输入错误" << std::endl;
             return false;
         }
-
-        setsettingitem(outputdir, std::string, false, path_dir.string() + "\\" + path_file.stem().string());
-        boost::filesystem::path out_dir = boost::filesystem::path(outputdir);
-        if (!boost::filesystem::exists(out_dir))
-        {
-            boost::filesystem::create_directories(out_dir);
-        }
-        if (!boost::filesystem::is_directory(out_dir))
-        {
-            std::cout << "选项outputdir目录错误！" << std::endl;
-            std::cout << outputdir << std::endl;
-            return false;
-        }
-
-        setsettingitem(classdir, std::string, true, "");
-        if (!boost::filesystem::exists(classdir) || !boost::filesystem::is_directory(classdir)) //如果文件夹不存在，或者不是文件夹
-        {
-            std::cout << "选项classdir文件夹路径错误！" << std::endl;
-            std::cout << classdir << std::endl;
-            return false;
-        }
-        setsettingitem(retrain, bool, false, false);
-
-        setsettingitem(method, int, false, 0);
-
-        setsettingitem(gridsize, float, false, 0.3);
-
-        setsettingitem(dbscanmin, int, false, 30);
-
-        setsettingitem(dbscaneps, float, false, 1.f);
     }
 
     return true;
@@ -175,9 +279,6 @@ bool train()
                     pct::simple(laspath, tempfile.str(), setting.gridsize);
                     boost::shared_ptr<Scene_points_with_normal_item> scene_item(pct::io::lasload(tempfile.str()));
                     boost::filesystem::remove(boost::filesystem::path(tempfile.str()));
-
-
-                    //boost::shared_ptr<Scene_points_with_normal_item> scene_item(pct::io::lasload(laspath));
 
                     std::cout << "文件：" << lasname << "..." << std::endl;
                     if (scene_item && scene_item->point_set()->check_colors())
@@ -260,8 +361,6 @@ bool classif()
     boost::shared_ptr<Scene_points_with_normal_item> scene_item(pct::io::lasload(tempfile.str()));
     boost::filesystem::remove(boost::filesystem::path(tempfile.str()));
 
-    //boost::shared_ptr<Scene_points_with_normal_item> scene_item(pct::io::lasload(setting.inputfile));
-
     if (scene_item)
     {
         // 计算特征
@@ -291,26 +390,38 @@ void correct()
 {
     const pct::Setting & setting = pct::Setting::ins();
     std::string inputfile = setting.outputdir + "\\out.las";
-    std::string outputfile = setting.outputdir + "\\out.las";
-    const int tower_intersectline_threshold = 3;
-
-    std::cout << "correct begin：" << inputfile << std::endl;
-
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
     pct::io::Load_las(src_cloud, inputfile);
     std::cout << "离群点过滤" << std::endl;
     //pct::OutlierRemoval(src_cloud);
 
     // 因为cgal分类结果是整体的，并不能把每个个体提取出来
-    std::vector <pcl::PointIndices> jlClusters;
+    std::vector <pcl::PointIndices> otheCluster;
     std::vector <pcl::PointIndices> lineClusters;
     std::vector <pcl::PointIndices> towerClusters;
+    pcl::PointIndicesPtr ground_indices(new pcl::PointIndices);
+    correct(src_cloud, ground_indices, otheCluster, lineClusters, towerClusters);
+}
+
+void correct(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud,
+    pcl::PointIndicesPtr ground_indices,
+    std::vector <pcl::PointIndices>& jlClusters,
+    std::vector <pcl::PointIndices>& lineClusters,
+    std::vector <pcl::PointIndices>& towerClusters)
+{
+    const pct::Setting & setting = pct::Setting::ins();
+   
+    std::string outputfile = setting.outputdir + "\\out.las";
+    const int tower_intersectline_threshold = 3;
+
+    std::cout << "correct begin" << std::endl;
+
+
     pct::io::save_las(src_cloud, setting.outputdir + "\\cgalclassif.las");
 
 
     // 提取地面点索引
     pcl::PointIndicesPtr cloud_indices(new pcl::PointIndices);
-    pcl::PointIndicesPtr ground_indices(new pcl::PointIndices);
     pct::ExtractGround(src_cloud, cloud_indices, ground_indices);
     std::cout << "非地面点：" << cloud_indices->indices.size()
         << "地面点：" << ground_indices->indices.size() << std::endl;
@@ -320,41 +431,41 @@ void correct()
     extract.setIndices(ground_indices);
     extract.filter(*ground);
 
-    // 粗略的找出铁塔
-    std::vector<std::vector<int>>  clusters;
-    pct::FindLikeTower(src_cloud, cloud_indices, clusters, setting.dbscaneps, setting.dbscanmin);
+    //// 粗略的找出铁塔
+    //std::vector<std::vector<int>>  clusters;
+    //pct::FindLikeTower(src_cloud, cloud_indices, clusters, setting.dbscaneps, setting.dbscanmin);
 
 
     // 再对剩余的点颜色聚类
     pct::colorClusters(src_cloud, *cloud_indices, jlClusters);
-    pcl::PointCloud<pcl::PointXYZRGB>::Ptr tmpcloud(new pcl::PointCloud<pcl::PointXYZRGB>);
-    pcl::copyPointCloud(*src_cloud, *tmpcloud);
-    pcl::PointXYZRGB *tmppt1;
-    for (auto it = jlClusters.begin(); it != jlClusters.end(); ++it)
-    {
-        unsigned char r = rand() % 256;
-        unsigned char g = rand() % 256;
-        unsigned char b = rand() % 256;
-        for (auto itt = it->indices.begin(); itt != it->indices.end(); ++itt)
-        {
-            tmppt1 = &tmpcloud->at(*itt);
-            tmppt1->r = r;
-            tmppt1->g = g;
-            tmppt1->b = b;
-        }
-    }
-    for (auto it = clusters.begin(); it != clusters.end(); ++it)
-    {
-        for (auto itt = it->begin(); itt != it ->end(); ++itt)
-        {
-            tmppt1 = &tmpcloud->at(*itt);
-            tmppt1->r = 0;
-            tmppt1->g = 0;
-            tmppt1->b = 255;
-        }
-    }
-    pct::io::save_las(tmpcloud, setting.outputdir + "\\pcljl.las");
-    tmpcloud.reset();
+//     pcl::PointCloud<pcl::PointXYZRGB>::Ptr tmpcloud(new pcl::PointCloud<pcl::PointXYZRGB>);
+//     pcl::copyPointCloud(*src_cloud, *tmpcloud);
+//     pcl::PointXYZRGB *tmppt1;
+//     for (auto it = jlClusters.begin(); it != jlClusters.end(); ++it)
+//     {
+//         unsigned char r = rand() % 256;
+//         unsigned char g = rand() % 256;
+//         unsigned char b = rand() % 256;
+//         for (auto itt = it->indices.begin(); itt != it->indices.end(); ++itt)
+//         {
+//             tmppt1 = &tmpcloud->at(*itt);
+//             tmppt1->r = r;
+//             tmppt1->g = g;
+//             tmppt1->b = b;
+//         }
+//     }
+//     for (auto it = clusters.begin(); it != clusters.end(); ++it)
+//     {
+//         for (auto itt = it->begin(); itt != it ->end(); ++itt)
+//         {
+//             tmppt1 = &tmpcloud->at(*itt);
+//             tmppt1->r = 0;
+//             tmppt1->g = 0;
+//             tmppt1->b = 255;
+//         }
+//     }
+//     pct::io::save_las(tmpcloud, setting.outputdir + "\\pcljl.las");
+//     tmpcloud.reset();
     std::cout << "聚类数量：" << jlClusters.size() << std::endl;
 
     // 电力线提取
@@ -431,42 +542,55 @@ void correct()
     tower_cloud.reset();
 
     // 电力线上色
+    unsigned int color = setting.cls_intcolor(power_line_str);
+    unsigned char r = *(((unsigned char *)&color) + 2);
+    unsigned char g = *(((unsigned char *)&color) + 1);
+    unsigned char b = *(((unsigned char *)&color) + 0);
     pcl::PointXYZRGB *tmppt;
     for (auto it = lineClusters.begin(); it != lineClusters.end(); ++it)
     {
         for (auto itt = it->indices.begin(); itt != it->indices.end(); ++itt)
         {
             tmppt = &src_cloud->at(*itt);      //  暂时把电力线的点都弄成红色，方便调试
-            tmppt->r = 255;
-            tmppt->g = 0;
-            tmppt->b = 0;
+            tmppt->r = r;
+            tmppt->g = g;
+            tmppt->b = b;
         }
     }
     // 铁塔上色
+    color = setting.cls_intcolor(tower_str);
+    r = *(((unsigned char *)&color) + 2);
+    g = *(((unsigned char *)&color) + 1);
+    b = *(((unsigned char *)&color) + 0);
     for (auto it = towerClusters.begin(); it != towerClusters.end(); ++it)
     {
         for (auto itt = it->indices.begin(); itt != it->indices.end(); ++itt)
         {
             tmppt = &src_cloud->at(*itt);      //  暂时把电力线的点都弄成红色，方便调试
-            tmppt->r = 0;
-            tmppt->g = 255;
-            tmppt->b = 0;
+            tmppt->r = r;
+            tmppt->g = g;
+            tmppt->b = b;
         }
 
         std::cout << "检测到铁塔聚类，点数为：" << it->indices.size() << std::endl;
     }
     // 其他点上色
+    color = setting.cls_intcolor(ground_str);
+    r = *(((unsigned char *)&color) + 2);
+    g = *(((unsigned char *)&color) + 1);
+    b = *(((unsigned char *)&color) + 0);
     for (auto it = jlClusters.begin(); it != jlClusters.end(); ++it)
     {
         for (auto itt = it->indices.begin(); itt != it->indices.end(); ++itt)
         {
             tmppt = &src_cloud->at(*itt);      //  暂时把电力线的点都弄成红色，方便调试
-            tmppt->r = 0;
-            tmppt->g = 0;
-            tmppt->b = 0;
+            tmppt->r = r;
+            tmppt->g = g;
+            tmppt->b = b;
         }
     }
 
     pct::io::save_las(src_cloud, outputfile);
-    std::cout << "correct end：" << inputfile << std::endl;
+    std::cout << "correct end：" << std::endl;
 }
+

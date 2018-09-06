@@ -25,6 +25,12 @@
     <Filter Include="others">
       <UniqueIdentifier>{b0358458-38d5-4cc9-b84e-11ad4ab66dae}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Generated Files">
+      <UniqueIdentifier>{e7fd6a24-f885-4ce6-99bc-601770815f0a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Generated Files\Release">
+      <UniqueIdentifier>{1c739a5c-1108-47d9-9359-76ba589a5228}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -34,9 +40,6 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="pctio.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="pctClassification.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="Classification\Point_set_item_classification.cpp">
@@ -63,6 +66,18 @@
     <ClCompile Include="kdtree.cpp">
       <Filter>others</Filter>
     </ClCompile>
+    <ClCompile Include="DangerousDistanceCheck.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="QRendView.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="test.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_QRendView.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="setting.hpp">
@@ -72,9 +87,6 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="pctio.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="pctClassification.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="Classification\Item_classification_base.h">
@@ -95,6 +107,9 @@
     <ClInclude Include="kdtree.h">
       <Filter>others</Filter>
     </ClInclude>
+    <ClInclude Include="DangerousDistanceCheck.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="Polyhedron\Scene_item.h">
@@ -102,6 +117,9 @@
     </CustomBuild>
     <CustomBuild Include="Polyhedron\Scene_points_with_normal_item.h">
       <Filter>Polyhedron</Filter>
+    </CustomBuild>
+    <CustomBuild Include="QRendView.h">
+      <Filter>头文件</Filter>
     </CustomBuild>
   </ItemGroup>
 </Project>

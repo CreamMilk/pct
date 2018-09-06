@@ -19,13 +19,71 @@
 #include "pctio.h"
 #include <Geometry/OBB.h>
 #include <pcl/segmentation/extract_clusters.h>
-
+#include <windows.h>
+#include <string.h>
 
 struct ClusterInfo{
     Vector3 center;
     Vector3 min;
     Vector3 max;
 };
+
+/*将str1字符串中第一次出现的str2字符串替换成str3*/
+void replaceFirst(char *str1, char *str2, char *str3)
+{
+    char *str4 = new char[strlen(str1) + 1];
+    char *p;
+    strcpy(str4, str1);
+    if ((p = strstr(str1, str2)) != NULL)/*p指向str2在str1中第一次出现的位置*/
+    {
+        while (str1 != p&&str1 != NULL)/*将str1指针移动到p的位置*/
+        {
+            str1++;
+        }
+        str1[0] = '/0';/*将str1指针指向的值变成/0,以此来截断str1,舍弃str2及以后的内容，只保留str2以前的内容*/
+        strcat(str1, str3);/*在str1后拼接上str3,组成新str1*/
+        strcat(str1, strstr(str4, str2) + strlen(str2));/*strstr(str4,str2)是指向str2及以后的内容(包括str2),strstr(str4,str2)+strlen(str2)就是将指针向前移动strlen(str2)位，跳过str2*/
+    }
+    delete str4;
+}
+/*将str1出现的所有的str2都替换为str3*/
+void replace(char *str1, char *str2, char *str3)
+{
+    while (strstr(str1, str2) != NULL)
+    {
+        replaceFirst(str1, str2, str3);
+    }
+}
+
+std::string pct::GetExePath()
+{
+    std::string exe_path = "";
+    //获取应用程序目录
+    char szapipath[MAX_PATH] = { 0 };//（D:\Documents\Downloads\TEST.exe）
+    GetModuleFileNameA(NULL, szapipath, MAX_PATH);
+    //replace(szapipath, "\\", "/");
+    exe_path = szapipath;
+    return exe_path;
+}
+
+std::string pct::GetExeName()
+{
+    std::string exe_path = "";
+    //获取应用程序目录
+    char szapipath[MAX_PATH] = { 0 };//（D:\Documents\Downloads\TEST.exe）
+    GetModuleFileNameA(NULL, szapipath, MAX_PATH);
+    //获取应用程序名称
+    char szExe[MAX_PATH] = { 0 };//（TEST.exe）
+    char *pbuf = nullptr;
+    char* szLine = strtok_s(szapipath, "\\", &pbuf);
+    while (NULL != szLine)
+    {
+        strcpy_s(szExe, szLine);
+        szLine = strtok_s(NULL, "\\", &pbuf);
+    }
+    exe_path = szExe;
+    return exe_path;
+}
 
 bool pct::combineTrainXmlFiles(std::vector<std::string> xmls, std::string dst_xml)
 {
@@ -1066,6 +1124,26 @@ void pct::ouShiFenGe(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud, const std
     ec.setInputCloud(src_cloud);
     ec.setIndices(boost::make_shared<std::vector<int>>(indeces));
     ec.extract(cluster_indices);          
+}
+
+void pct::ouShiFenGe(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud, std::vector<pcl::PointIndices>& cluster_indices, double k)
+{
+    int       minClusterSize = 0;
+    int       maxClusterSize = 500000000;
+
+    // 讀取文件
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr add_cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
+    // 建立用於提取搜尋方法的kdtree樹物件
+    pcl::search::KdTree<pcl::PointXYZRGB>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZRGB>);
+    tree->setInputCloud(src_cloud);
+
+    pcl::EuclideanClusterExtraction<pcl::PointXYZRGB> ec;
+    ec.setClusterTolerance(k);
+    ec.setMinClusterSize(minClusterSize);
+    ec.setMaxClusterSize(maxClusterSize);
+    ec.setSearchMethod(tree);
+    ec.setInputCloud(src_cloud);
+    ec.extract(cluster_indices);
 }
 
 // 从铁塔数据中删除离群点，移动到普通点中
