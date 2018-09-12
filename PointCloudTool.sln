@@ -7,6 +7,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PointCloudTool", "PointClou
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "QColorTool", "QColorTool\QColorTool.vcxproj", "{B12702AD-ABFB-343A-A199-8E24837244A3}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PdfReport", "PdfReport\PdfReport.vcxproj", "{12306943-310E-41F6-BB7A-A8B572C55FFC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Mixed Platforms = Debug|Mixed Platforms
@@ -39,6 +41,16 @@ Global
 		{B12702AD-ABFB-343A-A199-8E24837244A3}.Release|Win32.ActiveCfg = Release|x64
 		{B12702AD-ABFB-343A-A199-8E24837244A3}.Release|x64.ActiveCfg = Release|x64
 		{B12702AD-ABFB-343A-A199-8E24837244A3}.Release|x64.Build.0 = Release|x64
+		{12306943-310E-41F6-BB7A-A8B572C55FFC}.Debug|Mixed Platforms.ActiveCfg = Debug|x64
+		{12306943-310E-41F6-BB7A-A8B572C55FFC}.Debug|Mixed Platforms.Build.0 = Debug|x64
+		{12306943-310E-41F6-BB7A-A8B572C55FFC}.Debug|Win32.ActiveCfg = Debug|x64
+		{12306943-310E-41F6-BB7A-A8B572C55FFC}.Debug|x64.ActiveCfg = Debug|x64
+		{12306943-310E-41F6-BB7A-A8B572C55FFC}.Debug|x64.Build.0 = Debug|x64
+		{12306943-310E-41F6-BB7A-A8B572C55FFC}.Release|Mixed Platforms.ActiveCfg = Release|x64
+		{12306943-310E-41F6-BB7A-A8B572C55FFC}.Release|Mixed Platforms.Build.0 = Release|x64
+		{12306943-310E-41F6-BB7A-A8B572C55FFC}.Release|Win32.ActiveCfg = Release|x64
+		{12306943-310E-41F6-BB7A-A8B572C55FFC}.Release|x64.ActiveCfg = Release|x64
+		{12306943-310E-41F6-BB7A-A8B572C55FFC}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

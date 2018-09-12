@@ -154,7 +154,6 @@
   <ItemGroup>
     <ClCompile Include="Classification\Point_set_item_classification.cpp" />
     <ClCompile Include="DangerousDistanceCheck.cpp" />
-    <ClCompile Include="GeneratedFiles\Release\moc_QRendView.cpp" />
     <ClCompile Include="kdtree.cpp" />
     <ClCompile Include="pctio.cpp" />
     <ClCompile Include="main.cpp" />
@@ -169,8 +168,6 @@
     <ClCompile Include="Polyhedron\moc_Scene_points_with_normal_item.cpp" />
     <ClCompile Include="Polyhedron\Scene_item.cpp" />
     <ClCompile Include="Polyhedron\Scene_points_with_normal_item.cpp" />
-    <ClCompile Include="QRendView.cpp" />
-    <ClCompile Include="test.cpp" />
     <ClCompile Include="types\vector3.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -198,12 +195,6 @@
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o ".\Polyhedron\moc_%(Filename).cpp"</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing QPowerLineClassification.h...</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\Polyhedron\moc_%(Filename).cpp</Outputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
-    </CustomBuild>
-    <CustomBuild Include="QRendView.h">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o ".\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp"  -DWIN32 -DWIN64 -DQT_NO_DEBUG -DNDEBUG -DQT_CORE_LIB -DQT_GUI_LIB -DQT_WIDGETS_LIB -DQT_OPENGL_LIB -D_MBCS  "-I$(SolutionDir)\..\Dependence\opengl" "-I$(SolutionDir)\..\Dependence\boost_1_67_0" "-I$(SolutionDir)\..\Dependence\pcl-1.8.1\include\pcl-1.8" "-I$(SolutionDir)\..\Dependence\VTK-8.1.1\include\vtk-8.1" "-I$(SolutionDir)\..\Dependence\qhull-2015.2\include" "-I$(SolutionDir)\..\Dependence\flann\include\flann" "-I$(SolutionDir)\..\Dependence\Eigen\include\eigen3" "-I$(SolutionDir)\..\Dependence\flann\include\flann\util" "-I$(SolutionDir)\..\Dependence\flann\include" "-I.\GeneratedFiles" "-I." "-I$(QTDIR)\include" "-I.\GeneratedFiles\$(ConfigurationName)\." "-I$(QTDIR)\include\QtCore" "-I$(QTDIR)\include\QtGui" "-I$(QTDIR)\include\QtWidgets" "-I$(QTDIR)\include\QtOpenGL" "-I$(SolutionDir)\LasTools" "-I$(SolutionDir)\MathGeoLib" "-I$(SolutionDir)\Editor" "-I$(SolutionDir)\..\Dependence\cgal\include"</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing QRendView.h...</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
     </CustomBuild>
     <ClInclude Include="setting.hpp" />

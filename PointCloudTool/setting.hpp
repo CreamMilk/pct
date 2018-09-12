@@ -4,6 +4,7 @@
  #include <boost/property_tree/ptree.hpp>
  #include <boost/property_tree/json_parser.hpp>
  #include <boost/foreach.hpp>
+#include <QStringList>
 
 namespace pct
 {
@@ -53,22 +54,6 @@ namespace pct
         Type value(const std::string &key) const
         {
             return pt.get_optional<Type>(key).value();
-        }
-
-        QColor cls_color(const std::string &cls) const
-        {
-            QString color_str = pt.get_child("classif_color").get_optional<std::string>(cls).value().c_str();
-            color_str.remove(' ');
-            QStringList cl = color_str.split(',');
-
-            if (cl.size() != 3)
-            {
-                return QColor(64 + rand() % 192,  64 + rand() % 192, 64 + rand() % 192);
-            }
-            else
-            {
-                return QColor(cl[0].toInt(), cl[1].toInt(), cl[2].toInt());
-            }
         }
 
         unsigned int cls_intcolor(const std::string &cls) const

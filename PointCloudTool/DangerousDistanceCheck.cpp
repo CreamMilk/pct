@@ -9,6 +9,9 @@
  #include <pcl/filters/voxel_grid.h>
 #include <pcl/common/impl/common.hpp>
  #include "mydef.h"
+#include "setting.hpp"
+#include <vtkRenderer.h>
+#include <vtkRenderWindow.h>
 
  DangerousDistanceCheck::DangerousDistanceCheck()
  :dangerousDistance_(10)
@@ -176,29 +179,6 @@
      extract.filter(*out_cloud);
  }
 
- void DangerousDistanceCheck::LabelCrashLine(pcl::PointCloud<pcl::PointXYZRGB>::Ptr crashPoint, double K, double gap)
- {
-     std::vector<pcl::PointIndices> cluster_indices;
-     pct::ouShiFenGe(crashPoint, cluster_indices, gap);
-     /* QString fmt = QStringLiteral("碰撞位置：x\ty\tz\t范围\n");*/ //vtk不支持中文和\t,网上的几种方法试了，是针对vtk6.0左右的版本，7.0无方法
-
-     Eigen::Vector4f min_pt, max_pt;
-     for (int i = 0; i < cluster_indices.size(); ++i)
-     {
-         pcl::getMinMax3D(*crashPoint, cluster_indices[i], min_pt, max_pt);
-         CollisionBall c;
-         c.cen.x = (min_pt.x() + max_pt.x()) / 2;
-         c.cen.y = (min_pt.y() + max_pt.y()) / 2;
-         c.cen.z = (min_pt.z() + max_pt.z()) / 2;
-         c.radiu = std::max(K, (double)sqrt(pow(min_pt.x() - max_pt.x(), 2) + pow(min_pt.y() - max_pt.y(), 2) + pow(min_pt.z() - max_pt.z(), 2)) / 2);
-         c.id = (QStringLiteral("ball") + QString::number(i)).toLocal8Bit().data();
-         c.description = QString().sprintf("%.1f  %.1f  %.1f  %.1f\n", c.cen.x, c.cen.y, c.cen.z, c.radiu).toStdString();
-         // fmt += QString().sprintf("%.1f  %.1f  %.1f  %.1f\n", c.cen.x, c.cen.y, c.cen.z, c.radiu);
-
-         balls_.push_back(c);
-     }
- }
-
 void DangerousDistanceCheck::TooNearCheck()
 {
      unsigned int cur, sta;
@@ -239,7 +219,7 @@ void DangerousDistanceCheck::TooNearCheck()
      std::cout << "groundObject数量" << groundObject->size() << "\tsrc_cloud数量" << src_cloud_->size() << std::endl;
 
      pcl::PointCloud<pcl::PointXYZRGB>::Ptr allCrashPoint(new pcl::PointCloud<pcl::PointXYZRGB>);
- 
+     std::vector<std::tuple<pcl::PointXYZRGB, pcl::PointXYZRGB, double, unsigned int>> all_crash_point_distance;
      std::set<int> redLine;
  #pragma omp parallel for
      for (int i = 0; i < lineClusters_.size(); ++i)
@@ -250,8 +230,10 @@ void DangerousDistanceCheck::TooNearCheck()
  
          pcl::KdTreeFLANN<pcl::PointXYZRGB> groundkdtree;
          groundkdtree.setInputCloud(ground);
+         groundkdtree.setSortedResults(true);
          pcl::KdTreeFLANN<pcl::PointXYZRGB> objectkdtree;
          objectkdtree.setInputCloud(groundObject);
+         objectkdtree.setSortedResults(true);
          pcl::KdTreeFLANN<pcl::PointXYZRGB> linekdtree;
          linekdtree.setInputCloud(line);
  
@@ -272,14 +254,16 @@ void DangerousDistanceCheck::TooNearCheck()
          std::set<int> line_groundindices;
          std::set<int> line_objectindices;
  
+ 
          // 得到此根线的最大相交范围点
+         std::vector<std::tuple<pcl::PointXYZRGB, pcl::PointXYZRGB, double, unsigned int>> crash_point_distance;
          pcl::PointCloud<pcl::PointXYZRGB>::Ptr crashPoint(new  pcl::PointCloud<pcl::PointXYZRGB>);
          for (int j = 0; j < serachLine->size(); ++j)
          {
              serachNum = groundkdtree.radiusSearch(serachLine->at(j), K, groundindices, groundsqr_distances) + objectkdtree.radiusSearch(serachLine->at(j), K, objectindices, objectsqr_distances);
              if (serachNum)
              {
-                 linekdtree.radiusSearch(serachLine->at(j), leafSize * 2, lineindices, line_distances);;
+                 linekdtree.radiusSearch(serachLine->at(j), leafSize * 2, lineindices, line_distances);
                  for (int k = 0; k < lineindices.size(); ++k)
                  {
  #pragma omp critical 
@@ -291,6 +275,27 @@ void DangerousDistanceCheck::TooNearCheck()
                          src_cloud_->at(lineClusters_[i].indices[lineindices[k]]).b = crash_line_b;
                      }
                  }
+
+                 // 记录最近碰撞点， 判断隐患类型
+                 pcl::PointXYZRGB crash_linept, crash_otherpt;
+                 unsigned int crash_type;
+                 int min_dis = std::numeric_limits<int>::max();
+                 if (groundsqr_distances.size())
+                 {
+                     crash_type = crash_type | (unsigned int)CrashType::Ground  ;
+                     min_dis = groundsqr_distances[0];
+                     crash_otherpt = ground->at(groundindices[0]);
+                 }
+                 if (objectsqr_distances.size() && objectsqr_distances[0] < min_dis)
+                 {
+                     crash_type = crash_type|(unsigned int)CrashType::Other ;
+                     min_dis = objectsqr_distances[0];
+                     crash_otherpt = groundObject->at(objectindices[0]);
+                 }
+                 crash_linept = serachLine->at(j);
+                 crash_point_distance.push_back(make_tuple(serachLine->at(j), crash_otherpt, pct::Distance3d(crash_linept, crash_otherpt), crash_type));
+
+                 // 保存碰撞点
                  crashPoint->push_back(serachLine->at(j));
                  for (int k = 0; k < groundindices.size(); ++k)
                  {
@@ -310,6 +315,7 @@ void DangerousDistanceCheck::TooNearCheck()
  #pragma omp critical  
              {
                  allCrashPoint->insert(allCrashPoint->end(), crashPoint->begin(), crashPoint->end());
+                 all_crash_point_distance.insert(all_crash_point_distance.end(), crash_point_distance.begin(), crash_point_distance.end());
                  for (std::set<int>::iterator it = line_groundindices.begin(); it != line_groundindices.end(); ++it)
                  {
                      pcl::PointXYZRGB &tmp_pt = src_cloud_->at(ground_indices_->indices[*it]);
@@ -319,7 +325,7 @@ void DangerousDistanceCheck::TooNearCheck()
                  }
              }
 
- 
+
              int session = 0;
              int sessionnum = 0;
  #pragma omp critical 
@@ -347,12 +353,65 @@ void DangerousDistanceCheck::TooNearCheck()
          }
      }
      std::cout << "allCrashPoint数量" << allCrashPoint->size() << "\tsrc_cloud数量" << src_cloud_->size() << std::endl;
-     LabelCrashLine(allCrashPoint, dangerousDistance_, gap);
+
+
+     // 合并碰撞点, 计算碰撞结果
+     pcl::KdTreeFLANN<pcl::PointXYZRGB> groundkdtree;
+     groundkdtree.setInputCloud(ground);
+     pcl::KdTreeFLANN<pcl::PointXYZRGB> objectkdtree;
+     objectkdtree.setInputCloud(groundObject);
+     std::vector<int> groundindices;
+     std::vector<float> groundsqr_distances;
+
+     std::vector<pcl::PointIndices> cluster_indices;
+     pct::ouShiFenGe(allCrashPoint, cluster_indices, gap);
+     /* QString fmt = QStringLiteral("碰撞位置：x\ty\tz\t范围\n");*/ //vtk不支持中文和\t,网上的几种方法试了，是针对vtk6.0左右的版本，7.0无方法
+     Eigen::Vector4f min_pt, max_pt;
+     for (int i = 0; i < cluster_indices.size(); ++i)
+     {
+         pcl::getMinMax3D(*allCrashPoint, cluster_indices[i], min_pt, max_pt);
+         CollisionBall c;
+         c.min.x = min_pt.x();
+         c.min.y = min_pt.y();
+         c.min.z = min_pt.z();
+         c.max.x = max_pt.x();
+         c.max.y = max_pt.y();
+         c.max.z = max_pt.z();
+         c.cen.x = (min_pt.x() + max_pt.x()) / 2;
+         c.cen.y = (min_pt.y() + max_pt.y()) / 2;
+         c.cen.z = (min_pt.z() + max_pt.z()) / 2;
+         c.nearst.dis = std::numeric_limits<int>::max();
+
+         int nearst_index = -1;
+         std::tuple<pcl::PointXYZRGB, pcl::PointXYZRGB, double, unsigned int> traverse_tuple;
+         for (int j = 0; j < cluster_indices[i].indices.size(); ++j)
+         {
+             traverse_tuple = all_crash_point_distance[cluster_indices[i].indices[j]];
+             if (std::get<2>(traverse_tuple) < c.nearst.dis)
+             {
+                 c.nearst.dis = std::get<2>(traverse_tuple);
+                 nearst_index = cluster_indices[i].indices[j];
+             }
+         }
+         c.nearst.linept = std::get<0>(all_crash_point_distance[nearst_index]);
+         c.nearst.otherpt = std::get<1>(all_crash_point_distance[nearst_index]);
+         c.nearst.dis = std::get<2>(all_crash_point_distance[nearst_index]);
+         c.nearst.subVec = vec(c.nearst.linept.x, c.nearst.linept.y, c.nearst.linept.z) - vec(c.nearst.otherpt.x, c.nearst.otherpt.y, c.nearst.otherpt.z);
+         c.crashtype = std::get<3>(all_crash_point_distance[nearst_index]);
+         c.overtoplimit = c.nearst.dis / K;
+
+         c.radiu = std::max(K, (double)sqrt(pow(min_pt.x() - max_pt.x(), 2) + pow(min_pt.y() - max_pt.y(), 2) + pow(min_pt.z() - max_pt.z(), 2)) / 2);
+         c.id = (QStringLiteral("ball") + QString::number(i)).toLocal8Bit().data();
+         c.description = QString().sprintf("%.1f  %.1f  %.1f  %.1f\n", c.cen.x, c.cen.y, c.cen.z, c.radiu).toStdString();
+         balls_.push_back(c);
+     }
      std::cout << "balls_数量" << balls_.size() << std::endl;
 }
 
 void DangerousDistanceCheck::showNearCheck()
 {
+    const pct::Setting &setting = pct::Setting::ins();
+    
     boost::shared_ptr<pcl::visualization::PCLVisualizer> view(new pcl::visualization::PCLVisualizer("test"));
     view->setBackgroundColor(1, 1, 1);
 
@@ -385,7 +444,7 @@ void DangerousDistanceCheck::showNearCheck()
     view->addText(counts.str(), 5, 30, 1, 0, 1, std::string("counts"));
     view->addText(minstr.str(), 5, 20, 1, 0, 1, std::string("aabbBoxmin"));
     view->addText(maxstr.str(), 5, 10, 1, 0, 1, std::string("aabbBoxmax"));
-
+    
     view->getRenderWindow()->Render();
-    view->saveScreenshot("bbbbbbbbbbb.png");
+    view->saveScreenshot(setting.outputdir + "\\output_xy.png");
 }

@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
         pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
         pct::io::Load_las(src_cloud, inputfile);
         std::cout << "离群点过滤" << std::endl;
-        //pct::OutlierRemoval(src_cloud);
+        pct::OutlierRemoval(src_cloud);
 
         // 因为cgal分类结果是整体的，并不能把每个个体提取出来
         pcl::PointIndicesPtr ground_indices(new pcl::PointIndices);
@@ -111,8 +111,8 @@ void checkLinesDistanceDangerous(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_clou
         , towerClusters
         , dangerousDistance);
     ddc.TooNearCheck();
-    std::cout << "TooNearCheck endl." << std::endl;
     ddc.showNearCheck();
+    std::cout << "showNearCheck endl." << std::endl;
 }
 
 bool ReadyTrainOpts(pct::Setting& setting, boost::program_options::variables_map &vm)
@@ -375,7 +375,7 @@ bool classif()
         for (BOOST_AUTO(label, labels.begin()); label != labels.end(); ++label)
         {
             labelname_traverse = label->second.get<std::string>("name");
-            classif->add_new_label(labelname_traverse.c_str(), setting.cls_color(labelname_traverse));
+            classif->add_new_label(labelname_traverse.c_str(), setting.cls_intcolor(labelname_traverse));
         }
 
         // 分类
@@ -415,8 +415,6 @@ void correct(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud,
     const int tower_intersectline_threshold = 3;
 
     std::cout << "correct begin" << std::endl;
-
-
     pct::io::save_las(src_cloud, setting.outputdir + "\\cgalclassif.las");
 
 
@@ -431,41 +429,9 @@ void correct(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud,
     extract.setIndices(ground_indices);
     extract.filter(*ground);
 
-    //// 粗略的找出铁塔
-    //std::vector<std::vector<int>>  clusters;
-    //pct::FindLikeTower(src_cloud, cloud_indices, clusters, setting.dbscaneps, setting.dbscanmin);
-
 
     // 再对剩余的点颜色聚类
     pct::colorClusters(src_cloud, *cloud_indices, jlClusters);
-//     pcl::PointCloud<pcl::PointXYZRGB>::Ptr tmpcloud(new pcl::PointCloud<pcl::PointXYZRGB>);
-//     pcl::copyPointCloud(*src_cloud, *tmpcloud);
-//     pcl::PointXYZRGB *tmppt1;
-//     for (auto it = jlClusters.begin(); it != jlClusters.end(); ++it)
-//     {
-//         unsigned char r = rand() % 256;
-//         unsigned char g = rand() % 256;
-//         unsigned char b = rand() % 256;
-//         for (auto itt = it->indices.begin(); itt != it->indices.end(); ++itt)
-//         {
-//             tmppt1 = &tmpcloud->at(*itt);
-//             tmppt1->r = r;
-//             tmppt1->g = g;
-//             tmppt1->b = b;
-//         }
-//     }
-//     for (auto it = clusters.begin(); it != clusters.end(); ++it)
-//     {
-//         for (auto itt = it->begin(); itt != it ->end(); ++itt)
-//         {
-//             tmppt1 = &tmpcloud->at(*itt);
-//             tmppt1->r = 0;
-//             tmppt1->g = 0;
-//             tmppt1->b = 255;
-//         }
-//     }
-//     pct::io::save_las(tmpcloud, setting.outputdir + "\\pcljl.las");
-//     tmpcloud.reset();
     std::cout << "聚类数量：" << jlClusters.size() << std::endl;
 
     // 电力线提取
@@ -486,7 +452,6 @@ void correct(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud,
         ++it;
     }
     std::cout << "电力线识别数量：" << lineClusters.size() << std::endl;
-
 
     std::vector<int> indices;
     std::vector<float> sqr_distances;
@@ -514,7 +479,6 @@ void correct(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud,
                 }
             }
         }
-
         if (insrt_size >= tower_intersectline_threshold)  // 有3根电力线和他相交了，基本可以确定他就是铁塔了
         {
             towerClusters.push_back(*it);
@@ -525,6 +489,7 @@ void correct(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud,
             ++it;
         }
     }
+    pct::MergeTower(src_cloud, ground_indices, jlClusters, lineClusters, towerClusters);
     std::cout << "铁塔识别数量：" << towerClusters.size() << std::endl;
     std::cout << "其他类别数量：" << jlClusters.size() << std::endl;
 
@@ -571,11 +536,10 @@ void correct(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud,
             tmppt->g = g;
             tmppt->b = b;
         }
-
         std::cout << "检测到铁塔聚类，点数为：" << it->indices.size() << std::endl;
     }
     // 其他点上色
-    color = setting.cls_intcolor(ground_str);
+    color = setting.cls_intcolor(veget_str);
     r = *(((unsigned char *)&color) + 2);
     g = *(((unsigned char *)&color) + 1);
     b = *(((unsigned char *)&color) + 0);

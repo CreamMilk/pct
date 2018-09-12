@@ -267,8 +267,12 @@ class Point_set_item_classification : public Item_classification_base
   }
 
   // Ìí¼ÓÐÂ±êÇ©
-  QColor add_new_label(const char* name, QColor c)
+  QColor add_new_label(const char* name, unsigned int color)
   {
+      QColor c;
+      c.setRed(*(((unsigned char *)&color) + 2)) ;
+      c.setGreen(*(((unsigned char *)&color) + 1));
+      c.setBlue(*(((unsigned char *)&color) + 0));
       QColor out = Item_classification_base::add_new_label(name, c);
       update_comments_of_point_set_item();
       return out;

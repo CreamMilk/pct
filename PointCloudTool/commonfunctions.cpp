@@ -988,6 +988,19 @@ ClusterInfo getClusterInfo(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, std::ve
     return info;
 }
 
+ClusterInfo getClusterInfo(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud)
+{
+    std::vector<int> indices(cloud->size());
+    for (int i = 0; i < indices.size(); ++i)
+    {
+        indices[i] = i;
+    }
+    ClusterInfo info;
+    getMinMax(cloud, indices, info.min, info.max);
+    info.center = (info.min + info.max) / 2;
+    return info;
+}
+
 bool pct::likeTower(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, std::vector<int> indices)
 {
     float minX = std::numeric_limits<float>::max();
@@ -1175,6 +1188,253 @@ void pct::deleteObbErrorPoints(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud,
     }
 }
 
+void pct::deleteObbErrorPoints(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud, std::vector<int> &indeces, std::vector <pcl::PointIndices> &error_points)
+{
+    double k = 2;
+
+    std::vector<pcl::PointIndices> cluster_indices;
+    pct::ouShiFenGe(src_cloud, indeces, cluster_indices, k);
+    int max_index = -1;
+    int max_cluster_size = -1;
+    for (int i = 0; i < cluster_indices.size(); ++i)
+    {
+        if ((int)cluster_indices[i].indices.size() > max_cluster_size)
+        {
+            max_index = i;
+            max_cluster_size = cluster_indices[i].indices.size();
+        }
+    }
+    indeces = cluster_indices[max_index].indices;
+
+
+    for (int i = 0; i < cluster_indices.size(); ++i)
+    {
+        if (max_index != i)
+        {
+            error_points.push_back(cluster_indices[i]);
+        }
+    }
+}
+
+void pct::MergeTower(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud, 
+    pcl::PointIndicesPtr ground_indices,
+    std::vector <pcl::PointIndices>& jlClusters,
+    std::vector <pcl::PointIndices>& lineClusters,
+    std::vector <pcl::PointIndices>& towerClusters)
+{
+    ClusterInfo cloud_info = getClusterInfo(src_cloud);
+    for (int i = 0; i < (int)towerClusters.size() - 1; ++i)
+    {
+        ClusterInfo infoi = getClusterInfo(src_cloud, towerClusters[i].indices);
+        for (int j = i + 1; j < towerClusters.size(); ++j)
+        {
+            if (!towerClusters[i].indices.size())
+                break;
+            if (!towerClusters[j].indices.size())
+                continue;
+
+            ClusterInfo infoj = getClusterInfo(src_cloud, towerClusters[j].indices);
+            double dis = Distance2d(infoi.max.x, infoi.max.y, infoj.max.x, infoj.max.y);
+            if (dis < 20 && std::abs(infoi.max.z - infoj.max.z) < 2)
+            {
+                std::cout << "合并两个铁塔的距离" << dis << "<20" << std::endl;
+                towerClusters[j].indices.insert(towerClusters[j].indices.end(), towerClusters[i].indices.begin(), towerClusters[i].indices.end());
+                towerClusters[i].indices.clear();
+            }
+        }
+    }
+    std::cout << "合并铁塔   条件：距离小于20米，且高度相差不到两米" << std::endl;
+
+    // 删除空的，去除重复的
+    for (auto it = towerClusters.begin(); it != towerClusters.end();)
+    {
+        if ((*it).indices.size() == 0)
+            it = towerClusters.erase(it);
+        else
+        {
+            delRepeat(it->indices);
+            ++it;
+        }
+    }
+
+    std::cout << "铁塔个数" << towerClusters.size() << std::endl;
+
+
+    // 计算铁塔obb， 
+    double subz = cloud_info.max.z - cloud_info.min.z;
+    std::vector<std::vector < int >> del_vec(towerClusters.size(), std::vector <int >());
+#pragma omp parallel for
+    for (int i = 0; i < towerClusters.size(); ++i)
+    {
+        // 初始化obb计算所需要的参数
+        int ptct = towerClusters[i].indices.size();
+        boost::shared_ptr<vec> points(new vec[ptct], std::default_delete<vec[]>());
+        for (int j = 0; j < towerClusters[i].indices.size(); ++j)
+        {
+            int &curindex = towerClusters[i].indices[j];
+            //points.get()[j] = vec(src_cloud->at(curindex).x, src_cloud->at(curindex).y, src_cloud->at(curindex).z) - vec(cloud_info.center.x, cloud_info.center.y, cloud_info.center.z);
+            points.get()[j] = vec(src_cloud->at(curindex).x, src_cloud->at(curindex).y, src_cloud->at(curindex).z + (src_cloud->at(curindex).z - cloud_info.center.z) * 50)
+                - vec(cloud_info.center.x, cloud_info.center.y, cloud_info.center.z); // 
+        }
+        // 计算铁塔obb，设定铁塔最小长宽高范围为5
+        OBB obb;
+        vec diagonal;
+        obb = OBB::BruteEnclosingOBB(points.get(), ptct);
+        obb.Scale(obb.pos, vec(1.8, 1.8, 1.2));
+        
+
+        diagonal = obb.HalfDiagonal();
+        std::cout << obb.r << std::endl;
+        for (int j = 0; j < 3; ++j)
+        {
+            if (obb.r[j] < 5)
+                obb.r[j] = 5;
+        }
+        std::cout << obb.r << std::endl;
+
+        obb.pos += vec(cloud_info.center.x, cloud_info.center.y, cloud_info.center.z);
+        // 在原始点云中，找在obb包围盒之内的点
+
+  
+        std::vector<int> radiuIndices;
+        auto tempfunc = [&](std::vector <pcl::PointIndices> &cluster){
+            for (int n = 0; n < cluster.size(); ++n)
+            {
+                distanceSerach(src_cloud, cluster[n].indices, obb.pos.x, obb.pos.y, obb.pos.z, diagonal.Length(), radiuIndices);
+                for (int j = 0; j < radiuIndices.size(); ++j)
+                {
+                    pcl::PointXYZRGB &pt = src_cloud->at(radiuIndices[j]);
+                    if (obb.Contains(vec(pt.x, pt.y, pt.z)))
+                    {
+                        towerClusters[i].indices.push_back(radiuIndices[j]);
+                        del_vec[i].push_back(radiuIndices[j]);
+                    }
+                }
+            }
+        };
+        tempfunc(jlClusters);
+        tempfunc(lineClusters);
+//         {
+//             for (int n = 0; n < jlClusters.size(); ++n)
+//             {
+//                 distanceSerach(src_cloud, jlClusters[n].indices, obb.pos.x, obb.pos.y, obb.pos.z, diagonal.Length(), radiuIndices);
+//                 for (int j = 0; j < radiuIndices.size(); ++j)
+//                 {
+//                     pcl::PointXYZRGB &pt = src_cloud->at(radiuIndices[j]);
+//                     if (obb.Contains(vec(pt.x, pt.y, pt.z)))
+//                     {
+//                         towerClusters[i].push_back(radiuIndices[j]);
+//                         del_vec[i].push_back(radiuIndices[j]);
+//                     }
+//                 }
+//             }
+//         }
+//         {
+//             for (int n = 0; n < lineClusters.size(); ++n)
+//             {
+//                 distanceSerach(src_cloud, lineClusters[n].indices, obb.pos.x, obb.pos.y, obb.pos.z, diagonal.Length(), radiuIndices);
+//                 for (int j = 0; j < radiuIndices.size(); ++j)
+//                 {
+//                     pcl::PointXYZRGB &pt = src_cloud->at(radiuIndices[j]);
+//                     if (obb.Contains(vec(pt.x, pt.y, pt.z)))
+//                     {
+//                         towerClusters[i].push_back(radiuIndices[j]);
+//                         del_vec[i].push_back(radiuIndices[j]);
+//                     }
+//                 }
+//             }
+//         }
+    }
+    // 再对包围盒的点聚类，不是最大聚类中的认为是误判点
+    std::vector <pcl::PointIndices> obb_err_points;
+    for (int i = 0; i < towerClusters.size(); ++i)
+    {
+        deleteObbErrorPoints(src_cloud, towerClusters[i].indices, obb_err_points);
+    }
+    jlClusters.insert(jlClusters.end(), obb_err_points.begin(), obb_err_points.end());
+    std::cout << "用欧氏空间距离聚类来过滤obb包围盒误判的点" << obb_err_points.size() << std::endl;
+
+    
+    // 收集obb包围盒点
+  
+    std::set<int> del_set;
+    for (int i = 0; i < del_vec.size(); ++i)
+    {
+        del_set.insert(del_vec[i].begin(), del_vec[i].end());
+    }
+    std::cout << "收集obb包围盒内的点"  << std::endl;
+
+    // 从原始索引中先删掉铁塔索引
+    auto tempfunc = [&](std::vector <pcl::PointIndices> &cluster){
+        std::cout << "tempfunc" << &cluster << std::endl;
+        for (auto it = cluster.begin(); it != cluster.end(); )
+        {
+            std::set<int> cloud_indices_set(it->indices.begin(), it->indices.end());
+            for (auto itt = cloud_indices_set.begin(); itt != cloud_indices_set.end();)
+            {
+                if (del_set.find(*itt) != del_set.end())
+                {
+                    cloud_indices_set.erase(itt++);
+                }
+                else
+                {
+                    ++itt;
+                }
+            }
+            if (!cloud_indices_set.size())
+            {
+                it = cluster.erase(it);
+            }
+            else
+            {
+                it->indices.clear();
+                it->indices.insert(it->indices.begin(), cloud_indices_set.begin(), cloud_indices_set.end());
+                ++it;
+            }
+        }
+    };
+    std::cout << " tempfunc(jlClusters);" << &jlClusters <<  std::endl;
+    tempfunc(jlClusters);
+    std::cout << "tempfunc(lineClusters);" << &lineClusters << std::endl;
+    tempfunc(lineClusters);
+
+//       {
+//           for (auto it = jlClusters.begin(); it != jlClusters.end(); ++it)
+//           {
+//               std::set<int> cloud_indices_set(it->indices.begin(),it->indices.end());
+//               for (auto it = cloud_indices_set.begin(); it != cloud_indices_set.end();)
+//               {
+//                   if (del_set.find(*it) != del_set.end())
+//                   {
+//                       cloud_indices_set.erase(it++);
+//                   }
+//                   else
+//                   {
+//                       ++it;
+//                   }
+//               }
+//               it->indices.clear();
+//               it->indices.insert(it->indices.begin(), cloud_indices_set.begin(), cloud_indices_set.end());
+//           }
+//       }
+//       {
+//           std::set<int> cloud_indices_set(lineClusters->indices.begin(), lineClusters->indices.end());
+//           for (auto it = cloud_indices_set.begin(); it != cloud_indices_set.end();)
+//           {
+//               if (del_set.find(*it) != del_set.end())
+//               {
+//                   cloud_indices_set.erase(it++);
+//               }
+//               else
+//               {
+//                   ++it;
+//               }
+//           }
+//           cloud_indices->indices.clear();
+//           cloud_indices->indices.insert(cloud_indices->indices.begin(), cloud_indices_set.begin(), cloud_indices_set.end());
+//       }
+}
+
 void pct::FindLikeTower(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud, pcl::PointIndicesPtr cloud_indices, 
     std::vector<std::vector<int>>  &clusters, float dbscaneps, int dbscanmin)
 {
@@ -1351,4 +1611,9 @@ void pct::FindLikeTower(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud, pcl::P
      }
      cloud_indices->indices.clear();
      cloud_indices->indices.insert(cloud_indices->indices.begin(), cloud_indices_set.begin(), cloud_indices_set.end());
+}
+
+double pct::Distance3d(pcl::PointXYZRGB &pt1, pcl::PointXYZRGB &pt2)
+{
+    return (double)sqrt(pow(pt1.x - pt2.x, 2) + pow(pt1.y - pt2.y, 2) + pow(pt1.z - pt2.z, 2));
 }

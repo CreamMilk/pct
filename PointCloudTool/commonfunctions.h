@@ -11,6 +11,7 @@
 
 namespace pct
 {
+    double Distance3d(pcl::PointXYZRGB &pt1, pcl::PointXYZRGB &pt2);
     std::string GetExeName();
     std::string GetExePath();
     bool combineTrainXmlFiles(std::vector<std::string> xmls, std::string dst_xml);
@@ -34,9 +35,9 @@ namespace pct
     void ouShiFenGe(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud, const std::vector<int> &indeces, std::vector<pcl::PointIndices>& cluster_indices, double k);
     void ouShiFenGe(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud, std::vector<pcl::PointIndices>& cluster_indices, double k);
     void deleteObbErrorPoints(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud, std::vector<int> &indeces, std::set<int> &error_points);
-    
+    void deleteObbErrorPoints(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud, std::vector<int> &indeces, std::vector <pcl::PointIndices> &error_points);
+    void MergeTower(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud, pcl::PointIndicesPtr ground_indices, std::vector <pcl::PointIndices>& jlClusters, std::vector <pcl::PointIndices>& lineClusters, std::vector <pcl::PointIndices>& towerClusters);
 }
-
 
 
 
