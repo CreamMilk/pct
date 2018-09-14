@@ -13,6 +13,10 @@
 #include <vtkRenderer.h>
 #include <vtkRenderWindow.h>
 
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
+#include <boost/foreach.hpp>
+
  DangerousDistanceCheck::DangerousDistanceCheck()
  :dangerousDistance_(10)
  {
@@ -39,138 +43,6 @@
      dangerousDistance_ = dangerousDistance;
  }
 
-//  void DangerousDistanceCheck::TooNearCheck()
-//  {
-//      unsigned int cur, sta;
-//      sta = GetTickCount();
-//  
-//      RemoveViewBalls();
-//      balls_.clear();
-//      // 判断每根线与地物和地面范围K内是否有交集，计算出电力线与地面地物最大的交集
-//      // 如果计算量过大 可以考虑先降采样
-//      int gap = 10;
-//      double K = dangerousDistance_;
-//      double leafSize = 1.5;
-//      unsigned char labr = 255, labb = 0, labg = 0;
-//  
-//      std::vector<int> sectionBeginSet;
-//      int stepindex = 0;
-//      pcl::PointCloud<pcl::PointXYZRGB>::Ptr groundObject(new pcl::PointCloud<pcl::PointXYZRGB>);
-//  
-//      for (int i = 0; i < groundObjects_.size(); ++i)
-//      {
-//          sectionBeginSet.push_back(stepindex);
-//          groundObject->insert(groundObject->end(), groundObjects_[i]->begin(), groundObjects_[i]->end());
-//          stepindex += groundObjects_[i]->size();
-//      }
-//      pcl::PointCloud<pcl::PointXYZRGB>::Ptr allCrashPoint(new pcl::PointCloud<pcl::PointXYZRGB>);
-//  
-//      std::set<int> redLine;
-//  #pragma omp parallel for
-//      for (int i = 0; i < lines_.size(); ++i)
-//      {
-//          pcl::KdTreeFLANN<pcl::PointXYZRGB> groundkdtree;
-//          groundkdtree.setInputCloud(ground_);
-//          pcl::KdTreeFLANN<pcl::PointXYZRGB> objectkdtree;
-//          objectkdtree.setInputCloud(groundObject);
-//          pcl::KdTreeFLANN<pcl::PointXYZRGB> linekdtree;
-//          linekdtree.setInputCloud(lines_[i]);
-//  
-//          pcl::PointCloud<pcl::PointXYZRGB>::Ptr line = lines_[i];
-//          pcl::PointCloud<pcl::PointXYZRGB>::Ptr serachLine(pcl::PointCloud<pcl::PointXYZRGB>);
-//  
-//          pcl::VoxelGrid<pcl::PointXYZRGB> grid;
-//          grid.setLeafSize(leafSize, leafSize, leafSize);
-//          grid.setInputCloud(line);
-//          grid.filter(*serachLine);
-//  
-//          int serachNum = 0;
-//          std::vector<int> groundindices;
-//          std::vector<float> groundsqr_distances;
-//          std::vector<int> objectindices;
-//          std::vector<float> objectsqr_distances;
-//          std::vector<int> lineindices;
-//          std::vector<float> line_distances;
-//  
-//  
-//          std::set<int> line_groundindices;
-//          std::set<int> line_objectindices;
-//  
-//          // 得到此根线的最大相交范围点
-//          pcl::PointCloud<pcl::PointXYZRGB>::Ptr crashPoint(new  pcl::PointCloud<pcl::PointXYZRGB>);
-//          for (int j = 0; j < serachLine->size(); ++j)
-//          {
-//              serachNum = groundkdtree.radiusSearch(serachLine->at(j), K, groundindices, groundsqr_distances) + objectkdtree.radiusSearch(serachLine->at(j), K, objectindices, objectsqr_distances);
-//              if (serachNum)
-//              {
-//                  linekdtree.radiusSearch(serachLine->at(j), leafSize * 2, lineindices, line_distances);;
-//                  for (int k = 0; k < lineindices.size(); ++k)
-//                  {
-//  #pragma omp critical 
-//                      if (redLine.find(lineindices[k]) == redLine.end())
-//                      {
-//                          redLine.insert(lineindices[k]);
-//                          line->at(lineindices[k]).r = 255;
-//                          line->at(lineindices[k]).g = 0;
-//                          line->at(lineindices[k]).b = 0;
-//                      }
-//                  }
-//                  crashPoint->push_back(serachLine->at(j));
-//                  for (int k = 0; k < groundindices.size(); ++k)
-//                  {
-//                      line_groundindices.insert(groundindices[k]);
-//                  }
-//                  for (int k = 0; k < objectindices.size(); ++k)
-//                  {
-//                      line_objectindices.insert(objectindices[k]);
-//                  }
-//              }
-//          }
-//  
-//          // 如果相交了
-//          if (crashPoint->size())
-//          {
-//              allCrashPoint->insert(allCrashPoint->end(), crashPoint->begin(), crashPoint->end());
-//              // 地面和地物碰撞标记
-//  #pragma omp critical  
-//              for (std::set<int>::iterator it = line_groundindices.begin(); it != line_groundindices.end(); ++it)
-//              {
-//                  ground_->at(*it).r = 0;
-//                  ground_->at(*it).g = 0;
-//                  ground_->at(*it).b = 255;
-//              }
-//  
-//              int session = 0;
-//              int sessionnum = 0;
-//  #pragma omp critical 
-//              for (std::set<int>::iterator it = line_objectindices.begin(); it != line_objectindices.end(); ++it)
-//              {
-//                  // 遍历索引数组，判断maxobjectindices[k]是第几个地物数组的内容
-//                  // 之所以可以这样做是因为maxobjectindices是一个顺序排列的特殊的索引，groundObject是一个特殊的点云
-//                  for (int n = sectionBeginSet.size() - 1; n >= 0; --n)
-//                  {
-//                      if (sectionBeginSet[n] <= *it)
-//                      {
-//                          session = n;
-//                          sessionnum = sectionBeginSet[n];
-//                          break;
-//                      }
-//                  }
-//                  pcl::PointXYZRGB &pt = groundObjects_[session]->at(*it - sessionnum);
-//                  {
-//                      pt.r = 0;
-//                      pt.g = 255;
-//                      pt.b = 0;
-//                  }
-//              }
-//          }
-//      }
-//  
-//      LabelCrashLine(allCrashPoint, K, gap);
-//      UpdateShowClass("碰撞球");
-//      ShowTooNearCheck();
-//  }
- 
  void ExtractCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, pcl::PointIndicesPtr inices, pcl::PointCloud<pcl::PointXYZRGB>::Ptr out_cloud)
  {
      pcl::ExtractIndices<pcl::PointXYZRGB> extract;
@@ -278,25 +150,25 @@ void DangerousDistanceCheck::TooNearCheck()
 
                  // 记录最近碰撞点， 判断隐患类型
                  pcl::PointXYZRGB crash_linept, crash_otherpt;
-                 unsigned int crash_type;
+                 int crash_type = 0;
                  int min_dis = std::numeric_limits<int>::max();
                  if (groundsqr_distances.size())
                  {
-                     crash_type = crash_type | (unsigned int)CrashType::Ground  ;
+                     crash_type = crash_type | (int)CrashType::Ground  ;
                      min_dis = groundsqr_distances[0];
                      crash_otherpt = ground->at(groundindices[0]);
                  }
                  if (objectsqr_distances.size() && objectsqr_distances[0] < min_dis)
                  {
-                     crash_type = crash_type|(unsigned int)CrashType::Other ;
+                     crash_type = crash_type| (int)CrashType::Other ;
                      min_dis = objectsqr_distances[0];
                      crash_otherpt = groundObject->at(objectindices[0]);
                  }
                  crash_linept = serachLine->at(j);
-                 crash_point_distance.push_back(make_tuple(serachLine->at(j), crash_otherpt, pct::Distance3d(crash_linept, crash_otherpt), crash_type));
+                 crash_point_distance.push_back(make_tuple(crash_linept, crash_otherpt, pct::Distance3d(crash_linept, crash_otherpt), crash_type));
 
                  // 保存碰撞点
-                 crashPoint->push_back(serachLine->at(j));
+                 crashPoint->push_back(crash_linept);
                  for (int k = 0; k < groundindices.size(); ++k)
                  {
                      line_groundindices.insert(groundindices[k]);
@@ -358,8 +230,6 @@ void DangerousDistanceCheck::TooNearCheck()
      // 合并碰撞点, 计算碰撞结果
      pcl::KdTreeFLANN<pcl::PointXYZRGB> groundkdtree;
      groundkdtree.setInputCloud(ground);
-     pcl::KdTreeFLANN<pcl::PointXYZRGB> objectkdtree;
-     objectkdtree.setInputCloud(groundObject);
      std::vector<int> groundindices;
      std::vector<float> groundsqr_distances;
 
@@ -393,21 +263,47 @@ void DangerousDistanceCheck::TooNearCheck()
                  nearst_index = cluster_indices[i].indices[j];
              }
          }
+        
          c.nearst.linept = std::get<0>(all_crash_point_distance[nearst_index]);
          c.nearst.otherpt = std::get<1>(all_crash_point_distance[nearst_index]);
          c.nearst.dis = std::get<2>(all_crash_point_distance[nearst_index]);
          c.nearst.subVec = vec(c.nearst.linept.x, c.nearst.linept.y, c.nearst.linept.z) - vec(c.nearst.otherpt.x, c.nearst.otherpt.y, c.nearst.otherpt.z);
          c.crashtype = std::get<3>(all_crash_point_distance[nearst_index]);
-         c.overtoplimit = c.nearst.dis / K;
-
+         c.overtoplimit = K / c.nearst.dis;
+         groundindices.resize(1);   groundsqr_distances.resize(1);
+         groundkdtree.nearestKSearch(c.nearst.linept, 1, groundindices, groundsqr_distances);
+         c.ground_distance = std::sqrt(groundsqr_distances[0]);
          c.radiu = std::max(K, (double)sqrt(pow(min_pt.x() - max_pt.x(), 2) + pow(min_pt.y() - max_pt.y(), 2) + pow(min_pt.z() - max_pt.z(), 2)) / 2);
          c.id = (QStringLiteral("ball") + QString::number(i)).toLocal8Bit().data();
          c.description = QString().sprintf("%.1f  %.1f  %.1f  %.1f\n", c.cen.x, c.cen.y, c.cen.z, c.radiu).toStdString();
          balls_.push_back(c);
+         std::cout.setf(ios::fixed, ios::floatfield);
+         std::cout << fixed << setprecision(6);
+         std::cout << c << endl;
      }
      std::cout << "balls_数量" << balls_.size() << std::endl;
 }
 
+void StringReplace(string &strBase, string strSrc, string strDes)
+{
+    string::size_type pos = 0;
+    string::size_type srcLen = strSrc.size();
+    string::size_type desLen = strDes.size();
+    pos = strBase.find(strSrc, pos);
+    while ((pos != string::npos))
+    {
+        strBase.replace(pos, srcLen, strDes);
+        pos = strBase.find(strSrc, (pos + desLen));
+    }
+}
+
+template <typename T>
+void streamCat(std::stringstream& ss, T num)
+{
+    ss.clear();
+    ss.str("");
+    ss << num;
+}
 void DangerousDistanceCheck::showNearCheck()
 {
     const pct::Setting &setting = pct::Setting::ins();
@@ -447,4 +343,90 @@ void DangerousDistanceCheck::showNearCheck()
     
     view->getRenderWindow()->Render();
     view->saveScreenshot(setting.outputdir + "\\output_xy.png");
+
+    std::stringstream sstr;
+    sstr.setf(ios::fixed, ios::floatfield);
+    sstr << fixed << setprecision(6);
+    sstr << dangerousDistance_;
+    boost::property_tree::ptree pt;
+    pt.put("距离要求.地面", sstr.str());
+    pt.put("距离要求.植被", sstr.str());
+    pt.put("图例颜色.地面", setting.cls_strcolor(ground_str));
+    pt.put("图例颜色.铁塔", setting.cls_strcolor(tower_str));
+    pt.put("图例颜色.电力线", setting.cls_strcolor(power_line_str));
+    pt.put("图例颜色.植被", setting.cls_strcolor(veget_str));
+    pt.put("xy平面图路径", /*setting.outputdir +*/ "./output_xy.png");
+    boost::property_tree::ptree errpt_array;
+     for (int i = 0; i < balls_.size(); ++i)
+     {
+         boost::property_tree::ptree errpt_child;
+         streamCat<int>(sstr, i);
+         errpt_child.put("序号", sstr.str());
+         streamCat<std::string>(sstr, "-");
+         errpt_child.put("塔杆区间", sstr.str());
+         sstr.clear();
+         sstr.str("");
+         sstr << balls_[i].cen.x << "<br/>" << balls_[i].cen.y << "<br/>" << balls_[i].cen.z;
+         std::cout << balls_[i].cen.x << "<br/>" << balls_[i].cen.y << "<br/>" << balls_[i].cen.z;
+         errpt_child.put("隐患坐标", sstr.str());
+         streamCat<double>(sstr, balls_[i].radiu);
+         errpt_child.put("隐患半径", sstr.str());
+         if (balls_[i].crashtype & Ground && balls_[i].crashtype &Other)
+             streamCat<std::string>(sstr, "地面&植被");
+         else if (balls_[i].crashtype & Ground)
+             streamCat<std::string>(sstr, "地面");
+         else if (balls_[i].crashtype & Other)
+             streamCat<std::string>(sstr, "植被");
+         else
+             streamCat<std::string>(sstr, "");
+         errpt_child.put("隐患类型", sstr.str());
+         streamCat<double>(sstr, balls_[i].nearst.dis);
+         errpt_child.put("隐患距离", sstr.str());
+         streamCat<double>(sstr, pct::Distance2d(balls_[i].nearst.linept, balls_[i].nearst.otherpt));
+         errpt_child.put("水平距离", sstr.str());
+         streamCat<double>(sstr, std::abs(balls_[i].nearst.linept.z-balls_[i].nearst.otherpt.z));
+         errpt_child.put("垂直距离", sstr.str());
+         streamCat<double>(sstr, balls_[i].ground_distance);
+         errpt_child.put("对地距离", sstr.str());
+         streamCat<double>(sstr, balls_[i].overtoplimit);
+         errpt_child.put("超限率", sstr.str());
+         errpt_array.push_back(std::make_pair("", errpt_child));
+     }
+     pt.put_child("隐患列表", errpt_array);
+     std::string json_path = setting.outputdir + "/" + pct::ExtractExeName(setting.inputfile) + "检测结果.json";
+     std::ofstream ofs(json_path, fstream::out);
+     boost::property_tree::write_json(ofs, pt);
+     ofs.close();
+
+      // boost生成的json自动加了转义字符，  我们需要把它去掉。
+      std::string json;
+      std::ifstream ifs(json_path, std::ifstream::in); 
+      if (ifs.is_open())
+      {
+          std::stringstream buffer;
+          buffer << ifs.rdbuf();
+          json = buffer.str();
+          ifs.close();
+      }
+ 
+ 
+      ofs.clear();
+      ofs.open(json_path, std::ios::out | std::ios::binary);
+      if (ofs.is_open())
+      {
+          StringReplace(json, "\\/", "/");
+          StringReplace(json, "\\\\", "\\");
+          json = pct::to_utf8(pct::String2WString(json));
+          ofs << json;
+          ofs.close();
+      }
+}
+
+std::ostream& operator << (std::ostream& output, DangerousDistanceCheck::CollisionBall& c)
+{
+    output << "\ncen:" << c.cen << "\nmin:" << c.min << "\nmax:" << c.max
+        << "\nradiu:" << c.radiu << "\ncrashtype:" << c.crashtype << "\novertoplimit:" << c.overtoplimit
+        << "\nground_distance:" << c.ground_distance << "\nid:" << c.id << "\ndescription:" << c.description << "\nearst.linept:" << c.nearst.linept
+        << "\nearst.otherpt:" << c.nearst.otherpt << "\nearst.subVec:" << c.nearst.subVec << "\nearst.dis:" << c.nearst.dis;
+    return output;
 }

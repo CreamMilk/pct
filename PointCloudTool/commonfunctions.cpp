@@ -85,6 +85,26 @@ std::string pct::GetExeName()
     return exe_path;
 }
 
+std::string pct::ExtractExeName(const std::string &input)
+{
+    std::string exe_path = "";
+    //获取应用程序目录
+    char szapipath[MAX_PATH] = { 0 };//（D:\Documents\Downloads\TEST.exe）
+    strcpy_s(szapipath, input.c_str());
+    //获取应用程序名称
+    char szExe[MAX_PATH] = { 0 };//（TEST.exe）
+    char *pbuf = nullptr;
+    char* szLine = strtok_s(szapipath, "\\", &pbuf);
+    while (NULL != szLine)
+    {
+        strcpy_s(szExe, szLine);
+        szLine = strtok_s(NULL, "\\", &pbuf);
+    }
+    exe_path = szExe;
+    exe_path = exe_path.substr(0, exe_path.find('.'));
+    return exe_path;
+}
+
 bool pct::combineTrainXmlFiles(std::vector<std::string> xmls, std::string dst_xml)
 {
     bool one_label = false;
@@ -692,11 +712,13 @@ Vector3 GetMaxAxisVec(const pct::LineInfo &info)
     return sub;
 }
 
-double Distance3d(Vector3 &pt1, Vector3 &pt2)
+double pct::Distance3d(Vector3 &pt1, Vector3 &pt2)
 {
     return sqrt(pow((pt1.x - pt2.x), 2) + pow((pt1.y - pt2.y), 2) + pow((pt1.z - pt2.z), 2));
 }
-double Distance2d(double x, double y, double m, double n)
+
+
+double pct::Distance2d(double x, double y, double m, double n)
 {
     return  sqrt((x - m)*(x - m) + (y - n)*(y - n));
 }
@@ -1273,7 +1295,7 @@ void pct::MergeTower(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud,
         {
             int &curindex = towerClusters[i].indices[j];
             //points.get()[j] = vec(src_cloud->at(curindex).x, src_cloud->at(curindex).y, src_cloud->at(curindex).z) - vec(cloud_info.center.x, cloud_info.center.y, cloud_info.center.z);
-            points.get()[j] = vec(src_cloud->at(curindex).x, src_cloud->at(curindex).y, src_cloud->at(curindex).z + (src_cloud->at(curindex).z - cloud_info.center.z) * 50)
+            points.get()[j] = vec(src_cloud->at(curindex).x, src_cloud->at(curindex).y, src_cloud->at(curindex).z + (src_cloud->at(curindex).z - cloud_info.center.z) * 1000)
                 - vec(cloud_info.center.x, cloud_info.center.y, cloud_info.center.z); // 
         }
         // 计算铁塔obb，设定铁塔最小长宽高范围为5
@@ -1616,4 +1638,70 @@ void pct::FindLikeTower(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud, pcl::P
 double pct::Distance3d(pcl::PointXYZRGB &pt1, pcl::PointXYZRGB &pt2)
 {
     return (double)sqrt(pow(pt1.x - pt2.x, 2) + pow(pt1.y - pt2.y, 2) + pow(pt1.z - pt2.z, 2));
+}
+
+double pct::Distance2d(pcl::PointXYZRGB &pt1, pcl::PointXYZRGB &pt2)
+{
+    return (double)sqrt(pow(pt1.x - pt2.x, 2) + pow(pt1.y - pt2.y, 2));
+}
+
+std::string pct::to_utf8(const wchar_t* buffer, int len)
+{
+    int nChars = ::WideCharToMultiByte(
+        CP_UTF8,
+        0,
+        buffer,
+        len,
+        NULL,
+        0,
+        NULL,
+        NULL);
+    if (nChars == 0)return"";
+
+    string newbuffer;
+    newbuffer.resize(nChars);
+    ::WideCharToMultiByte(
+        CP_UTF8,
+        0,
+        buffer,
+        len,
+        const_cast<char*>(newbuffer.c_str()),
+        nChars,
+        NULL,
+        NULL);
+
+    return newbuffer;
+}
+
+std::string pct::to_utf8(const std::wstring& str)
+{
+    return to_utf8(str.c_str(), (int)str.size());
+}
+
+std::string pct::WString2String(const std::wstring& ws)
+{
+    std::string strLocale = setlocale(LC_ALL, "");
+    const wchar_t* wchSrc = ws.c_str();
+    size_t nDestSize = wcstombs(NULL, wchSrc, 0) + 1;
+    char *chDest = new char[nDestSize];
+    memset(chDest, 0, nDestSize);
+    wcstombs(chDest, wchSrc, nDestSize);
+    std::string strResult = chDest;
+    delete[]chDest;
+    setlocale(LC_ALL, strLocale.c_str());
+    return strResult;
+}
+// string => wstring
+std::wstring pct::String2WString(const std::string& s)
+{
+    std::string strLocale = setlocale(LC_ALL, "");
+    const char* chSrc = s.c_str();
+    size_t nDestSize = mbstowcs(NULL, chSrc, 0) + 1;
+    wchar_t* wchDest = new wchar_t[nDestSize];
+    wmemset(wchDest, 0, nDestSize);
+    mbstowcs(wchDest, chSrc, nDestSize);
+    std::wstring wstrResult = wchDest;
+    delete[]wchDest;
+    setlocale(LC_ALL, strLocale.c_str());
+    return wstrResult;
 }

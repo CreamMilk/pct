@@ -6,7 +6,7 @@
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <LocalDebuggerCommandArguments>--cmdtype distancecheck --inputfile E:\project\powerline\solution\PointCloudTool\x64\Release\testdata\powerline.las --classdir E:\project\powerline\solution\PointCloudTool\x64\Release\classdir</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>--cmdtype distancecheck --inputfile E:\project\powerline\solution\PointCloudTool\x64\Release\testdata2\data-20170519-135919-179-1-1.las --classdir E:\project\powerline\solution\PointCloudTool\x64\Release\classdir</LocalDebuggerCommandArguments>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
 </Project>

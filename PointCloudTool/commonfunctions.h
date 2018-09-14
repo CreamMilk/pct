@@ -12,8 +12,12 @@
 namespace pct
 {
     double Distance3d(pcl::PointXYZRGB &pt1, pcl::PointXYZRGB &pt2);
+    double Distance3d(Vector3 &pt1, Vector3 &pt2);
+    double Distance2d(pcl::PointXYZRGB &pt1, pcl::PointXYZRGB &pt2);
+    double Distance2d(double x, double y, double m, double n);
     std::string GetExeName();
     std::string GetExePath();
+    std::string ExtractExeName(const std::string &input);
     bool combineTrainXmlFiles(std::vector<std::string> xmls, std::string dst_xml);
     void simple(std::string inputfile, std::string outputfile, float gridsize);
 
@@ -37,6 +41,10 @@ namespace pct
     void deleteObbErrorPoints(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud, std::vector<int> &indeces, std::set<int> &error_points);
     void deleteObbErrorPoints(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud, std::vector<int> &indeces, std::vector <pcl::PointIndices> &error_points);
     void MergeTower(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud, pcl::PointIndicesPtr ground_indices, std::vector <pcl::PointIndices>& jlClusters, std::vector <pcl::PointIndices>& lineClusters, std::vector <pcl::PointIndices>& towerClusters);
+    std::string to_utf8(const std::wstring& str);
+    std::string to_utf8(const wchar_t* buffer, int len);
+    std::wstring String2WString(const std::string& s);
+    std::string WString2String(const std::wstring& ws);
 }
 
 

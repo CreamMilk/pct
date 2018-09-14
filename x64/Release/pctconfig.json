@@ -1,6 +1,7 @@
 {
   "nb_trials":800,
   "nb_scales":5,
+  "dangerdistance":20,
   "classif_color":{
 	"ground":"186, 189, 182",
 	"veget":"204, 255, 201",

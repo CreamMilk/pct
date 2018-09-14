@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/PdfReport">
+        <file>Resources/template.html</file>
+    </qresource>
+</RCC>

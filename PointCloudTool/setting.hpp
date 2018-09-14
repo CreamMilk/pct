@@ -31,8 +31,8 @@ namespace pct
             appdir = std::string(drive) + dir;
 
             // ∂¡»°≈‰÷√Œƒº˛
-            std::ifstream is(appdir + "\\pctconfig.json");
-            if (is.open(appdir + "\\pctconfig.json"), std::ios::in)
+            std::ifstream is(appdir + "\\pctconfig.json", std::ios::in);
+            if (is.is_open())
             {
                 try {
                     read_json(is, pt);          //parse json
@@ -54,6 +54,12 @@ namespace pct
         Type value(const std::string &key) const
         {
             return pt.get_optional<Type>(key).value();
+        }
+
+        std::string cls_strcolor(const std::string &cls) const
+        {
+            QString color_str = pt.get_child("classif_color").get_optional<std::string>(cls).value().c_str();
+            return color_str.toLocal8Bit().data();
         }
 
         unsigned int cls_intcolor(const std::string &cls) const

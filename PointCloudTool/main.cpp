@@ -85,7 +85,7 @@ int main(int argc, char *argv[])
         std::vector <pcl::PointIndices> towerClusters;
        
         correct(src_cloud, ground_indices, otheCluster, lineClusters, towerClusters);
-        checkLinesDistanceDangerous(src_cloud, ground_indices, otheCluster, lineClusters, towerClusters, 5);
+        checkLinesDistanceDangerous(src_cloud, ground_indices, otheCluster, lineClusters, towerClusters, setting.value<float>("dangerdistance"));
     }
     else
     {
@@ -438,17 +438,23 @@ void correct(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud,
     // 聚类结果是否含有70%以上的电力线点，如果是，就说明是电力线点
     for (auto it = jlClusters.begin(); it != jlClusters.end(); )
     {
+        std::cout << "电力线提取——随机崩溃1：" << std::endl;
         if (pct::pointsCountsForColor(src_cloud, *it, setting.cls_intcolor(power_line_str)) > it->indices.size()*0.25)  // power_line":"255, 255, 0
         {
+            std::cout << "电力线提取——随机崩溃2：" << std::endl;
             pct::LineInfo line = pct::lineInfoFactory(src_cloud, *it);
-            
+            std::cout << "电力线提取——随机崩溃3：" << std::endl;
             if (pct::LikePowerLine1(ground, line, 10, 0.1, 0.5, 0.5))
             {
+                std::cout << "电力线提取——随机崩溃4：" << std::endl;
                 lineClusters.push_back(*it);
                 it = jlClusters.erase(it);
+                std::cout << "电力线提取——随机崩溃5：" << std::endl;
                 continue;
             }
+            std::cout << "电力线提取——随机崩溃6：" << std::endl;
         }
+        std::cout << "电力线提取——随机崩溃7：" << std::endl;
         ++it;
     }
     std::cout << "电力线识别数量：" << lineClusters.size() << std::endl;
@@ -472,7 +478,7 @@ void correct(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud,
             // 遍历聚类的每一个点
             for (int k = 0; k < lineClusters[j].indices.size(); ++k)
             {
-                if (unknowclass_kdtree.radiusSearch(src_cloud->at(lineClusters[j].indices[k]), 1, indices, sqr_distances))
+                if (unknowclass_kdtree.radiusSearch(src_cloud->at(lineClusters[j].indices[k]), 2, indices, sqr_distances))
                 {
                     insrt_size++;
                     break;

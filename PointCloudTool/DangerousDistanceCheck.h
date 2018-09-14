@@ -7,6 +7,7 @@
  #include <string>
 #include "MathGeoLibFwd.h"
 #include "Math/float3.h"
+#include <iostream>
 
  class DangerousDistanceCheck
  {
@@ -16,16 +17,17 @@
 
      enum CrashType  {NoCrash = 0, Ground = 1, Other = 2 };
 
-     typedef struct ___CollisionBall
+     class CollisionBall
      {
-         ___CollisionBall(){ crashtype = 0; };
+     public:
+         CollisionBall(){ crashtype = 0; ground_distance = 0; overtoplimit = 0; };
          pcl::PointXYZRGB cen;  // Åö×²µã
          pcl::PointXYZRGB min;
          pcl::PointXYZRGB max;
          double radiu;          // ¼ì²â·¶Î§
-         unsigned int crashtype;
+         int crashtype;
          double overtoplimit;
-
+         double ground_distance;
          struct ___Nearst
          {
              pcl::PointXYZRGB linept;
@@ -36,7 +38,9 @@
 
          std::string id;
          std::string description;
-     }CollisionBall;
+
+         friend std::ostream& operator << (std::ostream&, CollisionBall&);  //ÔËËã·û¡°<<¡±ÖØÔØÎªÓÑÔªº¯Êý
+     };
 
      void TooNearCheck();
      void showNearCheck();
@@ -52,3 +56,5 @@
      pcl::PointIndicesPtr ground_indices_;
      double dangerousDistance_;
  };
+
+ std::ostream& operator << (std::ostream& output, DangerousDistanceCheck::CollisionBall& c);
