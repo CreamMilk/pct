@@ -17,6 +17,8 @@
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/foreach.hpp>
 
+#include <Geometry\OBB.h>
+
  DangerousDistanceCheck::DangerousDistanceCheck()
  :dangerousDistance_(10)
  {
@@ -31,8 +33,8 @@
  void DangerousDistanceCheck::setData(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud
      , pcl::PointIndicesPtr ground_indices
      , std::vector <pcl::PointIndices> &otherClusters
-     , std::vector <pcl::PointIndices> &lineClusters
-     , std::vector <pcl::PointIndices> &towerClusters
+     , std::vector <pct::LineInfo> &lineClusters
+     , std::vector <pct::TowerInfo> &towerClusters
      , double dangerousDistance)
  {
      src_cloud_ = src_cloud;
@@ -91,14 +93,14 @@ void DangerousDistanceCheck::TooNearCheck()
      std::cout << "groundObject数量" << groundObject->size() << "\tsrc_cloud数量" << src_cloud_->size() << std::endl;
 
      pcl::PointCloud<pcl::PointXYZRGB>::Ptr allCrashPoint(new pcl::PointCloud<pcl::PointXYZRGB>);
-     std::vector<std::tuple<pcl::PointXYZRGB, pcl::PointXYZRGB, double, unsigned int>> all_crash_point_distance;
+     std::vector<std::tuple<std::string, pcl::PointXYZRGB, pcl::PointXYZRGB, double, unsigned int>> all_crash_point_distance;
      std::set<int> redLine;
  #pragma omp parallel for
      for (int i = 0; i < lineClusters_.size(); ++i)
      {
          pcl::PointCloud<pcl::PointXYZRGB>::Ptr line(new pcl::PointCloud<pcl::PointXYZRGB>);
          pcl::PointCloud<pcl::PointXYZRGB>::Ptr serachLine(new pcl::PointCloud<pcl::PointXYZRGB>);
-         ExtractCloud(src_cloud_, boost::make_shared<pcl::PointIndices>(lineClusters_[i]), line);
+         ExtractCloud(src_cloud_, boost::make_shared<pcl::PointIndices>(lineClusters_[i].indices), line);
  
          pcl::KdTreeFLANN<pcl::PointXYZRGB> groundkdtree;
          groundkdtree.setInputCloud(ground);
@@ -128,7 +130,7 @@ void DangerousDistanceCheck::TooNearCheck()
  
  
          // 得到此根线的最大相交范围点
-         std::vector<std::tuple<pcl::PointXYZRGB, pcl::PointXYZRGB, double, unsigned int>> crash_point_distance;
+         std::vector<std::tuple<std::string, pcl::PointXYZRGB, pcl::PointXYZRGB, double, unsigned int>> crash_point_distance;
          pcl::PointCloud<pcl::PointXYZRGB>::Ptr crashPoint(new  pcl::PointCloud<pcl::PointXYZRGB>);
          for (int j = 0; j < serachLine->size(); ++j)
          {
@@ -142,9 +144,9 @@ void DangerousDistanceCheck::TooNearCheck()
                      if (redLine.find(lineindices[k]) == redLine.end())
                      {
                          redLine.insert(lineindices[k]);
-                         src_cloud_->at(lineClusters_[i].indices[lineindices[k]]).r = crash_line_r;
-                         src_cloud_->at(lineClusters_[i].indices[lineindices[k]]).g = crash_line_g;
-                         src_cloud_->at(lineClusters_[i].indices[lineindices[k]]).b = crash_line_b;
+                         src_cloud_->at(lineClusters_[i].indices.indices[lineindices[k]]).r = crash_line_r;
+                         src_cloud_->at(lineClusters_[i].indices.indices[lineindices[k]]).g = crash_line_g;
+                         src_cloud_->at(lineClusters_[i].indices.indices[lineindices[k]]).b = crash_line_b;
                      }
                  }
 
@@ -165,7 +167,7 @@ void DangerousDistanceCheck::TooNearCheck()
                      crash_otherpt = groundObject->at(objectindices[0]);
                  }
                  crash_linept = serachLine->at(j);
-                 crash_point_distance.push_back(make_tuple(crash_linept, crash_otherpt, pct::Distance3d(crash_linept, crash_otherpt), crash_type));
+                 crash_point_distance.push_back(make_tuple(lineClusters_[i].getLineNo(), crash_linept, crash_otherpt, pct::Distance3d(crash_linept, crash_otherpt), crash_type));
 
                  // 保存碰撞点
                  crashPoint->push_back(crash_linept);
@@ -253,28 +255,29 @@ void DangerousDistanceCheck::TooNearCheck()
          c.nearst.dis = std::numeric_limits<int>::max();
 
          int nearst_index = -1;
-         std::tuple<pcl::PointXYZRGB, pcl::PointXYZRGB, double, unsigned int> traverse_tuple;
+         std::tuple<std::string, pcl::PointXYZRGB, pcl::PointXYZRGB, double, unsigned int> traverse_tuple;
          for (int j = 0; j < cluster_indices[i].indices.size(); ++j)
          {
              traverse_tuple = all_crash_point_distance[cluster_indices[i].indices[j]];
-             if (std::get<2>(traverse_tuple) < c.nearst.dis)
+             if (std::get<3>(traverse_tuple) < c.nearst.dis)
              {
-                 c.nearst.dis = std::get<2>(traverse_tuple);
+                 c.nearst.dis = std::get<3>(traverse_tuple);
                  nearst_index = cluster_indices[i].indices[j];
              }
          }
         
-         c.nearst.linept = std::get<0>(all_crash_point_distance[nearst_index]);
-         c.nearst.otherpt = std::get<1>(all_crash_point_distance[nearst_index]);
-         c.nearst.dis = std::get<2>(all_crash_point_distance[nearst_index]);
+         c.lineno = std::get<0>(all_crash_point_distance[nearst_index]);
+         c.nearst.linept = std::get<1>(all_crash_point_distance[nearst_index]);
+         c.nearst.otherpt = std::get<2>(all_crash_point_distance[nearst_index]);
+         c.nearst.dis = std::get<3>(all_crash_point_distance[nearst_index]);
          c.nearst.subVec = vec(c.nearst.linept.x, c.nearst.linept.y, c.nearst.linept.z) - vec(c.nearst.otherpt.x, c.nearst.otherpt.y, c.nearst.otherpt.z);
-         c.crashtype = std::get<3>(all_crash_point_distance[nearst_index]);
-         c.overtoplimit = K / c.nearst.dis;
+         c.crashtype = std::get<4>(all_crash_point_distance[nearst_index]);
+         c.overtoplimit = (K - c.nearst.dis) / K * 100;
          groundindices.resize(1);   groundsqr_distances.resize(1);
          groundkdtree.nearestKSearch(c.nearst.linept, 1, groundindices, groundsqr_distances);
          c.ground_distance = std::sqrt(groundsqr_distances[0]);
          c.radiu = std::max(K, (double)sqrt(pow(min_pt.x() - max_pt.x(), 2) + pow(min_pt.y() - max_pt.y(), 2) + pow(min_pt.z() - max_pt.z(), 2)) / 2);
-         c.id = (QStringLiteral("ball") + QString::number(i)).toLocal8Bit().data();
+         c.id = (QStringLiteral("ball") + QString::number(i + 1)).toLocal8Bit().data();
          c.description = QString().sprintf("%.1f  %.1f  %.1f  %.1f\n", c.cen.x, c.cen.y, c.cen.z, c.radiu).toStdString();
          balls_.push_back(c);
          std::cout.setf(ios::fixed, ios::floatfield);
@@ -304,6 +307,54 @@ void streamCat(std::stringstream& ss, T num)
     ss.str("");
     ss << num;
 }
+
+void DangerousDistanceCheck::getObbInfo(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud, OBB &obb, vec *axis_vec/*[3]*/, vec &axis_r)
+{
+    int ptct = src_cloud->size();
+    boost::shared_ptr<vec> points(new vec[ptct], std::default_delete<vec[]>());
+    for (int j = 0; j < ptct; ++j)
+    {
+        int &curindex = j;
+        points.get()[j] = vec(src_cloud->at(curindex).x, src_cloud->at(curindex).y, src_cloud->at(curindex).z); // 
+    }
+    // 计算铁塔obb，设定铁塔最小长宽高范围为5
+    
+    vec diagonal;
+    obb = OBB::BruteEnclosingOBB(points.get(), ptct);
+
+
+    std::cout << "corners" << std::endl;
+    
+    memcpy(axis_vec, obb.axis, sizeof(vec) * 3);
+    axis_r = obb.r;
+    
+
+
+    vec tempvec;
+    float tempf;
+    for (int i = 0; i < 3 - 1; ++i)
+    {
+        float ix = axis_vec[i].Length();
+        for (int j = i + 1; j < 3; ++j)
+        {
+            float jx = axis_vec[j].Length();
+            if (ix < jx)
+            {
+                tempvec = axis_vec[i];
+                axis_vec[i] = axis_vec[j];
+                axis_vec[j] = tempvec;
+
+                tempf = axis_r[i];
+                axis_r[i] = axis_r[j];
+                axis_r[j] = tempf;
+            }
+        }
+    }
+    axis_vec[0].z = 0;
+    axis_vec[1].z = 0;
+    axis_vec[2].z = 0;
+}
+
 void DangerousDistanceCheck::showNearCheck()
 {
     const pct::Setting &setting = pct::Setting::ins();
@@ -311,13 +362,29 @@ void DangerousDistanceCheck::showNearCheck()
     boost::shared_ptr<pcl::visualization::PCLVisualizer> view(new pcl::visualization::PCLVisualizer("test"));
     view->setBackgroundColor(1, 1, 1);
 
+    pcl::PointXYZRGB cloudmin, cloudmax;
+    pcl::getMinMax3D(*src_cloud_, cloudmin, cloudmax);
+
     view->addPointCloud<pcl::PointXYZRGB>(src_cloud_, "cloud");      // no need to add the handler, we use a random handler by default
     QString fmt = QStringLiteral("Crash Position:\nx  y  z  Radius\n");
     for (int i = 0; i < balls_.size(); ++i)
     {
         fmt += QString::fromStdString(balls_[i].description);
+        std::string showtext = balls_[i].id;
+        pct::StringReplace(showtext, "ball", "");
         view->addSphere(balls_[i].cen, balls_[i].radiu, 1, 1, 0, balls_[i].id);
         view->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_OPACITY, 0.2, balls_[i].id);
+        view->addText3D(showtext, balls_[i].cen, 8.0, 1, 0, 0, "ball" + balls_[i].id + "#");
+
+        std::cout << showtext << balls_[i].cen << "ball" + balls_[i].id + "#" << std::endl;
+    }
+
+    pcl::PointXYZRGB nopt;
+    for (int i = 0; i < towerClusters_.size(); ++i)
+    {
+        nopt = towerClusters_[i].cen;
+        nopt.z = towerClusters_[i].max.z;
+        view->addText3D(towerClusters_[i].getNo(), nopt, 8.0, 0, 0, 0, towerClusters_[i].getNo());
     }
 
     int lineHeight = 14;
@@ -333,6 +400,7 @@ void DangerousDistanceCheck::showNearCheck()
 
     pcl::PointXYZRGB min, max;
     pcl::getMinMax3D(*src_cloud_, min, max);
+    float aabb_subz = max.z - min.z;
     std::stringstream minstr, maxstr, counts;
     counts << "counts: " << src_cloud_->size();
     minstr << std::fixed << setprecision(2) << "min: " << min.x << " " << min.y << " " << min.z;
@@ -341,6 +409,66 @@ void DangerousDistanceCheck::showNearCheck()
     view->addText(minstr.str(), 5, 20, 1, 0, 1, std::string("aabbBoxmin"));
     view->addText(maxstr.str(), 5, 10, 1, 0, 1, std::string("aabbBoxmax"));
     
+    view->resetCamera();
+
+    pcl::visualization::Camera camera;
+    view->getCameraParameters(camera);
+    vec axis_vec[3];
+    vec axis_r;
+    OBB obb;
+    getObbInfo(src_cloud_, obb, axis_vec, axis_r);  // 根据轴长排序
+    
+    
+    for (int i = 0; i < 3; ++i)
+    {
+        pcl::PointXYZRGB corpt;
+        corpt.x = obb.pos.x + (axis_vec[i] * axis_r[i]).x;
+        corpt.y = obb.pos.y + (axis_vec[i] * axis_r[i]).y;
+        corpt.z = obb.pos.z + (axis_vec[i] * axis_r[i]).z;
+
+        std::stringstream ss;
+        ss << "axis" << i << corpt;
+        view->addText3D(ss.str(), corpt, 8.0, 0, 0, 0, ss.str());
+        std::cout << axis_vec[i] * axis_r[i] << (axis_vec[i] * axis_r[i]).Length() << std::endl;
+    }
+
+    vec camerapos(camera.pos[0], camera.pos[1], camera.pos[2]);
+    vec camerafocal(camera.focal[0], camera.focal[1], camera.focal[2]);
+    vec cameravec = camerafocal - camerapos;
+    float cameralen = cameravec.Length();
+   
+
+    std::cout << "movepos" << vec(axis_vec[1].x*axis_r[1], axis_vec[1].y*axis_r[1], aabb_subz / 2) << cloudmin.z << cloudmax.z << std::endl;
+    vec seevec = vec(axis_vec[1].x*axis_r[1], axis_vec[1].y*axis_r[1], aabb_subz / 2).Normalized();  // 全局观看方向
+    vec movepos = obb.pos + seevec * cameralen*0.8;  // 相机位置 = 焦点 + 向量
+
+
+    pcl::PointXYZRGB cpt;
+    cpt.x = movepos.x;
+    cpt.y = movepos.y;
+    cpt.z = movepos.z;
+
+    std::stringstream ss;
+    ss << "camera" << cpt;
+    view->addText3D(ss.str(), cpt, 8.0, 0, 0, 0, ss.str());
+
+    std::cout << "camerapos" << seevec *cameralen*0.8 << std::endl;
+    view->setCameraPosition(movepos.x, movepos.y, movepos.z, obb.pos.x, obb.pos.y, obb.pos.z, 0, 0, 1);
+    view->updateCamera();
+
+
+
+    while (!view->wasStopped())
+    {
+        view->spinOnce(100);
+        boost::this_thread::sleep(boost::posix_time::microseconds(100000));
+    }
+
+    // camera位置
+    // view向量--相机朝向
+    // up向量
+
+    view->setWindowName(setting.inputfile);
     view->getRenderWindow()->Render();
     view->saveScreenshot(setting.outputdir + "\\output_xy.png");
 
@@ -362,11 +490,11 @@ void DangerousDistanceCheck::showNearCheck()
          boost::property_tree::ptree errpt_child;
          streamCat<int>(sstr, i);
          errpt_child.put("序号", sstr.str());
-         streamCat<std::string>(sstr, "-");
+         streamCat<std::string>(sstr, balls_[i].lineno);
          errpt_child.put("塔杆区间", sstr.str());
          sstr.clear();
          sstr.str("");
-         sstr << balls_[i].cen.x << "<br/>" << balls_[i].cen.y << "<br/>" << balls_[i].cen.z;
+         sstr << balls_[i].cen.x << "," << balls_[i].cen.y << "," << balls_[i].cen.z;
          std::cout << balls_[i].cen.x << "<br/>" << balls_[i].cen.y << "<br/>" << balls_[i].cen.z;
          errpt_child.put("隐患坐标", sstr.str());
          streamCat<double>(sstr, balls_[i].radiu);
@@ -398,28 +526,28 @@ void DangerousDistanceCheck::showNearCheck()
      boost::property_tree::write_json(ofs, pt);
      ofs.close();
 
-      // boost生成的json自动加了转义字符，  我们需要把它去掉。
-      std::string json;
-      std::ifstream ifs(json_path, std::ifstream::in); 
-      if (ifs.is_open())
-      {
-          std::stringstream buffer;
-          buffer << ifs.rdbuf();
-          json = buffer.str();
-          ifs.close();
-      }
- 
- 
-      ofs.clear();
-      ofs.open(json_path, std::ios::out | std::ios::binary);
-      if (ofs.is_open())
-      {
-          StringReplace(json, "\\/", "/");
-          StringReplace(json, "\\\\", "\\");
-          json = pct::to_utf8(pct::String2WString(json));
-          ofs << json;
-          ofs.close();
-      }
+     // boost生成的json自动加了转义字符，  我们需要把它去掉。
+     std::string json; 
+     std::ifstream ifs(json_path, std::ifstream::in); 
+     if (ifs.is_open())
+     {
+         std::stringstream buffer;
+         buffer << ifs.rdbuf();
+         json = buffer.str();
+         ifs.close();
+     }
+
+
+     ofs.clear();
+     ofs.open(json_path, std::ios::out | std::ios::binary);
+     if (ofs.is_open())
+     {
+         StringReplace(json, "\\/", "/");
+         StringReplace(json, "\\\\", "\\");
+         json = pct::to_utf8(pct::String2WString(json));
+         ofs << json;
+         ofs.close();
+     }
 }
 
 std::ostream& operator << (std::ostream& output, DangerousDistanceCheck::CollisionBall& c)

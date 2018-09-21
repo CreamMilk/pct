@@ -95,6 +95,9 @@
     <ClInclude Include="DangerousDistanceCheck.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="types\mytypes.h">
+      <Filter>Types</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="Polyhedron\Scene_item.h">

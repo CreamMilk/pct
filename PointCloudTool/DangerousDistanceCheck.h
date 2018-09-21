@@ -8,6 +8,7 @@
 #include "MathGeoLibFwd.h"
 #include "Math/float3.h"
 #include <iostream>
+#include "types/mytypes.h"
 
  class DangerousDistanceCheck
  {
@@ -36,6 +37,7 @@
              double dis;
          } nearst;
 
+         std::string lineno;
          std::string id;
          std::string description;
 
@@ -44,15 +46,16 @@
 
      void TooNearCheck();
      void showNearCheck();
-     void setData(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud, pcl::PointIndicesPtr ground_indices, std::vector <pcl::PointIndices> &otherClusters, std::vector <pcl::PointIndices> &lineClusters, std::vector <pcl::PointIndices> &towerClusters, double dangerousDistance);
+     void setData(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud, pcl::PointIndicesPtr ground_indices, std::vector <pcl::PointIndices> &otherClusters, std::vector <pct::LineInfo> &lineClusters, std::vector <pct::TowerInfo> &towerClusters, double dangerousDistance);
+     void getObbInfo(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud, OBB &obb, vec *axis_vec/*[3]*/, vec &axis_r);
      std::vector<CollisionBall> balls_;//Åö×²ÇòÐÎ±ê×¢
      
      
  
      pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud_;
      std::vector <pcl::PointIndices> otherClusters_;
-     std::vector <pcl::PointIndices> lineClusters_;
-     std::vector <pcl::PointIndices> towerClusters_;
+     std::vector <pct::LineInfo> lineClusters_;
+     std::vector <pct::TowerInfo> towerClusters_;
      pcl::PointIndicesPtr ground_indices_;
      double dangerousDistance_;
  };

@@ -72,8 +72,8 @@ int main(int argc, char *argv[]) {
 
     GenerateHtml(g_jsonpath, g_htmlpath);
 
-
     ExportPdf(g_htmlpath, g_pdfpath);
+    //ExportPdf(/*g_htmlpath*/QStringLiteral("E:\\project\\powerline\\solution\\PointCloudTool\\PdfReport\\Resources\\template°¡.html"), /*g_pdfpath*/"E:\\project\\powerline\\solution\\PointCloudTool\\PdfReport\\Resources\\a.pdf");
     return 0;
 }
 
@@ -167,6 +167,7 @@ bool ParserCmdline(int argc, char *argv[])
         {
             g_pdfpath = g_jsonpath;
             g_pdfpath = g_pdfpath.replace(QStringLiteral("json"), QStringLiteral("pdf"));
+            g_pdfpath = g_pdfpath.replace('\\', '/');
         }
     }
     
@@ -341,10 +342,13 @@ void GenerateHtml(QString json_path, QString html_path)
     traversee_pt = pt.get_child(to_utf8(String2WString("Òþ»¼ÁÐ±í")));
     BOOST_FOREACH(boost::property_tree::ptree::value_type &cvt, traversee_pt)
     {
+        QString yinhuanzuobiao = QString::fromUtf8(cvt.second.get<std::string>(to_utf8(String2WString("Òþ»¼×ø±ê"))).c_str()).remove(' ').replace(',', "<br/>");
+        QString taganqujian = QString::fromUtf8(cvt.second.get<std::string>(to_utf8(String2WString("Ëþ¸ËÇø¼ä"))).c_str()).remove(' ').replace('-', "<br/>-<br/>");
+
         html += QString().sprintf(yinhuanmingxi_template.toUtf8().data()
             , cvt.second.get<std::string>(to_utf8(String2WString("ÐòºÅ")))
-            , cvt.second.get<std::string>(to_utf8(String2WString("Ëþ¸ËÇø¼ä")))
-            , cvt.second.get<std::string>(to_utf8(String2WString("Òþ»¼×ø±ê")))
+            , taganqujian.toLocal8Bit().data()/* cvt.second.get<std::string>(to_utf8(String2WString("Ëþ¸ËÇø¼ä")))*/
+            , yinhuanzuobiao.toLocal8Bit().data()/*cvt.second.get<std::string>(to_utf8(String2WString("Òþ»¼×ø±ê")))*/
             , cvt.second.get<std::string>(to_utf8(String2WString("Òþ»¼°ë¾¶")))
             , cvt.second.get<std::string>(to_utf8(String2WString("Òþ»¼ÀàÐÍ")))
             , cvt.second.get<std::string>(to_utf8(String2WString("Òþ»¼¾àÀë")))
@@ -389,7 +393,7 @@ void ExportPdf(QString html_path, QString pdf_path)
     myassert(wkhtmltopdf_set_global_setting(gs, "margin.top", "2cm"));
 
 
-    myassert(wkhtmltopdf_set_global_setting(gs, "out", pdf_path.toLocal8Bit().data()));
+    myassert(wkhtmltopdf_set_global_setting(gs, "out", pdf_path.toUtf8().data()));
     myassert( wkhtmltopdf_set_global_setting(gs, "load.cookieJar", "myjar.jar"));
     /*
     * Create a input object settings object that is used to store settings
@@ -398,7 +402,7 @@ void ExportPdf(QString html_path, QString pdf_path)
     */
     os = wkhtmltopdf_create_object_settings();
     /* We want to convert to convert the qstring documentation page */
-    myassert(wkhtmltopdf_set_object_setting(os, "page", html_path.toLocal8Bit().data()));
+    myassert(wkhtmltopdf_set_object_setting(os, "page", html_path.toUtf8().data()));
     myassert(wkhtmltopdf_set_object_setting(os, "toc.indentation", "2em"));
     myassert(wkhtmltopdf_set_object_setting(os, "useExternalLinks", "true"));
 
