@@ -56,6 +56,11 @@
      extract.filter(*out_cloud);
  }
 
+ float CalcRadiu()
+ {
+
+ }
+
 void DangerousDistanceCheck::TooNearCheck()
 {
      unsigned int cur, sta;
@@ -96,7 +101,7 @@ void DangerousDistanceCheck::TooNearCheck()
      std::cout << "groundObject数量" << groundObject->size() << "\tsrc_cloud数量" << src_cloud_->size() << std::endl;
 
      pcl::PointCloud<pcl::PointXYZRGB>::Ptr allCrashPoint(new pcl::PointCloud<pcl::PointXYZRGB>);
-     std::vector<std::tuple<std::string, pcl::PointXYZRGB, pcl::PointXYZRGB, double, unsigned int>> all_crash_point_distance;
+     std::vector<std::tuple<std::string, pcl::PointXYZRGB, pcl::PointXYZRGB, double, pcl::PointXYZRGB, unsigned int>> all_crash_point_distance;
      std::set<int> redLine;
  #pragma omp parallel for
      for (int i = 0; i < lineClusters_.size(); ++i)
@@ -133,7 +138,7 @@ void DangerousDistanceCheck::TooNearCheck()
  
  
          // 得到此根线的最大相交范围点
-         std::vector<std::tuple<std::string, pcl::PointXYZRGB, pcl::PointXYZRGB, double, unsigned int>> crash_point_distance;
+         std::vector<std::tuple<std::string, pcl::PointXYZRGB, pcl::PointXYZRGB, double, pcl::PointXYZRGB, unsigned int>> crash_point_distance;
          pcl::PointCloud<pcl::PointXYZRGB>::Ptr crashPoint(new  pcl::PointCloud<pcl::PointXYZRGB>);
          for (int j = 0; j < serachLine->size(); ++j)
          {
@@ -154,14 +159,17 @@ void DangerousDistanceCheck::TooNearCheck()
                  }
 
                  // 记录最近碰撞点， 判断隐患类型
-                 pcl::PointXYZRGB crash_nearst_linept, crash_nearst_pt;
+                 pcl::PointXYZRGB crash_nearst_linept, crash_nearst_pt, crash_far_pt;
                  int crash_type = 0;
                  int min_dis = std::numeric_limits<int>::max();
+                 int max_dis = -std::numeric_limits<int>::max();
                  if (groundsqr_distances.size())
                  {
                      crash_type = crash_type | (int)CrashType::Ground  ;
                      min_dis = groundsqr_distances[0];
+                     max_dis = groundsqr_distances[(int)groundsqr_distances.size()-1];
                      crash_nearst_pt = ground->at(groundindices[0]);
+                     crash_far_pt = ground->at(groundindices[(int)groundindices.size() - 1]);
                  }
                  if (objectsqr_distances.size() )
                  {
@@ -171,9 +179,14 @@ void DangerousDistanceCheck::TooNearCheck()
                          min_dis = objectsqr_distances[0];
                          crash_nearst_pt = groundObject->at(objectindices[0]);
                      }
+                     if (objectsqr_distances[(int)objectsqr_distances.size() - 1] > max_dis)
+                     {
+                         max_dis = objectsqr_distances[(int)objectsqr_distances.size() - 1];
+                         crash_far_pt = groundObject->at(objectindices[(int)objectindices.size() - 1]);
+                     }
                  }
                  crash_nearst_linept = serachLine->at(j);
-                 crash_point_distance.push_back(make_tuple(lineClusters_[i].getLineNo(), crash_nearst_linept, crash_nearst_pt, pct::Distance3d(crash_nearst_linept, crash_nearst_pt), crash_type));
+                 crash_point_distance.push_back(make_tuple(lineClusters_[i].getLineNo(), crash_nearst_linept, crash_nearst_pt, pct::Distance3d(crash_nearst_linept, crash_nearst_pt), crash_far_pt, crash_type));
 
                  // 保存碰撞点
                  crashPoint->push_back(crash_nearst_linept);
@@ -259,8 +272,11 @@ void DangerousDistanceCheck::TooNearCheck()
          c.cen.z = (min_pt.z() + max_pt.z()) / 2;
          c.nearst.dis = std::numeric_limits<int>::max();
 
+         float max_radiu = -std::numeric_limits<int>::max();
+         float distance_float = -std::numeric_limits<int>::max();
+
          int nearst_index = -1;
-         std::tuple<std::string, pcl::PointXYZRGB, pcl::PointXYZRGB, double, unsigned int> traverse_tuple;
+         std::tuple<std::string, pcl::PointXYZRGB, pcl::PointXYZRGB, double, pcl::PointXYZRGB, unsigned int> traverse_tuple;
          for (int j = 0; j < cluster_indices[i].indices.size(); ++j)
          {
              traverse_tuple = all_crash_point_distance[cluster_indices[i].indices[j]];
@@ -269,6 +285,9 @@ void DangerousDistanceCheck::TooNearCheck()
                  c.nearst.dis = std::get<3>(traverse_tuple);
                  nearst_index = cluster_indices[i].indices[j];
              }
+             distance_float = pct::Distance3d(c.cen, std::get<4>(traverse_tuple));
+             if (distance_float > max_radiu)
+                 max_radiu = distance_float;
          }
         
          c.lineno = std::get<0>(all_crash_point_distance[nearst_index]);
@@ -276,7 +295,7 @@ void DangerousDistanceCheck::TooNearCheck()
          c.nearst.otherpt = std::get<2>(all_crash_point_distance[nearst_index]);
          c.nearst.dis = std::get<3>(all_crash_point_distance[nearst_index]);
          c.nearst.subVec = vec(c.nearst.linept.x, c.nearst.linept.y, c.nearst.linept.z) - vec(c.nearst.otherpt.x, c.nearst.otherpt.y, c.nearst.otherpt.z);
-         c.crashtype = std::get<4>(all_crash_point_distance[nearst_index]);
+         c.crashtype = std::get<5>(all_crash_point_distance[nearst_index]);
          c.overtoplimit = (K - c.nearst.dis) / K * 100;
 
          // 离地距离
@@ -285,8 +304,10 @@ void DangerousDistanceCheck::TooNearCheck()
          if (groundsqr_distances.size()) 
              c.ground_distance = std::sqrt(groundsqr_distances[0]);
 
+        // CalcRadiu()
          // 包围球至少1米
-         c.radiu = sqrt(pow(min_pt.x() - max_pt.x(), 2) + pow(min_pt.y() - max_pt.y(), 2) + pow(min_pt.z() - max_pt.z(), 2)) / 2 + 1;
+        // c.radiu = sqrt(pow(min_pt.x() - max_pt.x(), 2) + pow(min_pt.y() - max_pt.y(), 2) + pow(min_pt.z() - max_pt.z(), 2)) / 2 + 1;
+         c.radiu = max_radiu;
          c.id = (QStringLiteral("ball") + QString::number(i + 1)).toLocal8Bit().data();
          c.description = QString().sprintf("%.3f  %.3f  %.3f  %.3f\n", c.cen.x, c.cen.y, c.cen.z, c.radiu).toStdString();
          balls_.push_back(c);
