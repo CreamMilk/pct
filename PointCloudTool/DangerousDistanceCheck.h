@@ -46,14 +46,14 @@
 
      void TooNearCheck();
      void showNearCheck();
-     void setData(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud, pcl::PointIndicesPtr ground_indices, std::vector <pcl::PointIndices> &otherClusters, std::vector <pct::LineInfo> &lineClusters, std::vector <pct::TowerInfo> &towerClusters, double dangerousDistance);
+     void setData(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud, pcl::PointIndicesPtr ground_indices, std::vector <pct::VegetInfo> &vegetClusters, std::vector <pct::LineInfo> &lineClusters, std::vector <pct::TowerInfo> &towerClusters, const double dangerousDistance);
      void getObbInfo(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud, OBB &obb, vec *axis_vec/*[3]*/, vec &axis_r);
      std::vector<CollisionBall> balls_;//Åö×²ÇòÐÎ±ê×¢
      
      
  
      pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud_;
-     std::vector <pcl::PointIndices> otherClusters_;
+     std::vector <pct::VegetInfo> vegetClusters_;
      std::vector <pct::LineInfo> lineClusters_;
      std::vector <pct::TowerInfo> towerClusters_;
      pcl::PointIndicesPtr ground_indices_;

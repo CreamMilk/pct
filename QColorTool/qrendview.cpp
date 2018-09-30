@@ -8,7 +8,7 @@ QRendView::QRendView(QWidget *parent)
     ,allow_(true)
 {
     viewer_ = boost::make_shared<pcl::visualization::PCLVisualizer>("viewer", false);
-    viewer_->setBackgroundColor(0.7, 0.7, 0.7);
+    viewer_->setBackgroundColor(1, 1, 1);
      SetRenderWindow(viewer_->getRenderWindow());
      QVTKInteractor* Interactor = GetInteractor();
      viewer_->setupInteractor(Interactor, viewer_->getRenderWindow());

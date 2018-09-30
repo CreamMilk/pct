@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'Scene_points_with_normal_item.h'
 **
-** Created by: The Qt Meta Object Compiler version 67 (Qt 5.10.1)
+** Created by: The Qt Meta Object Compiler version 67 (Qt 5.4.2)
 **
 ** WARNING! All changes made in this file will be lost!
 *****************************************************************************/
@@ -12,21 +12,19 @@
 #if !defined(Q_MOC_OUTPUT_REVISION)
 #error "The header file 'Scene_points_with_normal_item.h' doesn't include <QObject>."
 #elif Q_MOC_OUTPUT_REVISION != 67
-#error "This file was generated using the moc from 5.10.1. It"
+#error "This file was generated using the moc from 5.4.2. It"
 #error "cannot be used with the include files from this version of Qt."
 #error "(The moc has changed too much.)"
 #endif
 
 QT_BEGIN_MOC_NAMESPACE
-QT_WARNING_PUSH
-QT_WARNING_DISABLE_DEPRECATED
 struct qt_meta_stringdata_Scene_points_with_normal_item_t {
     QByteArrayData data[12];
-    char stringdata0[191];
+    char stringdata[191];
 };
 #define QT_MOC_LITERAL(idx, ofs, len) \
     Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
-    qptrdiff(offsetof(qt_meta_stringdata_Scene_points_with_normal_item_t, stringdata0) + ofs \
+    qptrdiff(offsetof(qt_meta_stringdata_Scene_points_with_normal_item_t, stringdata) + ofs \
         - idx * sizeof(QByteArrayData)) \
     )
 static const qt_meta_stringdata_Scene_points_with_normal_item_t qt_meta_stringdata_Scene_points_with_normal_item = {
@@ -96,7 +94,6 @@ void Scene_points_with_normal_item::qt_static_metacall(QObject *_o, QMetaObject:
 {
     if (_c == QMetaObject::InvokeMetaMethod) {
         Scene_points_with_normal_item *_t = static_cast<Scene_points_with_normal_item *>(_o);
-        Q_UNUSED(_t)
         switch (_id) {
         case 0: _t->deleteSelection(); break;
         case 1: _t->invertSelection(); break;
@@ -123,9 +120,9 @@ void Scene_points_with_normal_item::qt_static_metacall(QObject *_o, QMetaObject:
     }
 }
 
-QT_INIT_METAOBJECT const QMetaObject Scene_points_with_normal_item::staticMetaObject = {
+const QMetaObject Scene_points_with_normal_item::staticMetaObject = {
     { &CGAL::Three::Scene_item::staticMetaObject, qt_meta_stringdata_Scene_points_with_normal_item.data,
-      qt_meta_data_Scene_points_with_normal_item,  qt_static_metacall, nullptr, nullptr}
+      qt_meta_data_Scene_points_with_normal_item,  qt_static_metacall, Q_NULLPTR, Q_NULLPTR}
 };
 
 
@@ -136,11 +133,11 @@ const QMetaObject *Scene_points_with_normal_item::metaObject() const
 
 void *Scene_points_with_normal_item::qt_metacast(const char *_clname)
 {
-    if (!_clname) return nullptr;
-    if (!strcmp(_clname, qt_meta_stringdata_Scene_points_with_normal_item.stringdata0))
-        return static_cast<void*>(this);
+    if (!_clname) return Q_NULLPTR;
+    if (!strcmp(_clname, qt_meta_stringdata_Scene_points_with_normal_item.stringdata))
+        return static_cast<void*>(const_cast< Scene_points_with_normal_item*>(this));
     if (!strcmp(_clname, "CGAL::Three::Scene_item_with_properties"))
-        return static_cast< CGAL::Three::Scene_item_with_properties*>(this);
+        return static_cast< CGAL::Three::Scene_item_with_properties*>(const_cast< Scene_points_with_normal_item*>(this));
     return CGAL::Three::Scene_item::qt_metacast(_clname);
 }
 
@@ -160,5 +157,4 @@ int Scene_points_with_normal_item::qt_metacall(QMetaObject::Call _c, int _id, vo
     }
     return _id;
 }
-QT_WARNING_POP
 QT_END_MOC_NAMESPACE

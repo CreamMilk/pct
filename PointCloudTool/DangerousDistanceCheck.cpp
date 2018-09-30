@@ -19,6 +19,9 @@
 
 #include <Geometry\OBB.h>
 
+#include <QApplication>
+#include <QDir>
+
  DangerousDistanceCheck::DangerousDistanceCheck()
  :dangerousDistance_(10)
  {
@@ -32,13 +35,13 @@
 
  void DangerousDistanceCheck::setData(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud
      , pcl::PointIndicesPtr ground_indices
-     , std::vector <pcl::PointIndices> &otherClusters
+     , std::vector <pct::VegetInfo> &vegetClusters
      , std::vector <pct::LineInfo> &lineClusters
      , std::vector <pct::TowerInfo> &towerClusters
      , double dangerousDistance)
  {
      src_cloud_ = src_cloud;
-     otherClusters_ = otherClusters;
+     vegetClusters_ = vegetClusters;
      lineClusters_ = lineClusters;
      towerClusters_ = towerClusters;
      ground_indices_ = ground_indices;
@@ -61,7 +64,7 @@ void DangerousDistanceCheck::TooNearCheck()
      balls_.clear();
      // 判断每根线与地物和地面范围K内是否有交集，计算出电力线与地面地物最大的交集
      // 如果计算量过大 可以考虑先降采样
-     int gap = 10;
+     int gap = 5;
      double K = dangerousDistance_;
      double leafSize = 1.5;
  
@@ -82,13 +85,13 @@ void DangerousDistanceCheck::TooNearCheck()
      ExtractCloud(src_cloud_, ground_indices_, ground);
      std::cout << "ground数量" << ground->size() << "\tsrc_cloud数量" << src_cloud_->size() << std::endl;
 
-     for (int i = 0; i < otherClusters_.size(); ++i)
+     for (int i = 0; i < vegetClusters_.size(); ++i)
      {
          pcl::PointCloud<pcl::PointXYZRGB>::Ptr tmp_object(new pcl::PointCloud<pcl::PointXYZRGB>);
-         ExtractCloud(src_cloud_, boost::make_shared<pcl::PointIndices>(otherClusters_[i]), tmp_object);
+         ExtractCloud(src_cloud_, boost::make_shared<pcl::PointIndices>(vegetClusters_[i].indices), tmp_object);
          sectionBeginSet.push_back(stepindex);
          groundObject->insert(groundObject->end(), tmp_object->begin(), tmp_object->end());
-         stepindex += otherClusters_[i].indices.size();
+         stepindex += vegetClusters_[i].indices.indices.size();
      }
      std::cout << "groundObject数量" << groundObject->size() << "\tsrc_cloud数量" << src_cloud_->size() << std::endl;
 
@@ -151,26 +154,29 @@ void DangerousDistanceCheck::TooNearCheck()
                  }
 
                  // 记录最近碰撞点， 判断隐患类型
-                 pcl::PointXYZRGB crash_linept, crash_otherpt;
+                 pcl::PointXYZRGB crash_nearst_linept, crash_nearst_pt;
                  int crash_type = 0;
                  int min_dis = std::numeric_limits<int>::max();
                  if (groundsqr_distances.size())
                  {
                      crash_type = crash_type | (int)CrashType::Ground  ;
                      min_dis = groundsqr_distances[0];
-                     crash_otherpt = ground->at(groundindices[0]);
+                     crash_nearst_pt = ground->at(groundindices[0]);
                  }
-                 if (objectsqr_distances.size() && objectsqr_distances[0] < min_dis)
+                 if (objectsqr_distances.size() )
                  {
-                     crash_type = crash_type| (int)CrashType::Other ;
-                     min_dis = objectsqr_distances[0];
-                     crash_otherpt = groundObject->at(objectindices[0]);
+                     crash_type = crash_type | (int)CrashType::Other;
+                     if (objectsqr_distances[0] < min_dis)
+                     {
+                         min_dis = objectsqr_distances[0];
+                         crash_nearst_pt = groundObject->at(objectindices[0]);
+                     }
                  }
-                 crash_linept = serachLine->at(j);
-                 crash_point_distance.push_back(make_tuple(lineClusters_[i].getLineNo(), crash_linept, crash_otherpt, pct::Distance3d(crash_linept, crash_otherpt), crash_type));
+                 crash_nearst_linept = serachLine->at(j);
+                 crash_point_distance.push_back(make_tuple(lineClusters_[i].getLineNo(), crash_nearst_linept, crash_nearst_pt, pct::Distance3d(crash_nearst_linept, crash_nearst_pt), crash_type));
 
                  // 保存碰撞点
-                 crashPoint->push_back(crash_linept);
+                 crashPoint->push_back(crash_nearst_linept);
                  for (int k = 0; k < groundindices.size(); ++k)
                  {
                      line_groundindices.insert(groundindices[k]);
@@ -217,7 +223,7 @@ void DangerousDistanceCheck::TooNearCheck()
                      }
                  }
                  //pcl::PointXYZRGB &pt = groundObjects_[session]->at(*it - sessionnum);
-                 pcl::PointXYZRGB &pt = src_cloud_->at(otherClusters_[session].indices[*it - sessionnum]);
+                 pcl::PointXYZRGB &pt = src_cloud_->at(vegetClusters_[session].indices.indices[*it - sessionnum]);
                  {
                      pt.r = crash_other_r;
                      pt.g = crash_other_g;
@@ -237,7 +243,6 @@ void DangerousDistanceCheck::TooNearCheck()
 
      std::vector<pcl::PointIndices> cluster_indices;
      pct::ouShiFenGe(allCrashPoint, cluster_indices, gap);
-     /* QString fmt = QStringLiteral("碰撞位置：x\ty\tz\t范围\n");*/ //vtk不支持中文和\t,网上的几种方法试了，是针对vtk6.0左右的版本，7.0无方法
      Eigen::Vector4f min_pt, max_pt;
      for (int i = 0; i < cluster_indices.size(); ++i)
      {
@@ -273,12 +278,17 @@ void DangerousDistanceCheck::TooNearCheck()
          c.nearst.subVec = vec(c.nearst.linept.x, c.nearst.linept.y, c.nearst.linept.z) - vec(c.nearst.otherpt.x, c.nearst.otherpt.y, c.nearst.otherpt.z);
          c.crashtype = std::get<4>(all_crash_point_distance[nearst_index]);
          c.overtoplimit = (K - c.nearst.dis) / K * 100;
+
+         // 离地距离
          groundindices.resize(1);   groundsqr_distances.resize(1);
          groundkdtree.nearestKSearch(c.nearst.linept, 1, groundindices, groundsqr_distances);
-         c.ground_distance = std::sqrt(groundsqr_distances[0]);
-         c.radiu = std::max(K, (double)sqrt(pow(min_pt.x() - max_pt.x(), 2) + pow(min_pt.y() - max_pt.y(), 2) + pow(min_pt.z() - max_pt.z(), 2)) / 2);
+         if (groundsqr_distances.size()) 
+             c.ground_distance = std::sqrt(groundsqr_distances[0]);
+
+         // 包围球至少1米
+         c.radiu = sqrt(pow(min_pt.x() - max_pt.x(), 2) + pow(min_pt.y() - max_pt.y(), 2) + pow(min_pt.z() - max_pt.z(), 2)) / 2 + 1;
          c.id = (QStringLiteral("ball") + QString::number(i + 1)).toLocal8Bit().data();
-         c.description = QString().sprintf("%.1f  %.1f  %.1f  %.1f\n", c.cen.x, c.cen.y, c.cen.z, c.radiu).toStdString();
+         c.description = QString().sprintf("%.3f  %.3f  %.3f  %.3f\n", c.cen.x, c.cen.y, c.cen.z, c.radiu).toStdString();
          balls_.push_back(c);
          std::cout.setf(ios::fixed, ios::floatfield);
          std::cout << fixed << setprecision(6);
@@ -359,122 +369,140 @@ void DangerousDistanceCheck::showNearCheck()
 {
     const pct::Setting &setting = pct::Setting::ins();
     
+    QString pic_dir = QString::fromLocal8Bit(setting.outputdir.c_str()) +  QStringLiteral("\\images");
+    pct::DelDir(pic_dir);
+    QDir().mkpath(pic_dir);
+    // 准备点云信息
     boost::shared_ptr<pcl::visualization::PCLVisualizer> view(new pcl::visualization::PCLVisualizer("test"));
     view->setBackgroundColor(1, 1, 1);
-
     pcl::PointXYZRGB cloudmin, cloudmax;
     pcl::getMinMax3D(*src_cloud_, cloudmin, cloudmax);
+    float aabb_subz = cloudmax.z - cloudmin.z;
+    vec axis_vec[3];
+    vec axis_r;
+    OBB obb;
+    getObbInfo(src_cloud_, obb, axis_vec, axis_r);  // 根据轴长排序
 
+    // 添加点云
     view->addPointCloud<pcl::PointXYZRGB>(src_cloud_, "cloud");      // no need to add the handler, we use a random handler by default
-    QString fmt = QStringLiteral("Crash Position:\nx  y  z  Radius\n");
-    for (int i = 0; i < balls_.size(); ++i)
-    {
-        fmt += QString::fromStdString(balls_[i].description);
-        std::string showtext = balls_[i].id;
-        pct::StringReplace(showtext, "ball", "");
-        view->addSphere(balls_[i].cen, balls_[i].radiu, 1, 1, 0, balls_[i].id);
-        view->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_OPACITY, 0.2, balls_[i].id);
-        view->addText3D(showtext, balls_[i].cen, 8.0, 1, 0, 0, "ball" + balls_[i].id + "#");
 
-        std::cout << showtext << balls_[i].cen << "ball" + balls_[i].id + "#" << std::endl;
-    }
 
+    // 添加塔编号
     pcl::PointXYZRGB nopt;
     for (int i = 0; i < towerClusters_.size(); ++i)
     {
         nopt = towerClusters_[i].cen;
-        nopt.z = towerClusters_[i].max.z;
+        nopt.z = towerClusters_[i].max.z+1;
         view->addText3D(towerClusters_[i].getNo(), nopt, 8.0, 0, 0, 0, towerClusters_[i].getNo());
     }
 
-    int lineHeight = 14;
+    // 添加左上角碰撞信息
+    QString fmt = QStringLiteral("Crash Position:\nno  x  y  z  Radius\n");
+    for (int i = 0; i < balls_.size(); ++i)
+    {
+        fmt += QString::number(i+1) + QStringLiteral(" ") + QString::fromStdString(balls_[i].description);
+    }
+    int lineHeight = 16;
     double vp[4];
     vtkRenderer *render = view->getRenderWindow()->GetRenderers()->GetFirstRenderer();
     render->GetViewport(vp);
     render->NormalizedDisplayToDisplay(vp[0], vp[1]);
     render->NormalizedDisplayToDisplay(vp[2], vp[3]);
     double dy = vp[3] - vp[1];
-    if (!view->addText(fmt.toUtf8().data(), lineHeight, max(0, (int)dy - (3 + (int)balls_.size()) * lineHeight), 0, 0, 1, "crashText"))
-        view->updateText(fmt.toUtf8().data(), lineHeight, max(0, (int)dy - (3 + (int)balls_.size()) * lineHeight), 0, 0, 1, "crashText");
+    if (!view->addText(fmt.toUtf8().data(), lineHeight, (std::max)(0, (int)dy - (3 + (int)balls_.size()) * lineHeight), lineHeight, 0, 0, 1, "crashText"))
+        view->updateText(fmt.toUtf8().data(), lineHeight, (std::max)(0, (int)dy - (3 + (int)balls_.size()) * lineHeight), lineHeight, 0, 0, 1, "crashText");
 
-
-    pcl::PointXYZRGB min, max;
-    pcl::getMinMax3D(*src_cloud_, min, max);
-    float aabb_subz = max.z - min.z;
+    // 添加左下角点云信息
     std::stringstream minstr, maxstr, counts;
     counts << "counts: " << src_cloud_->size();
-    minstr << std::fixed << setprecision(2) << "min: " << min.x << " " << min.y << " " << min.z;
-    maxstr << std::fixed << setprecision(2) << "max: " << max.x << " " << max.y << " " << max.z;
-    view->addText(counts.str(), 5, 30, 1, 0, 1, std::string("counts"));
-    view->addText(minstr.str(), 5, 20, 1, 0, 1, std::string("aabbBoxmin"));
-    view->addText(maxstr.str(), 5, 10, 1, 0, 1, std::string("aabbBoxmax"));
-    
-    view->resetCamera();
+    minstr << std::fixed << setprecision(3) << "min: " << cloudmin.x << " " << cloudmin.y << " " << cloudmin.z;
+    maxstr << std::fixed << setprecision(3) << "max: " << cloudmax.x << " " << cloudmax.y << " " << cloudmax.z;
+    view->addText(counts.str(), 5, 30, 14, 1, 0, 1, std::string("counts"));
+    view->addText(minstr.str(), 5, 20, 14, 1, 0, 1, std::string("aabbBoxmin"));
+    view->addText(maxstr.str(), 5, 10, 14, 1, 0, 1, std::string("aabbBoxmax"));
 
+
+
+    // 让相机移动到合适位置，然后取相机的参数
+    view->resetCamera();
     pcl::visualization::Camera camera;
     view->getCameraParameters(camera);
-    vec axis_vec[3];
-    vec axis_r;
-    OBB obb;
-    getObbInfo(src_cloud_, obb, axis_vec, axis_r);  // 根据轴长排序
-    
-    
-    for (int i = 0; i < 3; ++i)
+    float cameralen = (vec(camera.focal[0], camera.focal[1], camera.focal[2]) - vec(camera.pos[0], camera.pos[1], camera.pos[2])).Length();
+
+   // 计算方向
+    vec seevec = vec(axis_vec[1].x*axis_r[1], axis_vec[1].y*axis_r[1], aabb_subz / 2).Normalized();  // 全局观看方向
+    vec camerapos = obb.pos + seevec * cameralen*0.5;  // 相机位置 = 焦点 + 向量
+    std::cout << "seevec" << vec(axis_vec[1].x*axis_r[1], axis_vec[1].y*axis_r[1], aabb_subz / 2) << std::endl;
+
+    // 添加碰撞球编号
+    for (int i = 0; i < balls_.size(); ++i)
     {
-        pcl::PointXYZRGB corpt;
-        corpt.x = obb.pos.x + (axis_vec[i] * axis_r[i]).x;
-        corpt.y = obb.pos.y + (axis_vec[i] * axis_r[i]).y;
-        corpt.z = obb.pos.z + (axis_vec[i] * axis_r[i]).z;
+        std::string showtext = balls_[i].id;
+        pct::StringReplace(showtext, "ball", "");
+        view->addSphere(balls_[i].cen, balls_[i].radiu, 1, 1, 0, balls_[i].id);
+        view->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_OPACITY, 0.2, balls_[i].id);
+        view->addText3D(showtext, balls_[i].cen, 8.0, 1, 0, 0, "ball" + balls_[i].id + "#");
+
+
+        vec pos(balls_[i].cen.x, balls_[i].cen.y, balls_[i].cen.z);
+        vec movepos = pos + seevec * balls_[i].radiu * 5;  // 相机位置 = 焦点 + 向量
+
+        // 设置相机参数
+        view->setCameraPosition(movepos.x, movepos.y, movepos.z, pos.x, pos.y, pos.z, 0, 0, 1);
+        view->updateCamera();
 
         std::stringstream ss;
-        ss << "axis" << i << corpt;
-        view->addText3D(ss.str(), corpt, 8.0, 0, 0, 0, ss.str());
-        std::cout << axis_vec[i] * axis_r[i] << (axis_vec[i] * axis_r[i]).Length() << std::endl;
+        ss << pic_dir.toLocal8Bit().data() << "\\局部碰撞" << i + 1 << ".png";
+        view->saveScreenshot(ss.str());
+
+
+
+        // 计算相机位置
+        vec camerapos = obb.pos + seevec * cameralen*0.5;  // 相机位置 = 焦点 + 向量
+        view->setCameraPosition(camerapos.x, camerapos.y, camerapos.z, obb.pos.x, obb.pos.y, obb.pos.z, 0, 0, 1);
+        view->updateCamera();
+        // 截图
+        ss.clear();
+        ss.str("");
+        ss << pic_dir.toLocal8Bit().data() << "\\局部碰撞" << i + 1 << "总图.png";
+        view->saveScreenshot(ss.str());
+
+
+        view->removeShape(balls_[i].id);
+        view->removeText3D("ball" + balls_[i].id + "#");
+        std::cout << showtext << balls_[i].cen << "ball" + balls_[i].id + "#" << std::endl;
     }
 
-    vec camerapos(camera.pos[0], camera.pos[1], camera.pos[2]);
-    vec camerafocal(camera.focal[0], camera.focal[1], camera.focal[2]);
-    vec cameravec = camerafocal - camerapos;
-    float cameralen = cameravec.Length();
-   
 
-    std::cout << "movepos" << vec(axis_vec[1].x*axis_r[1], axis_vec[1].y*axis_r[1], aabb_subz / 2) << cloudmin.z << cloudmax.z << std::endl;
-    vec seevec = vec(axis_vec[1].x*axis_r[1], axis_vec[1].y*axis_r[1], aabb_subz / 2).Normalized();  // 全局观看方向
-    vec movepos = obb.pos + seevec * cameralen*0.8;  // 相机位置 = 焦点 + 向量
-
-
-    pcl::PointXYZRGB cpt;
-    cpt.x = movepos.x;
-    cpt.y = movepos.y;
-    cpt.z = movepos.z;
-
-    std::stringstream ss;
-    ss << "camera" << cpt;
-    view->addText3D(ss.str(), cpt, 8.0, 0, 0, 0, ss.str());
-
-    std::cout << "camerapos" << seevec *cameralen*0.8 << std::endl;
-    view->setCameraPosition(movepos.x, movepos.y, movepos.z, obb.pos.x, obb.pos.y, obb.pos.z, 0, 0, 1);
-    view->updateCamera();
-
-
-
-    while (!view->wasStopped())
+    for (int i = 0; i < balls_.size(); ++i)
     {
-        view->spinOnce(100);
-        boost::this_thread::sleep(boost::posix_time::microseconds(100000));
+        std::string showtext = balls_[i].id;
+        pct::StringReplace(showtext, "ball", "");
+        view->addSphere(balls_[i].cen, balls_[i].radiu, 1, 1, 0, balls_[i].id);
+        view->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_OPACITY, 0.2, balls_[i].id);
+        view->addText3D(showtext, balls_[i].cen, 8.0, 1, 0, 0, "ball" + balls_[i].id + "#");
     }
 
-    // camera位置
-    // view向量--相机朝向
-    // up向量
 
-    view->setWindowName(setting.inputfile);
-    view->getRenderWindow()->Render();
-    view->saveScreenshot(setting.outputdir + "\\output_xy.png");
+    // 计算相机位置
+    view->setCameraPosition(camerapos.x, camerapos.y, camerapos.z, obb.pos.x, obb.pos.y, obb.pos.z, 0, 0, 1);
+    view->updateCamera();
+    // 截图
+    view->saveScreenshot(std::string(pic_dir.toLocal8Bit().data()) + "\\总图.png");
 
+
+    //// 调试观看
+    //while (!view->wasStopped())
+    //{
+    //    view->spinOnce(100);
+    //    boost::this_thread::sleep(boost::posix_time::microseconds(100000));
+    //}
+
+
+    // 导出json
     std::stringstream sstr;
     sstr.setf(ios::fixed, ios::floatfield);
-    sstr << fixed << setprecision(6);
+    sstr << fixed << setprecision(1);
     sstr << dangerousDistance_;
     boost::property_tree::ptree pt;
     pt.put("距离要求.地面", sstr.str());
@@ -483,20 +511,22 @@ void DangerousDistanceCheck::showNearCheck()
     pt.put("图例颜色.铁塔", setting.cls_strcolor(tower_str));
     pt.put("图例颜色.电力线", setting.cls_strcolor(power_line_str));
     pt.put("图例颜色.植被", setting.cls_strcolor(veget_str));
-    pt.put("xy平面图路径", /*setting.outputdir +*/ "./output_xy.png");
+    pt.put("xy平面图路径", "images/总图.png");
     boost::property_tree::ptree errpt_array;
      for (int i = 0; i < balls_.size(); ++i)
      {
          boost::property_tree::ptree errpt_child;
-         streamCat<int>(sstr, i);
+         streamCat<int>(sstr, i+1);
          errpt_child.put("序号", sstr.str());
          streamCat<std::string>(sstr, balls_[i].lineno);
          errpt_child.put("塔杆区间", sstr.str());
          sstr.clear();
          sstr.str("");
-         sstr << balls_[i].cen.x << "," << balls_[i].cen.y << "," << balls_[i].cen.z;
+         sstr << std::fixed << setprecision(3) << balls_[i].cen.x << "," << balls_[i].cen.y << "," << balls_[i].cen.z;
          std::cout << balls_[i].cen.x << "<br/>" << balls_[i].cen.y << "<br/>" << balls_[i].cen.z;
          errpt_child.put("隐患坐标", sstr.str());
+
+         sstr << std::fixed << setprecision(1);
          streamCat<double>(sstr, balls_[i].radiu);
          errpt_child.put("隐患半径", sstr.str());
          if (balls_[i].crashtype & Ground && balls_[i].crashtype &Other)
@@ -518,6 +548,10 @@ void DangerousDistanceCheck::showNearCheck()
          errpt_child.put("对地距离", sstr.str());
          streamCat<double>(sstr, balls_[i].overtoplimit);
          errpt_child.put("超限率", sstr.str());
+         streamCat<std::string>(sstr, std::string("images") + "/局部碰撞" + QString::number(i + 1).toLocal8Bit().data() + ".png");
+         errpt_child.put("细节图", sstr.str());
+         streamCat<std::string>(sstr, std::string("images") + "/局部碰撞" + QString::number(i + 1).toLocal8Bit().data() + "总图.png");
+         errpt_child.put("总图", sstr.str());
          errpt_array.push_back(std::make_pair("", errpt_child));
      }
      pt.put_child("隐患列表", errpt_array);

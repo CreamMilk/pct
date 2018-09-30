@@ -2,12 +2,12 @@
 #include <vector>
 #include <string>
 #include "dbscan.h"
+
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
 #include <pcl/PointIndices.h>
-#include "types/mytypes.h"
 #include <QString>
-
+#include "types/mytypes.h"
 
 namespace pct
 {
@@ -47,6 +47,7 @@ namespace pct
     std::string to_utf8(const wchar_t* buffer, int len);
     std::wstring String2WString(const std::string& s);
     std::string WString2String(const std::wstring& ws);
+    bool DelDir(const QString &path);
 }
 
 

@@ -168,6 +168,7 @@
     <ClCompile Include="Polyhedron\moc_Scene_points_with_normal_item.cpp" />
     <ClCompile Include="Polyhedron\Scene_item.cpp" />
     <ClCompile Include="Polyhedron\Scene_points_with_normal_item.cpp" />
+    <ClCompile Include="types\mytypes.cpp" />
     <ClCompile Include="types\vector3.cpp" />
   </ItemGroup>
   <ItemGroup>

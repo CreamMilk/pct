@@ -22,6 +22,9 @@
 #include <windows.h>
 #include <string.h>
 
+#include <QDir>
+#include <QFileInfo>
+
 struct ClusterInfo{
     Vector3 center;
     Vector3 min;
@@ -868,8 +871,6 @@ bool pct::LikePowerLine(pct::LineInfo &line, int min_length /*= 5*/, double erro
         {
             if (abs(line.fit.getY(pt.x) - pt.y) > yerrOffset || abs(line.fit_z.getY(pt.x) - pt.z) > zerrOffset)
             {
-                //cout << "abs(line.fit.getY(pt.x) " << line.fit.getY(pt.x) << "pt.y" << pt.y << "sub " << abs(line.fit.getY(pt.x) - pt.y) << std::endl;
-                //cout << "abs(line.fit_z.getY(pt.x) " << line.fit_z.getY(pt.x) << " pt.z" << pt.z << "sub " << abs(line.fit_z.getY(pt.x) - pt.z) << std::endl;
                 ++errpt;
             }
         }
@@ -877,8 +878,6 @@ bool pct::LikePowerLine(pct::LineInfo &line, int min_length /*= 5*/, double erro
         {
             if (abs(line.fit.getY(pt.y) - pt.x) > yerrOffset || abs(line.fit_z.getY(pt.y) - pt.z) > zerrOffset)
             {
-                //cout << "line.fit.getY(pt.y)" << line.fit.getY(pt.y) << "pt.x" << pt.x << "sub " << abs(line.fit.getY(pt.y) - pt.x) << std::endl;
-                //cout << "line.fit_z.getY(pt.y)" << line.fit_z.getY(pt.y) << "pt.z" << pt.z << "sub " << abs(line.fit_z.getY(pt.y) - pt.z) << std::endl;
                 ++errpt;
             }
         }
@@ -917,8 +916,8 @@ bool pct::LikePowerLine1(pcl::PointCloud<pcl::PointXYZRGB>::Ptr ground_cloud, pc
     std::vector<int> indices;
     std::vector<float> sqr_distances;
 
-    // 最高点与离地高度<8，则认为不是电力线！
-    if (ground_kdtree.radiusSearch(maxZ, 10, indices, sqr_distances))
+    // 最高点与离地高度<10，则认为不是电力线！
+    if (ground_kdtree.radiusSearch(maxZ, 10, indices, sqr_distances) > 0)
     {
         std::cout << "最高点与离地高度<10，则认为不是电力线！" << std::endl;
         return false;
@@ -1252,6 +1251,29 @@ void pct::deleteObbErrorPoints(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud,
     }
 }
 
+
+bool pct::DelDir(const QString &path)
+{
+    if (path.isEmpty()){
+        return false;
+    }
+    QDir dir(path);
+    if (!dir.exists()){
+        return true;
+    }
+    dir.setFilter(QDir::AllEntries | QDir::NoDotAndDotDot); //设置过滤
+    QFileInfoList fileList = dir.entryInfoList(); // 获取所有的文件信息
+    foreach(QFileInfo file, fileList){ //遍历文件信息
+        if (file.isFile()){ // 是文件，删除
+            file.dir().remove(file.fileName());
+        }
+        else{ // 递归删除
+            DelDir(file.absoluteFilePath());
+        }
+    }
+    return dir.rmpath(dir.absolutePath()); // 删除文件夹
+}
+
 void pct::MergeTower(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud, 
     pcl::PointIndicesPtr ground_indices,
     std::vector <pcl::PointIndices>& jlClusters,
@@ -1305,11 +1327,20 @@ void pct::MergeTower(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud,
         // 初始化obb计算所需要的参数
         int ptct = towerClusters[i].indices.indices.size();
         boost::shared_ptr<vec> points(new vec[ptct], std::default_delete<vec[]>());
+        pcl::PointXYZRGB min, max;
+        pct::getMinMax3D(*src_cloud, towerClusters[i].indices, min, max);
+        double tower_height = max.z - min.z;
+        double z_scale = 1;
+        if (tower_height < 200)
+        {
+            z_scale = 200 / tower_height;
+        }
+
         for (int j = 0; j < towerClusters[i].indices.indices.size(); ++j)
         {
             int &curindex = towerClusters[i].indices.indices[j];
             //points.get()[j] = vec(src_cloud->at(curindex).x, src_cloud->at(curindex).y, src_cloud->at(curindex).z) - vec(cloud_info.center.x, cloud_info.center.y, cloud_info.center.z);
-            points.get()[j] = vec(src_cloud->at(curindex).x, src_cloud->at(curindex).y, src_cloud->at(curindex).z + (src_cloud->at(curindex).z - cloud_info.center.z) * 1000)
+            points.get()[j] = vec(src_cloud->at(curindex).x, src_cloud->at(curindex).y, src_cloud->at(curindex).z + (src_cloud->at(curindex).z - cloud_info.center.z) * z_scale)
                 - vec(cloud_info.center.x, cloud_info.center.y, cloud_info.center.z); // 
         }
         // 计算铁塔obb，设定铁塔最小长宽高范围为5

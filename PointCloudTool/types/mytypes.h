@@ -4,11 +4,60 @@
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
 #include <pcl/PointIndices.h>
+#include <pcl/common/impl/common.hpp>
 #include "vector3.h"
 #include "LeastSquare.h"
 
+
 namespace pct
 {
+    typedef struct vegetinfo__
+    {
+        vegetinfo__() :veget_no(0){};
+        vegetinfo__(pcl::PointIndices &in_indices)
+            :veget_no(++g_next_no)
+        {
+            indices = in_indices;
+        }
+        vegetinfo__(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud, pcl::PointIndices &in_indices)
+            :veget_no(++g_next_no)
+        {
+            indices = in_indices;
+
+            Eigen::Vector4f fmin_pt;
+            Eigen::Vector4f fmax_pt;
+            pcl::getMinMax3D(*src_cloud, indices.indices, fmin_pt, fmax_pt);
+            min.x = fmin_pt.x();
+            min.y = fmin_pt.y();
+            min.z = fmin_pt.z();
+
+            max.x = fmax_pt.x();
+            max.y = fmax_pt.y();
+            max.z = fmax_pt.z();
+
+            cen.x = (min.x + max.x) / 2;
+            cen.y = (min.y + max.y) / 2;
+            cen.z = (min.z + max.z) / 2;
+        }
+        pcl::PointIndices indices;
+        pcl::PointXYZRGB cen;
+        pcl::PointXYZRGB  min;
+        pcl::PointXYZRGB  max;
+
+        static unsigned int g_next_no;
+        unsigned int veget_no;
+
+        std::string getNo()
+        {
+            std::string res;
+            std::stringstream ss;
+            ss << veget_no;
+            res += ss.str();
+
+            res += "#veget";
+            return res;
+        }
+    } VegetInfo;
     
     typedef struct lineinfo__
     {
@@ -74,7 +123,6 @@ namespace pct
             return res;
         }
     } TowerInfo;
-  
 }
 
 

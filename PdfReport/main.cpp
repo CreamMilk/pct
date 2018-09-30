@@ -1,5 +1,6 @@
 #include <stdbool.h>
 #include <stdio.h>
+#include <wkhtmltox/image.h>
 #include <wkhtmltox/pdf.h>
 #include <QMessageBox>
 #include <QCoreApplication>
@@ -18,11 +19,13 @@
 #include <QTextStream>
 #include <QFileInfo>
 #include <QTextCodec>
+#include <QTimer>
 
 boost::property_tree::ptree pt;
 QString g_jsonpath;
 QString g_htmlpath;
 QString g_pdfpath;
+QString g_imgpath;
 
 int errcode;
 #define myassert(content) \
@@ -37,6 +40,7 @@ void GenerateHtml(QString json_path, QString html_path);
 bool ParserCmdline(int argc, char *argv[]);
 std::string GetExePath();
 void ExportPdf(QString html_path, QString pdf_path);
+void ExportImage(QString html_path, QString img_path);
 std::string GetExeName();
 
 /* Print out loading progress information */
@@ -61,8 +65,30 @@ void warning(wkhtmltopdf_converter * c, const char * msg) {
     fprintf(stderr, "Warning: %s\n", msg);
 }
 
+void progress_changed(wkhtmltoimage_converter * c, int p) {
+    printf("%3d%%\r", p);
+    fflush(stdout);
+}
+
+/* Print loading phase information */
+void phase_changed(wkhtmltoimage_converter * c) {
+    int phase = wkhtmltoimage_current_phase(c);
+    printf("%s\n", wkhtmltoimage_phase_description(c, phase));
+}
+
+/* Print a message to stderr when an error occurs */
+void error(wkhtmltoimage_converter * c, const char * msg) {
+    fprintf(stderr, "Error: %s\n", msg);
+}
+
+/* Print a message to stderr when a warning is issued */
+void warning(wkhtmltoimage_converter * c, const char * msg) {
+    fprintf(stderr, "Warning: %s\n", msg);
+}
+
 /* Main method convert pdf */
 int main(int argc, char *argv[]) {
+
     if (false == ParserCmdline(argc, argv))
     {
         return EXIT_FAILURE;
@@ -73,8 +99,13 @@ int main(int argc, char *argv[]) {
     GenerateHtml(g_jsonpath, g_htmlpath);
 
     ExportPdf(g_htmlpath, g_pdfpath);
-    //ExportPdf(/*g_htmlpath*/QStringLiteral("E:\\project\\powerline\\solution\\PointCloudTool\\PdfReport\\Resources\\template啊.html"), /*g_pdfpath*/"E:\\project\\powerline\\solution\\PointCloudTool\\PdfReport\\Resources\\a.pdf");
-    return 0;
+    ExportImage(g_htmlpath, g_imgpath);
+    
+
+
+    //ExportPdf("E:/project/powerline/solution/PointCloudTool/PdfReport/Resources/template.html", "E:/project/powerline/solution/PointCloudTool/PdfReport/Resources/template.pdf");
+    //ExportPdf("E:/project/powerline/solution/PointCloudTool/x64/Release/testdata2/data-20170519-135919-179-1-1/data-20170519-135919-179-1-1检测结果.html",
+    //    "E:/project/powerline/solution/PointCloudTool/x64/Release/testdata2/data-20170519-135919-179-1-1/data-20170519-135919-179-1-1检测结果.pdf");
 }
 
 
@@ -87,6 +118,12 @@ std::string GetExePath()
     //replace(szapipath, "\\", "/");
     exe_path = szapipath;
     return exe_path;
+}
+
+QString GetfilePath(QString qpath)
+{
+    qpath.replace("\\", "/");
+    return qpath.left(qpath.lastIndexOf('/'));
 }
 
 std::string GetExeName()
@@ -119,6 +156,7 @@ bool ParserCmdline(int argc, char *argv[])
         ("jsonpath", boost::program_options::value<std::string>(), "")
         ("htmlpath", boost::program_options::value<std::string>(), "")
         ("pdfpath", boost::program_options::value<std::string>(), "")
+        ("imgpath", boost::program_options::value<std::string>(), "")
         ("help", "帮助");
 
     try{
@@ -168,6 +206,17 @@ bool ParserCmdline(int argc, char *argv[])
             g_pdfpath = g_jsonpath;
             g_pdfpath = g_pdfpath.replace(QStringLiteral("json"), QStringLiteral("pdf"));
             g_pdfpath = g_pdfpath.replace('\\', '/');
+        }
+
+        if (vm.count("imgpath"))
+        {
+            g_imgpath = QString::fromLocal8Bit(vm["imgpath"].as<std::string>().c_str());
+        }
+        else
+        {
+            g_imgpath = g_jsonpath;
+            g_imgpath = g_imgpath.replace(QStringLiteral("json"), QStringLiteral("jpeg"));
+            g_imgpath = g_imgpath.replace('\\', '/');
         }
     }
     
@@ -236,44 +285,77 @@ std::wstring String2WString(const std::string& s)
     return wstrResult;
 }
 
+std::string & StringReplace(std::string &strBase, std::string strSrc, std::string strDes)
+{
+    std::string::size_type pos = 0;
+    std::string::size_type srcLen = strSrc.size();
+    std::string::size_type desLen = strDes.size();
+    pos = strBase.find(strSrc, pos);
+    while ((pos != std::string::npos))
+    {
+        strBase.replace(pos, srcLen, strDes);
+        pos = strBase.find(strSrc, (pos + desLen));
+    }
+    return strBase;
+}
+
+std::string U2A(std::string src)
+{
+    QString mid = QString::fromUtf8(src.c_str());
+    return std::string(mid.toLocal8Bit().data());
+}
+
 void GenerateHtml(QString json_path, QString html_path)
 {
+    QFile::remove(html_path);
     QString yunxingguifan_front;
     QString yunxingguifan_template;
     QString tulizongbiao_front;
     QString tulizongbiao_template;
     QString yinhuanmingxi_front;
     QString yinhuanmingxi_template;
+    QString yinhuanmingxi_last;
+    QString yinhuanxiangqing_front;
+    QString yinhuanxiangqing_template;
     QString last;
-    QFile inputFile(":/PdfReport/Resources/template.html");
+
+    // utf8格式的
+    QFile inputFile(QStringLiteral(":/PdfReport/Resources/template.html"));
+    QString json_dir = GetfilePath(json_path);
 
     int read_step = 0;
-    QTextCodec *codec(QTextCodec::codecForName("GBK"));
+    QTextCodec *codec(QTextCodec::codecForName("UTF-8"));
     if (inputFile.open(QIODevice::ReadOnly | QIODevice::Text))
     {
         while (!inputFile.atEnd())
         {
             QString line = codec->toUnicode(inputFile.readLine());
             if (read_step <= 18)
-                yunxingguifan_front += (line /*+ QStringLiteral("\r\n")*/);
+                yunxingguifan_front += (line);
             else if (read_step <= 22)
-                yunxingguifan_template += (line /*+ QStringLiteral("\r\n")*/);
+                yunxingguifan_template += (line);
             else if (read_step <= 33)
-                tulizongbiao_front += (line /*+ QStringLiteral("\r\n")*/);
+                tulizongbiao_front += (line);
             else if (read_step <= 38)
-                tulizongbiao_template += (line /*+ QStringLiteral("\r\n")*/);
+                tulizongbiao_template += (line);
             else if (read_step <= 54)
-                yinhuanmingxi_front += (line /*+ QStringLiteral("\r\n")*/);
+                yinhuanmingxi_front += (line);
             else if (read_step <= 64)
-                yinhuanmingxi_template += (line /*+ QStringLiteral("\r\n")*/);
+                yinhuanmingxi_template += (line);
+            else if (read_step <= 67)
+                yinhuanmingxi_last += (line);
+            else if (read_step <= 79)
+                yinhuanxiangqing_front += (line);
+            else if (read_step <= 97)
+                yinhuanxiangqing_template += (line);
             else
-                last += (line /*+ QStringLiteral("\r\n")*/);
+                last += (line);
             read_step++;
         }
         inputFile.close();
     }
     
-    // 读取配置文件
+    // 读取配置文件  utf8格式的
     
     std::ifstream is;
     is.open(json_path.toLocal8Bit().data(), std::ios::in);
@@ -294,25 +376,18 @@ void GenerateHtml(QString json_path, QString html_path)
         QCoreApplication::exit(0);
     }
     
-    /*
-        QString yunxingguifan_front;
-        QString yunxingguifan_template;
-        QString tulizongbiao_front;
-        QString tulizongbiao_template;
-        QString yinhuanmingxi_front;
-        QString yinhuanmingxi_template;
-        QString last;
-    */
+
+   
+    QString zongtu = QString::fromUtf8(pt.get<std::string>(to_utf8(String2WString("xy平面图路径"))).c_str());
     QString html;
     html += yunxingguifan_front;
     boost::property_tree::ptree traversee_pt = pt.get_child(to_utf8(String2WString("距离要求")));
     for (boost::property_tree::ptree::iterator it = traversee_pt.begin(); it != traversee_pt.end(); ++it)
     {
         //遍历读出数据
-        std::string key = it->first;
-        std::string val = it->second.get_value<std::string>();
-        html += QString().sprintf(yunxingguifan_template.toUtf8().data(),
-            key, val);
+        QString key = QString::fromUtf8(it->first.c_str());
+        QString val = QString::fromUtf8(it->second.get_value<std::string>().c_str());
+        html += yunxingguifan_template.arg(key).arg(val);
     }
 
     html += tulizongbiao_front;
@@ -321,9 +396,9 @@ void GenerateHtml(QString json_path, QString html_path)
     for (boost::property_tree::ptree::iterator it = traversee_pt.begin(); it != traversee_pt.end(); ++it)
     {
         //遍历读出数据
-        std::string key = it->first;
-        std::string val = it->second.get_value<std::string>();
-        QString scolor = QString::fromLocal8Bit(val.c_str());
+        QString key = QString::fromUtf8(it->first.c_str());
+        QString val = QString::fromUtf8(it->second.get_value<std::string>().c_str());
+        QString scolor = val;
         scolor.remove(' ');
         QStringList scolor_list = scolor.split(',');
         if (scolor_list.size() == 3)
@@ -333,41 +408,135 @@ void GenerateHtml(QString json_path, QString html_path)
             int b = scolor_list[2].toInt();
             char hexcol[32] = { 0 };
             sprintf_s(hexcol, "%6x", r | g | b);
-            html += QString().sprintf(tulizongbiao_template.toUtf8().data(),
-                QString::number(++serial).toUtf8().data(), key, hexcol);
+
+            html += tulizongbiao_template
+                .arg(++serial)
+                .arg(key)
+                .arg(QString::fromLocal8Bit(hexcol));
         }
     }
+  
+      html += yinhuanmingxi_front;
+      traversee_pt = pt.get_child(to_utf8(String2WString("隐患列表")));
+      BOOST_FOREACH(boost::property_tree::ptree::value_type &cvt, traversee_pt)
+      {
+          QString yinhuanzuobiao = QString::fromUtf8(cvt.second.get<std::string>(to_utf8(String2WString("隐患坐标"))).c_str()).remove(' ').replace(',', "<br/>");
+          QString taganqujian = QString::fromUtf8(cvt.second.get<std::string>(to_utf8(String2WString("塔杆区间"))).c_str()).remove(' ').replace('-', "<br/>-<br/>");
+  
+          html += yinhuanmingxi_template
+              .arg(QString::fromUtf8(cvt.second.get<std::string>(to_utf8(String2WString("序号"))).c_str()))
+              .arg(taganqujian)
+              .arg(yinhuanzuobiao)
+              .arg(QString::fromUtf8(cvt.second.get<std::string>(to_utf8(String2WString("隐患半径"))).c_str()))
+              .arg(QString::fromUtf8(cvt.second.get<std::string>(to_utf8(String2WString("隐患类型"))).c_str()))
+              .arg(QString::fromUtf8(cvt.second.get<std::string>(to_utf8(String2WString("隐患距离"))).c_str()))
+              .arg(QString::fromUtf8(cvt.second.get<std::string>(to_utf8(String2WString("对地距离"))).c_str()))
+              .arg(QString::fromUtf8(cvt.second.get<std::string>(to_utf8(String2WString("超限率"))).c_str()));
+      }
+      html += yinhuanmingxi_last;
 
-    html += yinhuanmingxi_front;
-    traversee_pt = pt.get_child(to_utf8(String2WString("隐患列表")));
-    BOOST_FOREACH(boost::property_tree::ptree::value_type &cvt, traversee_pt)
-    {
-        QString yinhuanzuobiao = QString::fromUtf8(cvt.second.get<std::string>(to_utf8(String2WString("隐患坐标"))).c_str()).remove(' ').replace(',', "<br/>");
-        QString taganqujian = QString::fromUtf8(cvt.second.get<std::string>(to_utf8(String2WString("塔杆区间"))).c_str()).remove(' ').replace('-', "<br/>-<br/>");
+      BOOST_FOREACH(boost::property_tree::ptree::value_type &cvt, traversee_pt)
+      {
+          html += yinhuanxiangqing_front;
+          QString yinhuanzuobiao = QString::fromUtf8(cvt.second.get<std::string>(to_utf8(String2WString("隐患坐标"))).c_str()).remove(' ').replace(',', "<br/>");
+          QString taganqujian = QString::fromUtf8(cvt.second.get<std::string>(to_utf8(String2WString("塔杆区间"))).c_str()).remove(' ').replace('-', "<br/>-<br/>");
+          QString xijietu = QString::fromUtf8(cvt.second.get<std::string>(to_utf8(String2WString("细节图"))).c_str());
+          QString jubuzongtu = QString::fromUtf8(cvt.second.get<std::string>(to_utf8(String2WString("总图"))).c_str());
 
-        html += QString().sprintf(yinhuanmingxi_template.toUtf8().data()
-            , cvt.second.get<std::string>(to_utf8(String2WString("序号")))
-            , taganqujian.toLocal8Bit().data()/* cvt.second.get<std::string>(to_utf8(String2WString("塔杆区间")))*/
-            , yinhuanzuobiao.toLocal8Bit().data()/*cvt.second.get<std::string>(to_utf8(String2WString("隐患坐标")))*/
-            , cvt.second.get<std::string>(to_utf8(String2WString("隐患半径")))
-            , cvt.second.get<std::string>(to_utf8(String2WString("隐患类型")))
-            , cvt.second.get<std::string>(to_utf8(String2WString("隐患距离")))
-            , cvt.second.get<std::string>(to_utf8(String2WString("对地距离")))
-            , cvt.second.get<std::string>(to_utf8(String2WString("超限率")))
-            );
-    }
+          html += yinhuanxiangqing_template
+              .arg(QString::fromUtf8(cvt.second.get<std::string>(to_utf8(String2WString("序号"))).c_str()))
+              .arg(taganqujian)
+              .arg(yinhuanzuobiao)
+              .arg(QString::fromUtf8(cvt.second.get<std::string>(to_utf8(String2WString("隐患半径"))).c_str()))
+              .arg(QString::fromUtf8(cvt.second.get<std::string>(to_utf8(String2WString("隐患类型"))).c_str()))
+              .arg(QString::fromUtf8(cvt.second.get<std::string>(to_utf8(String2WString("隐患距离"))).c_str()))
+              .arg(QString::fromUtf8(cvt.second.get<std::string>(to_utf8(String2WString("对地距离"))).c_str()))
+              .arg(QString::fromUtf8(cvt.second.get<std::string>(to_utf8(String2WString("超限率"))).c_str()))
+              .arg(zongtu)
+              .arg(xijietu)
+               .arg(jubuzongtu);
+
+//            html += yinhuanxiangqing_template
+//                .arg(QString::fromUtf8(cvt.second.get<std::string>(to_utf8(String2WString("序号"))).c_str()))
+//                .arg(taganqujian)
+//                .arg(yinhuanzuobiao)
+//                .arg(QString::fromUtf8(cvt.second.get<std::string>(to_utf8(String2WString("隐患半径"))).c_str()))
+//                .arg(QString::fromUtf8(cvt.second.get<std::string>(to_utf8(String2WString("隐患类型"))).c_str()))
+//                .arg(QString::fromUtf8(cvt.second.get<std::string>(to_utf8(String2WString("隐患距离"))).c_str()))
+//                .arg(QString::fromUtf8(cvt.second.get<std::string>(to_utf8(String2WString("对地距离"))).c_str()))
+//                .arg(QString::fromUtf8(cvt.second.get<std::string>(to_utf8(String2WString("超限率"))).c_str()))
+//                .arg(1)
+//                .arg(1)
+//                .arg(1);
+       }
+
 
     html += last;
     QFile htmlfile(html_path);
+    //char bom[] = { (byte)0xEF, (byte)0xBB, (byte)0xBF };
     if (htmlfile.open(QIODevice::ReadWrite | QIODevice::Text | QIODevice::Truncate))
     {
         QTextStream in(&htmlfile);
+        in.setCodec("UTF-8"); //请注意这行
         in << html;
         htmlfile.close();
     }
 }
 
 
+void ExportImage(QString html_path, QString img_path) {
+    wkhtmltoimage_global_settings * gs;
+    wkhtmltoimage_converter * c;
+    const unsigned char * data;
+    long len;
+
+    /* Init wkhtmltoimage in graphics less mode */
+    wkhtmltoimage_init(false);
+
+    /*
+    * Create a global settings object used to store options that are not
+    * related to input objects, note that control of this object is parsed to
+    * the converter later, which is then responsible for freeing it
+    */
+    gs = wkhtmltoimage_create_global_settings();
+
+    /* We want to convert the qstring documentation page */
+    wkhtmltoimage_set_global_setting(gs, "in", html_path.toUtf8().data());
+    wkhtmltoimage_set_global_setting(gs, "out", img_path.toUtf8().data());
+    wkhtmltoimage_set_global_setting(gs, "fmt", "jpeg");
+
+    /* Create the actual converter object used to convert the pages */
+    c = wkhtmltoimage_create_converter(gs, NULL);
+
+    /* Call the progress_changed function when progress changes */
+    wkhtmltoimage_set_progress_changed_callback(c, progress_changed);
+
+    /* Call the phase _changed function when the phase changes */
+    wkhtmltoimage_set_phase_changed_callback(c, phase_changed);
+
+    /* Call the error function when an error occurs */
+    wkhtmltoimage_set_error_callback(c, error);
+
+    /* Call the warning function when a warning is issued */
+    wkhtmltoimage_set_warning_callback(c, warning);
+
+    /* Perform the actual conversion */
+    if (!wkhtmltoimage_convert(c))
+        fprintf(stderr, "Conversion failed!");
+
+    /* Output possible http error code encountered */
+    printf("httpErrorCode: %d\n", wkhtmltoimage_http_error_code(c));
+
+    len = wkhtmltoimage_get_output(c, &data);
+    printf("%ld len\n", len);
+
+
+    /* Destroy the converter object since we are done with it */
+    wkhtmltoimage_destroy_converter(c);
+
+    /* We will no longer be needing wkhtmltoimage funcionality */
+    wkhtmltoimage_deinit();
+}
 
 
 void ExportPdf(QString html_path, QString pdf_path)
@@ -391,6 +560,7 @@ void ExportPdf(QString html_path, QString pdf_path)
     myassert(wkhtmltopdf_set_global_setting(gs, "collate", "true"));
     myassert(wkhtmltopdf_set_global_setting(gs, "outline", "true"));
     myassert(wkhtmltopdf_set_global_setting(gs, "margin.top", "2cm"));
+   
 
 
     myassert(wkhtmltopdf_set_global_setting(gs, "out", pdf_path.toUtf8().data()));
@@ -405,6 +575,10 @@ void ExportPdf(QString html_path, QString pdf_path)
     myassert(wkhtmltopdf_set_object_setting(os, "page", html_path.toUtf8().data()));
     myassert(wkhtmltopdf_set_object_setting(os, "toc.indentation", "2em"));
     myassert(wkhtmltopdf_set_object_setting(os, "useExternalLinks", "true"));
+    myassert(wkhtmltopdf_set_object_setting(os, "web.loadImages", "true"));
+
+    myassert(wkhtmltopdf_set_object_setting(os, "web.background", "true"));
+    myassert(wkhtmltopdf_set_object_setting(os, "web.defaultEncoding", "utf-8"));
 
     /* Create the actual converter object used to convert the pages */
     c = wkhtmltopdf_create_converter(gs);
@@ -427,7 +601,7 @@ void ExportPdf(QString html_path, QString pdf_path)
     * they are added
     */
     wkhtmltopdf_add_object(c, os, NULL);
-
+    
     /* Perform the actual conversion */
     myassert(wkhtmltopdf_convert(c));
 
@@ -441,5 +615,5 @@ void ExportPdf(QString html_path, QString pdf_path)
     wkhtmltopdf_destroy_converter(c);
 
     /* We will no longer be needing wkhtmltopdf funcionality */
-    wkhtmltopdf_deinit();
+    myassert(wkhtmltopdf_deinit());
 }

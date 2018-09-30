@@ -63,6 +63,9 @@
     <ClCompile Include="DangerousDistanceCheck.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="types\mytypes.cpp">
+      <Filter>Types</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="setting.hpp">

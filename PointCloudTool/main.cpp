@@ -39,11 +39,11 @@ bool ParserCmdline(int argc, char *argv[]);
 bool train();
 bool classif();
 void correct();
-void correct(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud, pcl::PointIndicesPtr ground_indices, std::vector <pcl::PointIndices>& jlClusters, std::vector < pct::LineInfo>& lineClusters, std::vector <pct::TowerInfo>& towerClusters);
+void correct(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud, pcl::PointIndicesPtr ground_indices, std::vector <pcl::PointIndices>& jlClusters, std::vector < pct::LineInfo>& lineClusters, std::vector <pct::TowerInfo>& towerClusters, std::vector <pct::VegetInfo> &vegetClusters);
 bool ReadyTrainOpts(pct::Setting& setting, boost::program_options::variables_map &vm);
 bool ReadyClassifOpts(pct::Setting& setting, boost::program_options::variables_map &vm);
 bool ReadyDistancecheckOpts(pct::Setting& setting, boost::program_options::variables_map &vm);
-void checkLinesDistanceDangerous(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud, pcl::PointIndicesPtr ground_indices, std::vector <pcl::PointIndices>& otheCluster, std::vector <pct::LineInfo>& lineClusters, std::vector <pct::TowerInfo>& towerClusters, double dangerousDistance);
+void checkLinesDistanceDangerous(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud, pcl::PointIndicesPtr ground_indices, std::vector <pct::VegetInfo>& vegetClusters, std::vector <pct::LineInfo>& lineClusters, std::vector <pct::TowerInfo>& towerClusters, double dangerousDistance);
 
 int main(int argc, char *argv[])
 {
@@ -83,9 +83,9 @@ int main(int argc, char *argv[])
         std::vector <pcl::PointIndices> otheCluster;
         std::vector <pct::LineInfo> lineClusters;
         std::vector <pct::TowerInfo> towerClusters;
-       
-        correct(src_cloud, ground_indices, otheCluster, lineClusters, towerClusters);
-        checkLinesDistanceDangerous(src_cloud, ground_indices, otheCluster, lineClusters, towerClusters, setting.value<float>("dangerdistance"));
+        std::vector <pct::VegetInfo> vegetClusters;
+        correct(src_cloud, ground_indices, otheCluster, lineClusters, towerClusters, vegetClusters);
+        checkLinesDistanceDangerous(src_cloud, ground_indices, vegetClusters, lineClusters, towerClusters, setting.value<float>("dangerdistance"));
     }
     else
     {
@@ -98,7 +98,7 @@ int main(int argc, char *argv[])
 
 void checkLinesDistanceDangerous(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud,
     pcl::PointIndicesPtr ground_indices,
-    std::vector <pcl::PointIndices>& otheCluster,
+    std::vector <pct::VegetInfo>& vegetClusters,
     std::vector <pct::LineInfo>& lineClusters,
     std::vector <pct::TowerInfo>& towerClusters,
     double dangerousDistance)
@@ -106,7 +106,7 @@ void checkLinesDistanceDangerous(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_clou
     DangerousDistanceCheck ddc;
     ddc.setData(src_cloud 
         , ground_indices
-        , otheCluster
+        , vegetClusters
         , lineClusters
         , towerClusters
         , dangerousDistance);
@@ -399,15 +399,17 @@ void correct()
     std::vector <pcl::PointIndices> otheCluster;
     std::vector < pct::LineInfo> lineClusters;
     std::vector <pct::TowerInfo> towerClusters;
+    std::vector <pct::VegetInfo> vegetClusters;
     pcl::PointIndicesPtr ground_indices(new pcl::PointIndices);
-    correct(src_cloud, ground_indices, otheCluster, lineClusters, towerClusters);
+    correct(src_cloud, ground_indices, otheCluster, lineClusters, towerClusters, vegetClusters);
 }
 
 void correct(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud,
     pcl::PointIndicesPtr ground_indices,
     std::vector <pcl::PointIndices>& jlClusters,
     std::vector <pct::LineInfo>& lineClusters,
-    std::vector <pct::TowerInfo>& towerClusters)
+    std::vector <pct::TowerInfo>& towerClusters,
+    std::vector <pct::VegetInfo> &vegetClusters)
 {
     const pct::Setting & setting = pct::Setting::ins();
    
@@ -433,6 +435,33 @@ void correct(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud,
     // 再对剩余的点颜色聚类
     pct::colorClusters(src_cloud, *cloud_indices, jlClusters);
     std::cout << "聚类数量：" << jlClusters.size() << std::endl;
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr tmpcloud(new pcl::PointCloud<pcl::PointXYZRGB>);
+    pcl::copyPointCloud(*src_cloud, *tmpcloud);
+    pcl::PointXYZRGB *tmppt1;
+
+    for (auto it = jlClusters.begin(); it != jlClusters.end(); ++it)
+    {
+        unsigned char r = rand() % 256;
+        unsigned char g = rand() % 256;
+        unsigned char b = rand() % 256;
+
+        for (auto itt = it->indices.begin(); itt != it->indices.end(); ++itt)
+        {
+            tmppt1 = &tmpcloud->at(*itt);
+            tmppt1->r = r;
+            tmppt1->g = g;
+            tmppt1->b = b;
+        }
+    }
+    for (auto it = ground_indices->indices.begin(); it != ground_indices->indices.end(); ++it)
+    {
+        tmppt1 = &tmpcloud->at(*it);
+        tmppt1->r = 0;
+        tmppt1->g = 0;
+        tmppt1->b = 255;
+    }
+    pct::io::save_las(tmpcloud, setting.outputdir + "\\pcljl.las");
+    tmpcloud.reset();
 
     // 电力线提取
     // 聚类结果是否含有70%以上的电力线点，如果是，就说明是电力线点
@@ -502,38 +531,47 @@ void correct(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud,
     std::cout << "其他类别数量：" << jlClusters.size() << std::endl;
 
 
+    // 计算电力线和铁塔编号
     for (int i = 0; i < towerClusters.size(); i++)
     {
         pct::getMinMax3D(*src_cloud, towerClusters[i].indices, towerClusters[i].min, towerClusters[i].max);
         pcl::PointXYZRGB midpt;
         
-
         midpt.x = (towerClusters[i].min.x + towerClusters[i].max.x) / 2;
         midpt.y = (towerClusters[i].min.y + towerClusters[i].max.y) / 2;
         midpt.z = (towerClusters[i].min.z + towerClusters[i].max.z) / 2;
         towerClusters[i].cen = midpt;
     }
-
+    std::cout << "计算铁塔中心点完成" << std::endl;
     pcl::PointXYZRGB temppt;
     pct::TowerInfo tempcluster;
-    for (int i = 0; i < towerClusters.size()-1; i++)
+    for (int i = 0; i < (int)towerClusters.size()-1; i++)
     {
+        std::cout << "铁塔排序" << i << std::endl;
         pcl::PointXYZRGB minpt, maxpt;
         pct::getMinMax3D(*src_cloud, towerClusters[i].indices, minpt, maxpt);
-        for (int j = i + 1; j < towerClusters.size() - 1; j++)
+        std::cout << "获取包围盒" << i << std::endl;
+        for (int j = i + 1; j < (int)towerClusters.size() - 1; j++)
         {
+            std::cout << "获取包围盒j" << i << " " << j << std::endl;
             pcl::PointXYZRGB minptj, maxptj;
             pct::getMinMax3D(*src_cloud, towerClusters[j].indices, minptj, maxptj);
+            std::cout << "获取包围盒j" << minptj << std::endl;
             if (minpt.x < minptj.x)
             {
+                std::cout << "移动铁塔j" << i << " " << j << std::endl;
                 tempcluster = towerClusters[i];
                 towerClusters[i] = towerClusters[j];
                 towerClusters[j] = tempcluster;
             }
+            std::cout << "移动铁塔j完成" << i << " " << j << std::endl;
         }
         towerClusters[i].tower_no = i+1;
+        std::cout << "铁塔排序完成" << i << std::endl;
     }
-    towerClusters[towerClusters.size() - 1].tower_no = towerClusters.size();
+    std::cout << "铁塔编号完成" << std::endl;
+    if (towerClusters.size())
+        towerClusters[(int)towerClusters.size() - 1].tower_no = towerClusters.size();
 
     for (int i = 0; i < lineClusters.size(); ++i)
     {
@@ -550,11 +588,147 @@ void correct(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud,
             }
         }
     }
+    std::cout << "电力线编号完成" << std::endl;
 
-    for (int i = 0; i < lineClusters.size(); ++i)
+    //  提取植被
+    pcl::KdTreeFLANN<pcl::PointXYZRGB> ground_kdtree;
+    ground_kdtree.setInputCloud(ground);
+    indices.clear();
+    sqr_distances.clear();
+    for (auto it = jlClusters.begin(); it != jlClusters.end();)
     {
-        std::cout << lineClusters[i].getLineNo() << std::endl;;
+        pct::VegetInfo veg(src_cloud, *it);
+        // 最低点与离地高度<10，有可能是植物！
+        if (ground_kdtree.radiusSearch(veg.min.z, 10, indices, sqr_distances) > 0)
+        {
+            vegetClusters.push_back(veg);
+            it = jlClusters.erase(it);
+        }
+        else
+        {
+            ++it;
+        }
     }
+    std::cout << "植被提取完成" << std::endl;
+
+    // 全部点都默认黑色
+    for (auto it = src_cloud->begin(); it != src_cloud->end(); ++it)
+    {
+        it->r = 0;
+        it->g = 0;
+        it->b = 0;
+    }
+
+    // 地面点上色
+    unsigned int color = setting.cls_intcolor(ground_str);
+    unsigned char r = *(((unsigned char *)&color) + 2);
+    unsigned char g = *(((unsigned char *)&color) + 1);
+    unsigned char b = *(((unsigned char *)&color) + 0);
+    pcl::PointXYZRGB *tmppt;
+    for (auto it = ground_indices->indices.begin(); it != ground_indices->indices.end(); ++it)
+    {
+        tmppt = &src_cloud->at(*it);
+        tmppt->r = r;
+        tmppt->g = g;
+        tmppt->b = b;
+    }
+
+    // 电力线上色
+    color = setting.cls_intcolor(power_line_str);
+    r = *(((unsigned char *)&color) + 2);
+    g = *(((unsigned char *)&color) + 1);
+    b = *(((unsigned char *)&color) + 0);
+   
+    for (auto it = lineClusters.begin(); it != lineClusters.end(); ++it)
+    {
+        for (auto itt = it->indices.indices.begin(); itt != it->indices.indices.end(); ++itt)
+        {
+            tmppt = &src_cloud->at(*itt);     
+            tmppt->r = r;
+            tmppt->g = g;
+            tmppt->b = b;
+        }
+    }
+    // 铁塔上色
+    color = setting.cls_intcolor(tower_str);
+    r = *(((unsigned char *)&color) + 2);
+    g = *(((unsigned char *)&color) + 1);
+    b = *(((unsigned char *)&color) + 0);
+    for (auto it = towerClusters.begin(); it != towerClusters.end(); ++it)
+    {
+        for (auto itt = it->indices.indices.begin(); itt != it->indices.indices.end(); ++itt)
+        {
+            tmppt = &src_cloud->at(*itt);     
+            tmppt->r = r;
+            tmppt->g = g;
+            tmppt->b = b;
+        }
+        std::cout << "检测到铁塔聚类，点数为：" << it->indices.indices.size() << std::endl;
+    }
+
+    // 植被点上色
+    color = setting.cls_intcolor(veget_str);
+    r = *(((unsigned char *)&color) + 2);
+    g = *(((unsigned char *)&color) + 1);
+    b = *(((unsigned char *)&color) + 0);
+    for (auto it = vegetClusters.begin(); it != vegetClusters.end(); ++it)
+    {
+        for (auto itt = it->indices.indices.begin(); itt != it->indices.indices.end(); ++itt)
+        {
+            tmppt = &src_cloud->at(*itt);
+            tmppt->r = r;
+            tmppt->g = g;
+            tmppt->b = b;
+        }
+    }
+
+    // 其他点上色
+    color = setting.cls_intcolor(others_str);
+    r = *(((unsigned char *)&color) + 2);
+    g = *(((unsigned char *)&color) + 1);
+    b = *(((unsigned char *)&color) + 0);
+    for (auto it = jlClusters.begin(); it != jlClusters.end(); ++it)
+    {
+        for (auto itt = it->indices.begin(); itt != it->indices.end(); ++itt)
+        {
+            tmppt = &src_cloud->at(*itt);     
+            tmppt->r = r;
+            tmppt->g = g;
+            tmppt->b = b;
+        }
+    }
+
+    pct::io::save_las(src_cloud, outputfile);
+    std::cout << "correct end：" << std::endl;
+
+
+
+    // 保存电力线 .las
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr lines_cloud(new pcl::PointCloud<pcl::PointXYZRGB>());
+    for (auto it = lineClusters.begin(); it != lineClusters.end(); ++it)
+    {
+        pcl::PointCloud<pcl::PointXYZRGB>::Ptr temp_cloud(new pcl::PointCloud<pcl::PointXYZRGB>());
+        pcl::ExtractIndices<pcl::PointXYZRGB> extract;
+        extract.setInputCloud(src_cloud);
+        extract.setIndices(boost::make_shared<std::vector<int>>(it->indices.indices));
+        extract.filter(*temp_cloud);
+        pcl::PointXYZRGB *temp_pt;
+        unsigned char r = rand() % 256;
+        unsigned char g = rand() % 256;
+        unsigned char b = rand() % 256;
+
+        for (int j = 0; j < temp_cloud->size(); ++j)
+        {
+            temp_pt = &temp_cloud->at(j);
+            temppt.r = r;
+            temppt.g = g;
+            temppt.b = b;
+        }
+
+        *lines_cloud += *temp_cloud;
+    }
+    pct::io::save_las(lines_cloud, setting.outputdir + "\\lines.las");
+    lines_cloud.reset();
 
     // 保存铁塔 .las
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr tower_cloud(new pcl::PointCloud<pcl::PointXYZRGB>());
@@ -570,55 +744,45 @@ void correct(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud,
     pct::io::save_las(tower_cloud, setting.outputdir + "\\towers.las");
     tower_cloud.reset();
 
-    // 电力线上色
-    unsigned int color = setting.cls_intcolor(power_line_str);
-    unsigned char r = *(((unsigned char *)&color) + 2);
-    unsigned char g = *(((unsigned char *)&color) + 1);
-    unsigned char b = *(((unsigned char *)&color) + 0);
-    pcl::PointXYZRGB *tmppt;
-    for (auto it = lineClusters.begin(); it != lineClusters.end(); ++it)
+
+
+    // 保存vegets .las
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr vegets_cloud(new pcl::PointCloud<pcl::PointXYZRGB>());
+    for (auto it = vegetClusters.begin(); it != vegetClusters.end(); ++it)
     {
-        for (auto itt = it->indices.indices.begin(); itt != it->indices.indices.end(); ++itt)
-        {
-            tmppt = &src_cloud->at(*itt);      //  暂时把电力线的点都弄成红色，方便调试
-            tmppt->r = r;
-            tmppt->g = g;
-            tmppt->b = b;
-        }
+        pcl::PointCloud<pcl::PointXYZRGB>::Ptr temp_cloud(new pcl::PointCloud<pcl::PointXYZRGB>());
+        pcl::ExtractIndices<pcl::PointXYZRGB> extract;
+        extract.setInputCloud(src_cloud);
+        extract.setIndices(boost::make_shared<std::vector<int>>(it->indices.indices));
+        extract.filter(*temp_cloud);
+        *vegets_cloud += *temp_cloud;
     }
-    // 铁塔上色
-    color = setting.cls_intcolor(tower_str);
-    r = *(((unsigned char *)&color) + 2);
-    g = *(((unsigned char *)&color) + 1);
-    b = *(((unsigned char *)&color) + 0);
-    for (auto it = towerClusters.begin(); it != towerClusters.end(); ++it)
-    {
-        for (auto itt = it->indices.indices.begin(); itt != it->indices.indices.end(); ++itt)
-        {
-            tmppt = &src_cloud->at(*itt);      //  暂时把电力线的点都弄成红色，方便调试
-            tmppt->r = r;
-            tmppt->g = g;
-            tmppt->b = b;
-        }
-        std::cout << "检测到铁塔聚类，点数为：" << it->indices.indices.size() << std::endl;
-    }
-    // 其他点上色
-    color = setting.cls_intcolor(veget_str);
-    r = *(((unsigned char *)&color) + 2);
-    g = *(((unsigned char *)&color) + 1);
-    b = *(((unsigned char *)&color) + 0);
+    pct::io::save_las(vegets_cloud, setting.outputdir + "\\vegets.las");
+    vegets_cloud.reset();
+
+    // 保存others .las
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr others_cloud(new pcl::PointCloud<pcl::PointXYZRGB>());
     for (auto it = jlClusters.begin(); it != jlClusters.end(); ++it)
     {
-        for (auto itt = it->indices.begin(); itt != it->indices.end(); ++itt)
-        {
-            tmppt = &src_cloud->at(*itt);      //  暂时把电力线的点都弄成红色，方便调试
-            tmppt->r = r;
-            tmppt->g = g;
-            tmppt->b = b;
-        }
+        pcl::PointCloud<pcl::PointXYZRGB>::Ptr temp_cloud(new pcl::PointCloud<pcl::PointXYZRGB>());
+        pcl::ExtractIndices<pcl::PointXYZRGB> extract;
+        extract.setInputCloud(src_cloud);
+        extract.setIndices(boost::make_shared<std::vector<int>>(it->indices));
+        extract.filter(*temp_cloud);
+        *others_cloud += *temp_cloud;
     }
+    pct::io::save_las(others_cloud, setting.outputdir + "\\others.las");
+    others_cloud.reset();
 
-    pct::io::save_las(src_cloud, outputfile);
-    std::cout << "correct end：" << std::endl;
+    // 保存ground .las
+    ground->clear();
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr ground_cloud(new pcl::PointCloud<pcl::PointXYZRGB>());
+    //pcl::ExtractIndices<pcl::PointXYZRGB> extract;
+    extract.setInputCloud(src_cloud);
+    extract.setIndices(boost::make_shared<std::vector<int>>(ground_indices->indices));
+    extract.filter(*ground_cloud);
+    pct::io::save_las(ground_cloud, setting.outputdir + "\\ground.las");
+    ground_cloud.reset();
+
 }
 
