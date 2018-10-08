@@ -69,7 +69,7 @@ void DangerousDistanceCheck::TooNearCheck()
      balls_.clear();
      // 判断每根线与地物和地面范围K内是否有交集，计算出电力线与地面地物最大的交集
      // 如果计算量过大 可以考虑先降采样
-     int gap = 5;
+     int gap = 3;
      double K = dangerousDistance_;
      double leafSize = 1.5;
  
@@ -272,6 +272,7 @@ void DangerousDistanceCheck::TooNearCheck()
          c.cen.z = (min_pt.z() + max_pt.z()) / 2;
          c.nearst.dis = std::numeric_limits<int>::max();
 
+         pcl::PointXYZRGB *farst_pt = nullptr;
          float max_radiu = -std::numeric_limits<int>::max();
          float distance_float = -std::numeric_limits<int>::max();
 
@@ -287,7 +288,10 @@ void DangerousDistanceCheck::TooNearCheck()
              }
              distance_float = pct::Distance3d(c.cen, std::get<4>(traverse_tuple));
              if (distance_float > max_radiu)
+             {
                  max_radiu = distance_float;
+                 farst_pt = &std::get<4>(traverse_tuple);
+             }
          }
         
          c.lineno = std::get<0>(all_crash_point_distance[nearst_index]);
@@ -307,7 +311,7 @@ void DangerousDistanceCheck::TooNearCheck()
         // CalcRadiu()
          // 包围球至少1米
         // c.radiu = sqrt(pow(min_pt.x() - max_pt.x(), 2) + pow(min_pt.y() - max_pt.y(), 2) + pow(min_pt.z() - max_pt.z(), 2)) / 2 + 1;
-         c.radiu = max_radiu;
+         c.radiu = c.GetExtraBoxRadiu(*farst_pt);
          c.id = (QStringLiteral("ball") + QString::number(i + 1)).toLocal8Bit().data();
          c.description = QString().sprintf("%.3f  %.3f  %.3f  %.3f\n", c.cen.x, c.cen.y, c.cen.z, c.radiu).toStdString();
          balls_.push_back(c);
@@ -612,4 +616,20 @@ std::ostream& operator << (std::ostream& output, DangerousDistanceCheck::Collisi
         << "\nground_distance:" << c.ground_distance << "\nid:" << c.id << "\ndescription:" << c.description << "\nearst.linept:" << c.nearst.linept
         << "\nearst.otherpt:" << c.nearst.otherpt << "\nearst.subVec:" << c.nearst.subVec << "\nearst.dis:" << c.nearst.dis;
     return output;
+}
+
+double DangerousDistanceCheck::CollisionBall::GetExtraBoxRadiu(const pcl::PointXYZRGB &pt)
+{
+    pcl::PointXYZRGB max_t = max;
+    pcl::PointXYZRGB min_t = min;
+
+
+    if (pt.x > max_t.x)
+        max_t.x = pt.x;
+    if (pt.y > max_t.y)
+        max_t.y = pt.y;
+    if (pt.z > min_t.z)
+        min_t.z = pt.z;
+
+    return sqrt(pow(min_t.x - max_t.x, 2) + pow(min_t.y - max_t.y, 2) + pow(min_t.z - max_t.z, 2)) / 2 + 1;
 }

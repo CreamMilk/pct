@@ -22,6 +22,7 @@
      {
      public:
          CollisionBall(){ crashtype = 0; ground_distance = 0; overtoplimit = 0; };
+         double GetExtraBoxRadiu(const pcl::PointXYZRGB &pt);
          pcl::PointXYZRGB cen;  // Åö×²µã
          pcl::PointXYZRGB min;
          pcl::PointXYZRGB max;
