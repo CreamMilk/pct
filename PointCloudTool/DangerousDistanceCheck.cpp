@@ -69,9 +69,9 @@ void DangerousDistanceCheck::TooNearCheck()
      balls_.clear();
      // 判断每根线与地物和地面范围K内是否有交集，计算出电力线与地面地物最大的交集
      // 如果计算量过大 可以考虑先降采样
-     int gap = 3;
+     int gap = 5;
      double K = dangerousDistance_;
-     double leafSize = 1.5;
+     double leafSize = 1;
  
      const pct::Setting & setting = pct::Setting::ins();
      unsigned int color = setting.cls_intcolor(crash_line_str);
@@ -256,6 +256,7 @@ void DangerousDistanceCheck::TooNearCheck()
 
      std::vector<pcl::PointIndices> cluster_indices;
      pct::ouShiFenGe(allCrashPoint, cluster_indices, gap);
+     pct::mergeBalls(allCrashPoint, cluster_indices);
      Eigen::Vector4f min_pt, max_pt;
      for (int i = 0; i < cluster_indices.size(); ++i)
      {
@@ -308,16 +309,14 @@ void DangerousDistanceCheck::TooNearCheck()
          if (groundsqr_distances.size()) 
              c.ground_distance = std::sqrt(groundsqr_distances[0]);
 
-        // CalcRadiu()
-         // 包围球至少1米
-        // c.radiu = sqrt(pow(min_pt.x() - max_pt.x(), 2) + pow(min_pt.y() - max_pt.y(), 2) + pow(min_pt.z() - max_pt.z(), 2)) / 2 + 1;
+         // 计算包围盒半径
          c.radiu = c.GetExtraBoxRadiu(*farst_pt);
          c.id = (QStringLiteral("ball") + QString::number(i + 1)).toLocal8Bit().data();
          c.description = QString().sprintf("%.3f  %.3f  %.3f  %.3f\n", c.cen.x, c.cen.y, c.cen.z, c.radiu).toStdString();
          balls_.push_back(c);
-         std::cout.setf(ios::fixed, ios::floatfield);
-         std::cout << fixed << setprecision(6);
-         std::cout << c << endl;
+         //std::cout.setf(ios::fixed, ios::floatfield);
+         //std::cout << fixed << setprecision(6);
+         //std::cout << c << endl;
      }
      std::cout << "balls_数量" << balls_.size() << std::endl;
 }
@@ -516,12 +515,12 @@ void DangerousDistanceCheck::showNearCheck()
     view->saveScreenshot(std::string(pic_dir.toLocal8Bit().data()) + "\\总图.png");
 
 
-    //// 调试观看
-    //while (!view->wasStopped())
-    //{
-    //    view->spinOnce(100);
-    //    boost::this_thread::sleep(boost::posix_time::microseconds(100000));
-    //}
+    // 调试观看
+    while (!view->wasStopped())
+    {
+        view->spinOnce(100);
+        boost::this_thread::sleep(boost::posix_time::microseconds(100000));
+    }
 
 
     // 导出json
@@ -580,7 +579,7 @@ void DangerousDistanceCheck::showNearCheck()
          errpt_array.push_back(std::make_pair("", errpt_child));
      }
      pt.put_child("隐患列表", errpt_array);
-     std::string json_path = setting.outputdir + "/" + pct::ExtractExeName(setting.inputfile) + "检测结果.json";
+     std::string json_path = setting.outputdir + "\\" + pct::ExtractExeName(setting.inputfile) + "检测结果.json";
      std::ofstream ofs(json_path, fstream::out);
      boost::property_tree::write_json(ofs, pt);
      ofs.close();

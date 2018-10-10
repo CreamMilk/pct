@@ -1,7 +1,7 @@
 {
   "nb_trials":800,
   "nb_scales":5,
-  "dangerdistance":10,
+  "dangerdistance":8,
   "classif_color":{
 	"ground":"186, 189, 182",
 	"veget":"204, 255, 201",
@@ -11,6 +11,6 @@
 	"others":"0, 0, 0",
 	"unselect":"1, 1, 1",
 	"crash_line":"255,0,0",
-	"crash_other":"0,0,255"
+	"crash_other":"138,43,226"
   }
 }

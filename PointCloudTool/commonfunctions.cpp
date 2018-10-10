@@ -26,6 +26,8 @@
 #include <QFileInfo>
 
 struct ClusterInfo{
+    ClusterInfo() :radiu(0){};
+    float radiu;
     Vector3 center;
     Vector3 min;
     Vector3 max;
@@ -609,7 +611,7 @@ void pct::colorClusters(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, std:
 
 void pct::colorClusters(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, const pcl::PointIndices& inputindices, std::vector <pcl::PointIndices>& jlClusters)
 {
-    float distanceThreshold = 0.5;
+    float distanceThreshold = 0.8;
     float pointColorThreshold = 0;
     float regionColorThreshold = 0;
     int minClusterSize = 50;
@@ -898,7 +900,7 @@ bool pct::LikePowerLine1(pcl::PointCloud<pcl::PointXYZRGB>::Ptr ground_cloud, pc
 {
     float distance = Distance2d(line.sta.x, line.sta.y, line.end.x, line.end.y);
     pct::LineInfo::Asix maxAxis = line.maxAsix;
-    if (LineInfo::Asix::Z == maxAxis || distance < min_length)
+    if (LineInfo::Asix::Z == maxAxis || distance < min_length || line.pts.size() < 30)
     {
         return false;
     }
@@ -1020,6 +1022,7 @@ ClusterInfo getClusterInfo(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, std::ve
     ClusterInfo info;
     getMinMax(cloud, indices, info.min, info.max);
     info.center = (info.min + info.max) / 2;
+    info.radiu = pct::Distance3d(info.min, info.max);
     return info;
 }
 
@@ -1033,6 +1036,7 @@ ClusterInfo getClusterInfo(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud)
     ClusterInfo info;
     getMinMax(cloud, indices, info.min, info.max);
     info.center = (info.min + info.max) / 2;
+    info.radiu = pct::Distance3d(info.min, info.max);
     return info;
 }
 
@@ -1194,6 +1198,7 @@ void pct::ouShiFenGe(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud, std::vect
     ec.extract(cluster_indices);
 }
 
+/*
 // 从铁塔数据中删除离群点，移动到普通点中
 void pct::deleteObbErrorPoints(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud, std::vector<int> &indeces, std::set<int> &error_points)
 {
@@ -1222,13 +1227,18 @@ void pct::deleteObbErrorPoints(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud,
         }
     }
 }
+*/
 
 void pct::deleteObbErrorPoints(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud, std::vector<int> &indeces, std::vector <pcl::PointIndices> &error_points)
 {
-    double k = 2;
+    double k = 4;
 
     std::vector<pcl::PointIndices> cluster_indices;
     pct::ouShiFenGe(src_cloud, indeces, cluster_indices, k);
+
+    if (cluster_indices.size() <= 1)
+        return; 
+
     int max_index = -1;
     int max_cluster_size = -1;
     for (int i = 0; i < cluster_indices.size(); ++i)
@@ -1249,6 +1259,8 @@ void pct::deleteObbErrorPoints(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud,
             error_points.push_back(cluster_indices[i]);
         }
     }
+
+
 }
 
 
@@ -1280,6 +1292,8 @@ void pct::MergeTower(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud,
     std::vector <pct::LineInfo>& lineClusters,
     std::vector <pct::TowerInfo>& towerClusters)
 {
+
+    std::cout << "合并铁塔前铁塔识别数量：" << towerClusters.size() << std::endl;
     ClusterInfo cloud_info = getClusterInfo(src_cloud);
     for (int i = 0; i < (int)towerClusters.size() - 1; ++i)
     {
@@ -1292,8 +1306,8 @@ void pct::MergeTower(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud,
                 continue;
 
             ClusterInfo infoj = getClusterInfo(src_cloud, towerClusters[j].indices.indices);
-            double dis = Distance2d(infoi.max.x, infoi.max.y, infoj.max.x, infoj.max.y);
-            if (dis < 20 && std::abs(infoi.max.z - infoj.max.z) < 2)
+            double dis = Distance2d(infoi.center.x, infoi.center.y, infoj.center.x, infoj.center.y);
+            if (dis < 30 && std::abs(infoi.max.z - infoj.max.z) < 5)
             {
                 std::cout << "合并两个铁塔的距离" << dis << "<20" << std::endl;
                 towerClusters[j].indices.indices.insert(towerClusters[j].indices.indices.end(), towerClusters[i].indices.indices.begin(), towerClusters[i].indices.indices.end());
@@ -1315,7 +1329,8 @@ void pct::MergeTower(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud,
         }
     }
 
-    std::cout << "铁塔个数" << towerClusters.size() << std::endl;
+    std::cout << "合并铁塔后铁塔识别数量：" << towerClusters.size() << std::endl;
+   
 
 
     // 计算铁塔obb， 
@@ -1472,6 +1487,7 @@ void pct::MergeTower(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud,
     }
 }
 
+/*
 void pct::FindLikeTower(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud, pcl::PointIndicesPtr cloud_indices, 
     std::vector<std::vector<int>>  &clusters, float dbscaneps, int dbscanmin)
 {
@@ -1649,6 +1665,7 @@ void pct::FindLikeTower(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud, pcl::P
      cloud_indices->indices.clear();
      cloud_indices->indices.insert(cloud_indices->indices.begin(), cloud_indices_set.begin(), cloud_indices_set.end());
 }
+*/
 
 double pct::Distance3d(pcl::PointXYZRGB &pt1, pcl::PointXYZRGB &pt2)
 {
@@ -1724,4 +1741,40 @@ std::wstring pct::String2WString(const std::string& s)
     delete[]wchDest;
     setlocale(LC_ALL, strLocale.c_str());
     return wstrResult;
+}
+
+void pct::mergeBalls(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr allCrashPoint, std::vector<pcl::PointIndices> &cluster_indices)
+{
+    std::vector<ClusterInfo> infos;
+    for (int i = 0; i < cluster_indices.size(); ++i)
+    {
+        infos[i] = getClusterInfo(allCrashPoint, cluster_indices[i].indices);
+    }
+
+    for (int i = 0; i < infos.size()-1; ++i)
+    {
+        if (!cluster_indices[i].indices.size())
+            continue;
+        for (int j = i + 1; j < infos.size(); ++j)
+        {
+            if (!cluster_indices[j].indices.size())
+                continue;
+            float dis = pct::Distance3d(infos[i].center, infos[j].center);
+            // i包涵了j
+            if ((infos[i].radiu > dis + infos[j].radiu) || (infos[j].radiu> dis + infos[i].radiu))
+            {
+                cluster_indices[i].indices.insert(cluster_indices[i].indices.end(), cluster_indices[j].indices.begin(), cluster_indices[j].indices.end());
+                cluster_indices[j].indices.clear();
+            }
+        }
+    }
+
+    // 清除空的
+    for (auto it = cluster_indices.begin(); it != cluster_indices.end();)
+    {
+        if (!it->indices.size())
+            it = cluster_indices.erase(it);
+        else
+            ++it;
+    }
 }
