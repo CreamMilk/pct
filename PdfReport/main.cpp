@@ -16,6 +16,7 @@
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/foreach.hpp>
 
+#include <QApplication>
 #include <QTextStream>
 #include <QFileInfo>
 #include <QTextCodec>
@@ -88,7 +89,7 @@ void warning(wkhtmltoimage_converter * c, const char * msg) {
 
 /* Main method convert pdf */
 int main(int argc, char *argv[]) {
-
+	QApplication a(argc, argv);
     if (false == ParserCmdline(argc, argv))
     {
         return EXIT_FAILURE;

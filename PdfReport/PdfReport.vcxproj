@@ -71,7 +71,7 @@
       <AdditionalDependencies>$(SolutionDir)\..\Dependence\boost_1_67_0\lib64-msvc-12.0\libboost_system-vc120-mt-x64-1_67.lib;$(SolutionDir)\..\Dependence\boost_1_67_0\lib64-msvc-12.0\libboost_filesystem-vc120-mt-x64-1_67.lib;$(SolutionDir)\..\Dependence\boost_1_67_0\lib64-msvc-12.0\libboost_program_options-vc120-mt-x64-1_67.lib;$(SolutionDir)\..\Dependence\boost_1_67_0\lib64-msvc-12.0\libboost_locale-vc120-mt-x64-1_67.lib;qtmain.lib;Qt5Core.lib;Qt5Gui.lib;Qt5PrintSupport.lib;Qt5Widgets.lib;Qt5WebKit.lib;Qt5WebkitWidgets.lib;Qt5XmlPatterns.lib;$(SolutionDir)\..\Dependence\wkhtmltopdf-master\bin\wkhtmltox.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>copy "E:\thlibrary\wkhtmltopdf-master\bin\wkhtmltox.dll" "$(OutDir)"</Command>
+      <Command>copy "$(SolutionDir)\..\Dependence\wkhtmltopdf-master\bin\wkhtmltox.dll" "$(OutDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -115,7 +115,7 @@
   </ImportGroup>
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties MocDir=".\GeneratedFiles\$(ConfigurationName)" UicDir=".\GeneratedFiles" RccDir=".\GeneratedFiles" lupdateOptions="" lupdateOnBuild="0" lreleaseOptions="" Qt5Version_x0020_x64="vs2013_qt5.4_webkit" MocOptions="" />
+      <UserProperties MocDir=".\GeneratedFiles\$(ConfigurationName)" UicDir=".\GeneratedFiles" RccDir=".\GeneratedFiles" lupdateOptions="" lupdateOnBuild="0" lreleaseOptions="" Qt5Version_x0020_x64="qt5.4webkit" MocOptions="" />
     </VisualStudio>
   </ProjectExtensions>
 </Project>
