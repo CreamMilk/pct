@@ -1745,7 +1745,7 @@ std::wstring pct::String2WString(const std::string& s)
 
 void pct::mergeBalls(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr allCrashPoint, std::vector<pcl::PointIndices> &cluster_indices)
 {
-    std::vector<ClusterInfo> infos;
+    std::vector<ClusterInfo> infos(cluster_indices.size());
     for (int i = 0; i < cluster_indices.size(); ++i)
     {
         infos[i] = getClusterInfo(allCrashPoint, cluster_indices[i].indices);
