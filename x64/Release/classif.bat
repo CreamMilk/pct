@@ -2,7 +2,7 @@
 
 set classifexe=PointCloudTool.exe
 set traindir=classdir
-set classifdirs=testdata testdata2
+set classifdirs=data
 
 if not exist %traindir%\config.xml (
 	@echo 没有找到文件：%traindir%\config.xml，在执行分类前，请先训练样本文件！
