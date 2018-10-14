@@ -247,7 +247,8 @@ void DangerousDistanceCheck::TooNearCheck()
      }
      std::cout << "allCrashPoint数量" << allCrashPoint->size() << "\tsrc_cloud数量" << src_cloud_->size() << std::endl;
 
-
+	 if (!allCrashPoint->size())
+		 return;
      // 合并碰撞点, 计算碰撞结果
      pcl::KdTreeFLANN<pcl::PointXYZRGB> groundkdtree;
      groundkdtree.setInputCloud(ground);

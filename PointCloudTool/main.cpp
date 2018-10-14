@@ -480,19 +480,25 @@ void correct(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud,
     pct::io::save_las(tmpcloud, setting.outputdir + "\\pcljl.las");
     tmpcloud.reset();
 
+	std::cout << "电力线提取begin"  << std::endl;
     // 电力线提取
     // 聚类结果是否含有70%以上的电力线点，如果是，就说明是电力线点
     for (auto it = jlClusters.begin(); it != jlClusters.end(); )
     {
+		std::cout << "电力线提取1" << std::endl;
         if (pct::pointsCountsForColor(src_cloud, *it, setting.cls_intcolor(power_line_str)) > it->indices.size()*0.25)  // power_line":"255, 255, 0
         {
+			std::cout << "电力线提取2" << std::endl;
             pct::LineInfo line = pct::lineInfoFactory(src_cloud, *it);
+			std::cout << "电力线提取begin" << std::endl;
             if (pct::LikePowerLine1(ground, line, 10, 0.1, 0.5, 0.5))
             {
+				std::cout << "电力线提取3" << std::endl;
                 lineClusters.push_back(line);
                 it = jlClusters.erase(it);
                 continue;
             }
+			std::cout << "电力线提取4" << std::endl;
         }
         ++it;
     }

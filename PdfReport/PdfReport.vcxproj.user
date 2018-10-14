@@ -10,7 +10,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LocalDebuggerEnvironment>PATH=$(QTDIR)\bin%3b$(PATH)</LocalDebuggerEnvironment>
     <QTDIR>F:\pointcloudTool\project\Dependence\Qt5.4.2\5.4\msvc2013_64_opengl</QTDIR>
-    <LocalDebuggerCommandArguments>--jsonpath F:\pointcloudTool\project\pct\x64\Release\data\data-20170519-135919-179-1-1检测结果.json</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>--jsonpath F:\pointcloudTool\project\pct\x64\Release\data\data-20170519-135919-179-1-1\data-20170519-135919-179-1-1检测结果.json</LocalDebuggerCommandArguments>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
 </Project>

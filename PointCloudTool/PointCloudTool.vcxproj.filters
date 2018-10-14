@@ -83,9 +83,6 @@
     <ClInclude Include="Classification\Point_set_item_classification.h">
       <Filter>Classification</Filter>
     </ClInclude>
-    <ClInclude Include="Polyhedron\Color_ramp.h">
-      <Filter>Polyhedron</Filter>
-    </ClInclude>
     <ClInclude Include="mydef.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -101,13 +98,5 @@
     <ClInclude Include="types\mytypes.h">
       <Filter>Types</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <CustomBuild Include="Polyhedron\Scene_item.h">
-      <Filter>Polyhedron</Filter>
-    </CustomBuild>
-    <CustomBuild Include="Polyhedron\Scene_points_with_normal_item.h">
-      <Filter>Polyhedron</Filter>
-    </CustomBuild>
   </ItemGroup>
 </Project>
