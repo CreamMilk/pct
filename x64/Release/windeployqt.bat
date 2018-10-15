@@ -1,0 +1,1 @@
+..\..\..\Dependence\5.10\5.10.1\msvc2013_64\bin\windeployqt.exe PointCloudTool.exe
