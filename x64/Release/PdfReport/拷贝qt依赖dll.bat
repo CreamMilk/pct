@@ -1,1 +1,1 @@
-..\..\..\..\Dependence\5.10\5.10.1\msvc2013_64\bin\windeployqt.exe PdfReport.exe
+..\..\..\..\Dependence\Qt5.4.2\5.4\msvc2013_64_opengl\bin\windeployqt.exe PdfReport.exe
