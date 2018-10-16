@@ -14,7 +14,7 @@ for %%d in (%classifdirs%) do (
 
 	for  %%f in (%%d\*.las) do (
 		 @echo %%f
-		 %classifexe% --inputfile %%f --classdir %traindir% --retrain false --method 2 --dbscaneps 2 --dbscanmin 700
+		 %classifexe% --cmdtype distancecheck --inputfile %%f --classdir %traindir%
 		 
 		 @echo %%f end
 	)
