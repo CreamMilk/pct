@@ -21,7 +21,8 @@
 #include <pcl/segmentation/extract_clusters.h>
 #include <windows.h>
 #include <string.h>
-
+#include "setting.hpp"
+#include "pctio.h"
 #include <QDir>
 #include <QFileInfo>
 

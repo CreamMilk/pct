@@ -98,5 +98,8 @@
     <ClInclude Include="types\mytypes.h">
       <Filter>Types</Filter>
     </ClInclude>
+    <ClInclude Include="CoorConv.hpp">
+      <Filter>others</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -40,6 +40,21 @@ bool pct::io::lassave(const Scene_points_with_normal_item* item, const std::stri
     return point_set_item->write_las_point_set(out);
 }
  
+LASheader pct::io::Get_las_header(std::string path)
+{
+    LASreadOpener lasreadopener;
+    LASheader header;
+    lasreadopener.set_file_name(path.c_str());
+    if (!lasreadopener.active())
+    {
+        return header;
+    }
+    LASreader* lasreader = lasreadopener.open();
+    header = lasreader->header;
+    lasreader->close();
+    //delete lasreader;
+    return header;
+}
 
 void pct::io::Load_las(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, std::string path)
 {

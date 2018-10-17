@@ -138,13 +138,13 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_SCL_SECURE_NO_DEPRECATE;_SCL_SECURE_NO_WARNINGS;NOMINMAX;CGAL_LINKED_WITH_TBB;CGAL_LINKED_WITH_OPENCV;CGAL_USE_MPFR;CGAL_USE_GMP;SCENE_IMAGE_GL_BUFFERS_AVAILABLE;CGAL_EIGEN3_ENABLED;CGAL_LINKED_WITH_LASLIB;USE_FORWARD_DECL;QT_OPENGL_LIB;QT_WIDGETS_LIB;QT_GUI_LIB;QT_CORE_LIB;QT_NO_DEBUG;CGAL_USE_ZLIB=1;QT_XML_LIB;_CRT_SECURE_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>$(SolutionDir)\PointCloudTool\include;$(SolutionDir)\PointCloudTool\Classification;$(SolutionDir)\PointCloudTool;$(SolutionDir)\PointCloudTool\Polyhedron;$(SolutionDir)\PointCloudTool\include\Polyhedron;$(SolutionDir)\..\Dependence\CGAL-4.12\include;$(SolutionDir)\..\Dependence\CGAL-4.12\auxiliary\gmp\include;$(SolutionDir)\..\Dependence\Eigen\include\eigen3;$(SolutionDir)\..\Dependence\LAStools\LASlib\inc;$(SolutionDir)\..\Dependence\LAStools\LASzip\src;$(SolutionDir)\..\Dependence\opencv2.4.12\opencv\build\include;$(SolutionDir)\..\Dependence\boost_1_67_0;$(SolutionDir)\..\Dependence\5.10\5.10.1\msvc2013_64\include;$(SolutionDir)\..\Dependence\5.10\5.10.1\msvc2013_64\include\QtWidgets;$(SolutionDir)\..\Dependence\5.10\5.10.1\msvc2013_64\include\QtGui;$(SolutionDir)\..\Dependence\5.10\5.10.1\msvc2013_64\include\QtANGLE;$(SolutionDir)\..\Dependence\5.10\5.10.1\msvc2013_64\include\QtCore;$(SolutionDir)\..\Dependence\5.10\5.10.1\msvc2013_64\.\mkspecs\win32-msvc;$(SolutionDir)\..\Dependence\5.10\5.10.1\msvc2013_64\include\QtSvg;$(SolutionDir)\..\Dependence\zlib-1.2.11\include;$(SolutionDir)\..\Dependence\5.10\5.10.1\msvc2013_64\include\QtOpenGL;$(SolutionDir)\..\Dependence\5.10\5.10.1\msvc2013_64\include\QtScript;$(SolutionDir)\..\Dependence\5.10\5.10.1\msvc2013_64\include\QtXml;$(SolutionDir)\..\Dependence\tbb2018_20180411oss\include;$(SolutionDir)\..\Dependence\pcl-1.8.1\include\pcl-1.8;$(SolutionDir)\..\Dependence\flann\include;$(SolutionDir)\..\Dependence\MathGeoLib;$(SolutionDir)\..\Dependence\VTK-8.1.1\include\vtk-8.1;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <DebugInformationFormat>None</DebugInformationFormat>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <OpenMPSupport>true</OpenMPSupport>
     </ClCompile>
     <Link>
       <SubSystem>
       </SubSystem>
-      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalLibraryDirectories>$(SolutionDir)\..\Dependence/CGAL-4.12/lib;$(SolutionDir)\..\Dependence/CGAL-4.12/lib/$(Configuration);$(SolutionDir)\..\Dependence\pcl-1.8.1\lib;$(SolutionDir)\..\Dependence\VTK-8.1.1\lib;$(SolutionDir)\..\Dependence\flann\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
@@ -174,6 +174,7 @@
   <ItemGroup>
     <ClInclude Include="Classification\Item_classification_base.h" />
     <ClInclude Include="Classification\Point_set_item_classification.h" />
+    <ClInclude Include="CoorConv.hpp" />
     <ClInclude Include="DangerousDistanceCheck.h" />
     <ClInclude Include="dbscan.h" />
     <ClInclude Include="kdtree.h" />

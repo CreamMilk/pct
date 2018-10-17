@@ -11,6 +11,15 @@
 
 namespace pct
 {
+    struct LBH
+    {
+        LBH()
+        {
+            l1 = l2 = b1 = b2 = H = l3 = b3 = 0;
+        }
+        int l1, l2, b1, b2;
+        double  H, l3, b3;
+    };
     void StringReplace(string &strBase, string strSrc, string strDes);
     double Distance3d(pcl::PointXYZRGB &pt1, pcl::PointXYZRGB &pt2);
     double Distance3d(Vector3 &pt1, Vector3 &pt2);

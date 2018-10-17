@@ -10,6 +10,7 @@
 #include <pcl/common/impl/common.hpp>
  #include "mydef.h"
 #include "setting.hpp"
+#include "CoorConv.hpp"
 #include <vtkRenderer.h>
 #include <vtkRenderWindow.h>
 
@@ -313,7 +314,9 @@ void DangerousDistanceCheck::TooNearCheck()
          // 计算包围盒半径
          c.radiu = c.GetExtraBoxRadiu(*farst_pt);
          c.id = (QStringLiteral("ball") + QString::number(i + 1)).toLocal8Bit().data();
-         c.description = QString().sprintf("%.3f  %.3f  %.3f  %.3f\n", c.cen.x, c.cen.y, c.cen.z, c.radiu).toStdString();
+         CoorConv::WGS84Corr latlon;
+         CoorConv::UTMXYToLatLon(c.cen.x, c.cen.y, 50, false, latlon);
+         c.description = QString().sprintf("%.7f  %.7f  %.1f  %.1f\n", CoorConv::RadToDeg(latlon.lat), CoorConv::RadToDeg(latlon.log), c.cen.z, c.radiu).toStdString();
          balls_.push_back(c);
          //std::cout.setf(ios::fixed, ios::floatfield);
          //std::cout << fixed << setprecision(6);
@@ -422,7 +425,7 @@ void DangerousDistanceCheck::showNearCheck()
     }
 
     // 添加左上角碰撞信息
-    QString fmt = QStringLiteral("Crash Position:\nno  x  y  z  Radius\n");
+    QString fmt = QStringLiteral("crash position:\nno   lon    lat     h   CrashRadius\n");
     for (int i = 0; i < balls_.size(); ++i)
     {
         fmt += QString::number(i+1) + QStringLiteral(" ") + QString::fromStdString(balls_[i].description);
@@ -439,11 +442,11 @@ void DangerousDistanceCheck::showNearCheck()
 
     // 添加左下角点云信息
     std::stringstream minstr, maxstr, counts;
-    counts << "counts: " << src_cloud_->size();
-    minstr << std::fixed << setprecision(3) << "min: " << cloudmin.x << " " << cloudmin.y << " " << cloudmin.z;
-    maxstr << std::fixed << setprecision(3) << "max: " << cloudmax.x << " " << cloudmax.y << " " << cloudmax.z;
-    view->addText(counts.str(), 5, 30, 14, 1, 0, 1, std::string("counts"));
-    view->addText(minstr.str(), 5, 20, 14, 1, 0, 1, std::string("aabbBoxmin"));
+    //counts << "counts: " << src_cloud_->size();
+    minstr << std::fixed << setprecision(3) << "UTMmin: " << cloudmin.x << " " << cloudmin.y << " " << cloudmin.z;
+    maxstr << std::fixed << setprecision(3) << "UTMmax: " << cloudmax.x << " " << cloudmax.y << " " << cloudmax.z;
+    //view->addText(counts.str(), 5, 30, 14, 1, 0, 1, std::string("counts"));
+    view->addText(minstr.str(), 5, 24, 14, 1, 0, 1, std::string("aabbBoxmin"));
     view->addText(maxstr.str(), 5, 10, 14, 1, 0, 1, std::string("aabbBoxmax"));
 
 
@@ -514,14 +517,14 @@ void DangerousDistanceCheck::showNearCheck()
     view->updateCamera();
     // 截图
     view->saveScreenshot(std::string(pic_dir.toLocal8Bit().data()) + "\\总图.png");
-
+    std::cout << "截图完成" << std::endl;
 
     // 调试观看
-    while (!view->wasStopped())
-    {
-        view->spinOnce(100);
-        boost::this_thread::sleep(boost::posix_time::microseconds(100000));
-    }
+//     while (!view->wasStopped())
+//     {
+//         view->spinOnce(100);
+//         boost::this_thread::sleep(boost::posix_time::microseconds(100000));
+//     }
 
 
     // 导出json
@@ -538,6 +541,8 @@ void DangerousDistanceCheck::showNearCheck()
     pt.put("图例颜色.植被", setting.cls_strcolor(veget_str));
     pt.put("xy平面图路径", "images/总图.png");
     boost::property_tree::ptree errpt_array;
+
+    std::cout << "遍历balls" << std::endl;
      for (int i = 0; i < balls_.size(); ++i)
      {
          boost::property_tree::ptree errpt_child;
@@ -547,8 +552,10 @@ void DangerousDistanceCheck::showNearCheck()
          errpt_child.put("塔杆区间", sstr.str());
          sstr.clear();
          sstr.str("");
-         sstr << std::fixed << setprecision(3) << balls_[i].cen.x << "," << balls_[i].cen.y << "," << balls_[i].cen.z;
-         std::cout << balls_[i].cen.x << "<br/>" << balls_[i].cen.y << "<br/>" << balls_[i].cen.z;
+         CoorConv::WGS84Corr latlon;
+         CoorConv::UTMXYToLatLon(balls_[i].cen.x, balls_[i].cen.y, 50, false, latlon);
+         sstr << std::fixed << setprecision(8) << CoorConv::RadToDeg(latlon.lat) << "," << CoorConv::RadToDeg(latlon.log) << "," << balls_[i].cen.z;
+         std::cout << sstr.str() << std::endl;
          errpt_child.put("隐患坐标", sstr.str());
 
          sstr << std::fixed << setprecision(1);
