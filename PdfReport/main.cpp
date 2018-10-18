@@ -313,6 +313,7 @@ void GenerateHtml(QString json_path, QString html_path)
     QString yunxingguifan_template;
     QString tulizongbiao_front;
     QString tulizongbiao_template;
+    QString yinhuanzongtu_fronttemplate;
     QString yinhuanmingxi_front;
     QString yinhuanmingxi_template;
     QString yinhuanmingxi_last;
@@ -339,15 +340,17 @@ void GenerateHtml(QString json_path, QString html_path)
                 tulizongbiao_front += (line);
             else if (read_step <= 38)
                 tulizongbiao_template += (line);
-            else if (read_step <= 54)
+            else if (read_step <= 43)
+                yinhuanzongtu_fronttemplate += (line);
+            else if (read_step <= 57)
                 yinhuanmingxi_front += (line);
-            else if (read_step <= 64)
-                yinhuanmingxi_template += (line);
             else if (read_step <= 67)
+                yinhuanmingxi_template += (line);
+            else if (read_step <= 70)
                 yinhuanmingxi_last += (line);
-            else if (read_step <= 79)
+            else if (read_step <= 82)
                 yinhuanxiangqing_front += (line);
-            else if (read_step <= 97)
+            else if (read_step <= 101)
                 yinhuanxiangqing_template += (line);
             else
                 last += (line);
@@ -416,6 +419,8 @@ void GenerateHtml(QString json_path, QString html_path)
                 .arg(QString::fromLocal8Bit(hexcol));
         }
     }
+
+      html += yinhuanzongtu_fronttemplate.arg(zongtu);
   
       html += yinhuanmingxi_front;
       traversee_pt = pt.get_child(to_utf8(String2WString("Òþ»¼ÁÐ±í")));
@@ -441,8 +446,9 @@ void GenerateHtml(QString json_path, QString html_path)
           html += yinhuanxiangqing_front;
           QString yinhuanzuobiao = QString::fromUtf8(cvt.second.get<std::string>(to_utf8(String2WString("Òþ»¼×ø±ê"))).c_str()).remove(' ').replace(',', "<br/>");
           QString taganqujian = QString::fromUtf8(cvt.second.get<std::string>(to_utf8(String2WString("Ëþ¸ËÇø¼ä"))).c_str()).remove(' ').replace('-', "<br/>-<br/>");
-          QString xijietu = QString::fromUtf8(cvt.second.get<std::string>(to_utf8(String2WString("Ï¸½ÚÍ¼"))).c_str());
           QString jubuzongtu = QString::fromUtf8(cvt.second.get<std::string>(to_utf8(String2WString("×ÜÍ¼"))).c_str());
+          QString xijietu = QString::fromUtf8(cvt.second.get<std::string>(to_utf8(String2WString("Ï¸½ÚÍ¼"))).c_str());
+
 
           html += yinhuanxiangqing_template
               .arg(QString::fromUtf8(cvt.second.get<std::string>(to_utf8(String2WString("ÐòºÅ"))).c_str()))
@@ -453,22 +459,8 @@ void GenerateHtml(QString json_path, QString html_path)
               .arg(QString::fromUtf8(cvt.second.get<std::string>(to_utf8(String2WString("Òþ»¼¾àÀë"))).c_str()))
               .arg(QString::fromUtf8(cvt.second.get<std::string>(to_utf8(String2WString("¶ÔµØ¾àÀë"))).c_str()))
               .arg(QString::fromUtf8(cvt.second.get<std::string>(to_utf8(String2WString("³¬ÏÞÂÊ"))).c_str()))
-              .arg(zongtu)
-              .arg(xijietu)
-               .arg(jubuzongtu);
-
-//            html += yinhuanxiangqing_template
-//                .arg(QString::fromUtf8(cvt.second.get<std::string>(to_utf8(String2WString("ÐòºÅ"))).c_str()))
-//                .arg(taganqujian)
-//                .arg(yinhuanzuobiao)
-//                .arg(QString::fromUtf8(cvt.second.get<std::string>(to_utf8(String2WString("Òþ»¼°ë¾¶"))).c_str()))
-//                .arg(QString::fromUtf8(cvt.second.get<std::string>(to_utf8(String2WString("Òþ»¼ÀàÐÍ"))).c_str()))
-//                .arg(QString::fromUtf8(cvt.second.get<std::string>(to_utf8(String2WString("Òþ»¼¾àÀë"))).c_str()))
-//                .arg(QString::fromUtf8(cvt.second.get<std::string>(to_utf8(String2WString("¶ÔµØ¾àÀë"))).c_str()))
-//                .arg(QString::fromUtf8(cvt.second.get<std::string>(to_utf8(String2WString("³¬ÏÞÂÊ"))).c_str()))
-//                .arg(1)
-//                .arg(1)
-//                .arg(1);
+              .arg(jubuzongtu)
+              .arg(xijietu);
        }
 
 
