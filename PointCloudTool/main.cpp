@@ -152,7 +152,7 @@ bool ReadyClassifOpts(pct::Setting& setting, boost::program_options::variables_m
     boost::filesystem::path path_file(inputfile);
     boost::filesystem::path path_dir(path_file.parent_path().string());
 
-    if (!boost::filesystem::exists(path_file) || !boost::filesystem::is_regular_file(path_file))
+    if (!boost::filesystem::exists(path_file) || !boost::filesystem::is_regular_file(path_file) || boost::filesystem::extension(path_file) != ".las")
     {
         std::cout << "选项inputfile文件路径错误！" << std::endl;
         std::cout << inputfile << std::endl;
@@ -211,7 +211,7 @@ bool ParserCmdline(int argc, char *argv[])
 
     opts.add_options()
         ("cmdtype", boost::program_options::value<std::string>(), "命令类型｛train classif distancecheck｝")
-        ("inputfile", boost::program_options::value<std::string>(), "点云路径｛*.las *.xyz *.ply｝")
+        ("inputfile", boost::program_options::value<std::string>(), "点云路径｛*.las｝")
         ("classdir", boost::program_options::value<std::string>(), "样本文件目录 <dir>")
         ("outputdir", boost::program_options::value<std::string>(), "输出结果目录 [dir]")
         ("method", boost::program_options::value<int>(), "分类方法 [int] 0-普通 1-平滑 2-非常平滑")

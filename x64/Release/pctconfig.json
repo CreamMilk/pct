@@ -3,14 +3,21 @@
   "nb_scales":5,
   "dangerdistance":8,
   "classif_color":{
-	"ground":"186, 189, 182",
+	"ground":"167, 170, 162",
 	"veget":"204, 255, 201",
 	"budding":"245, 121, 0",
-	"power_line":"255, 255, 0",
-	"tower":"136, 138, 211",
-	"others":"0, 0, 0",
-	"unselect":"1, 1, 1",
+	"power_line":"1, 1, 1",
+	"tower":"222, 222, 222",
+	"others":"255, 255, 255",
+	"unselect":"255, 255, 255",
 	"crash_line":"255,0,0",
-	"crash_other":"138,43,226"
+	"crash_other":"0,255,255",
+	"background":"255,255,255",
+	"arrow":"255,0,0"
+  },
+  "dangerdistance":{
+	"ground":"20, -",
+	"veget":"10, -",
+	"budding":"-, -",
   }
 }

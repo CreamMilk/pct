@@ -9,3 +9,6 @@
 #define unselect_str "unselect"
 #define crash_line_str "crash_line"
 #define crash_other_str "crash_other"
+#define background_str "background"
+#define arrow_str "arrow"
+
