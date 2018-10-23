@@ -1,7 +1,6 @@
 {
   "nb_trials":800,
   "nb_scales":5,
-  "dangerdistance":8,
   "classif_color":{
 	"ground":"167, 170, 162",
 	"veget":"204, 255, 201",
@@ -16,8 +15,8 @@
 	"arrow":"255,0,0"
   },
   "dangerdistance":{
-	"ground":"20, -",
-	"veget":"10, -",
-	"budding":"-, -",
+	"ground":"0.5, 15",
+	"veget":"10, 10",
+	"budding":"-, -"
   }
 }

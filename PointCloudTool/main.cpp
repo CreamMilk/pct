@@ -43,7 +43,7 @@ void correct(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud, pcl::PointIndices
 bool ReadyTrainOpts(pct::Setting& setting, boost::program_options::variables_map &vm);
 bool ReadyClassifOpts(pct::Setting& setting, boost::program_options::variables_map &vm);
 bool ReadyDistancecheckOpts(pct::Setting& setting, boost::program_options::variables_map &vm);
-void checkLinesDistanceDangerous(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud, pcl::PointIndicesPtr ground_indices, std::vector <pct::VegetInfo>& vegetClusters, std::vector <pct::LineInfo>& lineClusters, std::vector <pct::TowerInfo>& towerClusters, double dangerousDistance);
+void checkLinesDistanceDangerous(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud, pcl::PointIndicesPtr ground_indices, std::vector <pct::VegetInfo>& vegetClusters, std::vector <pct::LineInfo>& lineClusters, std::vector <pct::TowerInfo>& towerClusters);
 
 int main(int argc, char *argv[])
 {
@@ -71,7 +71,6 @@ int main(int argc, char *argv[])
     else if (setting.cmdtype == "distancecheck")
     {
         classif();
-        const pct::Setting & setting = pct::Setting::ins();
         std::string inputfile = setting.outputdir + "\\out.las";
         pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
         pct::io::Load_las(src_cloud, inputfile);
@@ -85,7 +84,8 @@ int main(int argc, char *argv[])
         std::vector <pct::TowerInfo> towerClusters;
         std::vector <pct::VegetInfo> vegetClusters;
         correct(src_cloud, ground_indices, otheCluster, lineClusters, towerClusters, vegetClusters);
-        checkLinesDistanceDangerous(src_cloud, ground_indices, vegetClusters, lineClusters, towerClusters, setting.value<float>("dangerdistance"));
+        std::cout << "correct end£ºend end" << std::endl;
+        checkLinesDistanceDangerous(src_cloud, ground_indices, vegetClusters, lineClusters, towerClusters);
 
         // µ¼³öpdf
         std::string pdfexe_path = setting.appdir + "PdfReport\\PdfReport.exe";
@@ -117,16 +117,16 @@ void checkLinesDistanceDangerous(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_clou
     pcl::PointIndicesPtr ground_indices,
     std::vector <pct::VegetInfo>& vegetClusters,
     std::vector <pct::LineInfo>& lineClusters,
-    std::vector <pct::TowerInfo>& towerClusters,
-    double dangerousDistance)
+    std::vector <pct::TowerInfo>& towerClusters)
 {
+    std::cout << "DangerousDistanceCheck" << std::endl;
     DangerousDistanceCheck ddc;
     ddc.setData(src_cloud 
         , ground_indices
         , vegetClusters
         , lineClusters
         , towerClusters
-        , dangerousDistance);
+       );
     ddc.TooNearCheck();
     ddc.showNearCheck();
     std::cout << "showNearCheck endl." << std::endl;
@@ -717,7 +717,7 @@ void correct(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud,
     }
 
     pct::io::save_las(src_cloud, outputfile);
-    std::cout << "correct end£º" << std::endl;
+   
 
 
 
@@ -800,6 +800,6 @@ void correct(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud,
     extract.filter(*ground_cloud);
     pct::io::save_las(ground_cloud, setting.outputdir + "\\ground.las");
     ground_cloud.reset();
-
+    std::cout << "correct end£ºend" << std::endl;
 }
 

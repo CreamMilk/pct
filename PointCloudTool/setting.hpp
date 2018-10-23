@@ -5,6 +5,10 @@
  #include <boost/property_tree/json_parser.hpp>
  #include <boost/foreach.hpp>
 #include <QStringList>
+#include <QMessageBox>
+#include <tuple>
+#include <map>
+#include <boost/typeof/typeof.hpp>
 
 namespace pct
 {
@@ -80,6 +84,25 @@ namespace pct
                 *(((unsigned char *)&colorint) + 0) = l[2].toUInt();
                 return colorint;
             }
+        }
+
+        std::map<std::string, std::tuple<float, float>> get_distances() const
+        {
+            // 水平距离， 垂直距离
+            std::map<std::string, std::tuple<float, float>> distances;
+
+            BOOST_AUTO(dangerdistance, pt.get_child("dangerdistance"));
+           
+            BOOST_FOREACH(const boost::property_tree::ptree::value_type &leixing, dangerdistance)
+            {
+                QString key(leixing.first.c_str());
+                QString val(leixing.second.get_value_optional<std::string>().value().c_str());
+
+                val.remove(" ");
+                QStringList split_val = val.split(',');
+                distances.insert(std::make_pair(leixing.first, std::tuple<float, float>(split_val[0].toFloat(), split_val[1].toFloat())));
+            }
+            return distances;
         }
 
         // 程序路径之类

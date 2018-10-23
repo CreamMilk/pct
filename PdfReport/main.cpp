@@ -332,25 +332,25 @@ void GenerateHtml(QString json_path, QString html_path)
         while (!inputFile.atEnd())
         {
             QString line = codec->toUnicode(inputFile.readLine());
-            if (read_step <= 18)
+            if (read_step <= 19)
                 yunxingguifan_front += (line);
-            else if (read_step <= 22)
+            else if (read_step <= 24)
                 yunxingguifan_template += (line);
-            else if (read_step <= 33)
+            else if (read_step <= 35)
                 tulizongbiao_front += (line);
-            else if (read_step <= 38)
+            else if (read_step <= 40)
                 tulizongbiao_template += (line);
-            else if (read_step <= 43)
+            else if (read_step <= 45)
                 yinhuanzongtu_fronttemplate += (line);
-            else if (read_step <= 57)
+            else if (read_step <= 60)
                 yinhuanmingxi_front += (line);
-            else if (read_step <= 67)
+            else if (read_step <= 71)
                 yinhuanmingxi_template += (line);
-            else if (read_step <= 70)
+            else if (read_step <= 74)
                 yinhuanmingxi_last += (line);
-            else if (read_step <= 82)
+            else if (read_step <= 87)
                 yinhuanxiangqing_front += (line);
-            else if (read_step <= 101)
+            else if (read_step <= 107)
                 yinhuanxiangqing_template += (line);
             else
                 last += (line);
@@ -390,8 +390,9 @@ void GenerateHtml(QString json_path, QString html_path)
     {
         //遍历读出数据
         QString key = QString::fromUtf8(it->first.c_str());
-        QString val = QString::fromUtf8(it->second.get_value<std::string>().c_str());
-        html += yunxingguifan_template.arg(key).arg(val);
+        QStringList val = QString::fromUtf8(it->second.get_value<std::string>().c_str()).remove(" ").split(",");
+
+        html += yunxingguifan_template.arg(key).arg(val[0]).arg(val[1]);
     }
 
     html += tulizongbiao_front;
@@ -435,7 +436,8 @@ void GenerateHtml(QString json_path, QString html_path)
               .arg(yinhuanzuobiao)
               .arg(QString::fromUtf8(cvt.second.get<std::string>(to_utf8(String2WString("隐患半径"))).c_str()))
               .arg(QString::fromUtf8(cvt.second.get<std::string>(to_utf8(String2WString("隐患类型"))).c_str()))
-              .arg(QString::fromUtf8(cvt.second.get<std::string>(to_utf8(String2WString("隐患距离"))).c_str()))
+              .arg(QString::fromUtf8(cvt.second.get<std::string>(to_utf8(String2WString("水平距离"))).c_str()))
+              .arg(QString::fromUtf8(cvt.second.get<std::string>(to_utf8(String2WString("垂直距离"))).c_str()))
               .arg(QString::fromUtf8(cvt.second.get<std::string>(to_utf8(String2WString("对地距离"))).c_str()))
               .arg(QString::fromUtf8(cvt.second.get<std::string>(to_utf8(String2WString("超限率"))).c_str()));
       }
@@ -456,7 +458,8 @@ void GenerateHtml(QString json_path, QString html_path)
               .arg(yinhuanzuobiao)
               .arg(QString::fromUtf8(cvt.second.get<std::string>(to_utf8(String2WString("隐患半径"))).c_str()))
               .arg(QString::fromUtf8(cvt.second.get<std::string>(to_utf8(String2WString("隐患类型"))).c_str()))
-              .arg(QString::fromUtf8(cvt.second.get<std::string>(to_utf8(String2WString("隐患距离"))).c_str()))
+              .arg(QString::fromUtf8(cvt.second.get<std::string>(to_utf8(String2WString("水平距离"))).c_str()))
+              .arg(QString::fromUtf8(cvt.second.get<std::string>(to_utf8(String2WString("垂直距离"))).c_str()))
               .arg(QString::fromUtf8(cvt.second.get<std::string>(to_utf8(String2WString("对地距离"))).c_str()))
               .arg(QString::fromUtf8(cvt.second.get<std::string>(to_utf8(String2WString("超限率"))).c_str()))
               .arg(jubuzongtu)

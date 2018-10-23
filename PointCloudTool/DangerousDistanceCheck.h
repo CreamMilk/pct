@@ -47,7 +47,7 @@
 
      void TooNearCheck();
      void showNearCheck();
-     void setData(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud, pcl::PointIndicesPtr ground_indices, std::vector <pct::VegetInfo> &vegetClusters, std::vector <pct::LineInfo> &lineClusters, std::vector <pct::TowerInfo> &towerClusters, const double dangerousDistance);
+     void setData(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud, pcl::PointIndicesPtr ground_indices, std::vector <pct::VegetInfo> &vegetClusters, std::vector <pct::LineInfo> &lineClusters, std::vector <pct::TowerInfo> &towerClusters);
      void getObbInfo(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud, OBB &obb, vec *axis_vec/*[3]*/, vec &axis_r);
      std::vector<CollisionBall> balls_;//Åö×²ÇòÐÎ±ê×¢
      
@@ -58,7 +58,6 @@
      std::vector <pct::LineInfo> lineClusters_;
      std::vector <pct::TowerInfo> towerClusters_;
      pcl::PointIndicesPtr ground_indices_;
-     double dangerousDistance_;
  };
 
  std::ostream& operator << (std::ostream& output, DangerousDistanceCheck::CollisionBall& c);

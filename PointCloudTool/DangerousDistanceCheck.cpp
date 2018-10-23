@@ -24,7 +24,6 @@
 #include <QDir>
 
  DangerousDistanceCheck::DangerousDistanceCheck()
- :dangerousDistance_(10)
  {
  
  }
@@ -39,14 +38,13 @@
      , std::vector <pct::VegetInfo> &vegetClusters
      , std::vector <pct::LineInfo> &lineClusters
      , std::vector <pct::TowerInfo> &towerClusters
-     , double dangerousDistance)
+     )
  {
      src_cloud_ = src_cloud;
      vegetClusters_ = vegetClusters;
      lineClusters_ = lineClusters;
      towerClusters_ = towerClusters;
      ground_indices_ = ground_indices;
-     dangerousDistance_ = dangerousDistance;
  }
 
  void ExtractCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, pcl::PointIndicesPtr inices, pcl::PointCloud<pcl::PointXYZRGB>::Ptr out_cloud)
@@ -57,13 +55,33 @@
      extract.filter(*out_cloud);
  }
 
- float CalcRadiu()
+ // 参与碰撞的点云， 
+ void Check_Distanceerror(pcl::PointXYZRGB pt, pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, std::vector<int> &indices, std::vector<float> &distances, bool direction, float K, std::map<float, int>& dis_ind)
  {
-
+     pcl::PointXYZRGB *tmpPt;
+     for (int i = 0; i < indices.size(); ++i)
+     {
+         tmpPt = &cloud->at(indices[i]);
+         if (direction)  // 水平
+         {
+             if ((std::abs(tmpPt->z - pt.z) < 0.5) && pct::Distance2d(tmpPt->x, tmpPt->y, pt.x, pt.y) < K)
+             {
+                 dis_ind.insert(make_pair(distances[i], indices[i]));
+             }
+         }
+         else
+         {
+             if ((std::abs(tmpPt->z - pt.z) < K) && pct::Distance2d(tmpPt->x, tmpPt->y, pt.x, pt.y) <0.5)
+             {
+                 dis_ind.insert(make_pair(distances[i], indices[i]));
+             }
+         }
+     }
  }
 
 void DangerousDistanceCheck::TooNearCheck()
 {
+    std::cout << "TooNearCheck" << std::endl;
      unsigned int cur, sta;
      sta = GetTickCount();
  
@@ -71,10 +89,11 @@ void DangerousDistanceCheck::TooNearCheck()
      // 判断每根线与地物和地面范围K内是否有交集，计算出电力线与地面地物最大的交集
      // 如果计算量过大 可以考虑先降采样
      int gap = 5;
-     double K = dangerousDistance_;
      double leafSize = 1;
  
      const pct::Setting & setting = pct::Setting::ins();
+     std::map<std::string, std::tuple<float, float>> class_disatances = setting.get_distances();
+     std::cout << "get_distances" << std::endl;
      unsigned int color = setting.cls_intcolor(crash_line_str);
      unsigned char crash_line_r = *(((unsigned char *)&color) + 2);
      unsigned char crash_line_g = *(((unsigned char *)&color) + 1);
@@ -143,7 +162,65 @@ void DangerousDistanceCheck::TooNearCheck()
          pcl::PointCloud<pcl::PointXYZRGB>::Ptr crashPoint(new  pcl::PointCloud<pcl::PointXYZRGB>);
          for (int j = 0; j < serachLine->size(); ++j)
          {
-             serachNum = groundkdtree.radiusSearch(serachLine->at(j), K, groundindices, groundsqr_distances) + objectkdtree.radiusSearch(serachLine->at(j), K, objectindices, objectsqr_distances);
+             float ground_horizontal_distance = std::get<0>(class_disatances["ground"]);
+             float ground_vertical_distance = std::get<1>(class_disatances["ground"]);
+             
+             if (ground_horizontal_distance != 0 || ground_vertical_distance != 0)
+             {
+                 if (groundkdtree.radiusSearch(serachLine->at(j), ground_horizontal_distance, groundindices, groundsqr_distances))
+                 {
+                     std::map<float, int> dis_ind;
+                     if (ground_horizontal_distance != 0)
+                     {
+                         Check_Distanceerror(serachLine->at(j), ground, groundindices, groundsqr_distances, true, ground_horizontal_distance, dis_ind);
+                     }
+                     if (ground_vertical_distance != 0)
+                     {
+                         Check_Distanceerror(serachLine->at(j), ground, groundindices, groundsqr_distances, false, ground_vertical_distance, dis_ind);
+                     }
+                     groundindices.resize(dis_ind.size());
+                     groundsqr_distances.resize(dis_ind.size());
+
+                     int dis_ind_step = 0;
+                     for (auto dis_ind_it = dis_ind.begin(); dis_ind_it != dis_ind.end(); dis_ind_it++, dis_ind_step++)
+                     {
+                         groundsqr_distances[dis_ind_step] = dis_ind_it->first;
+                         groundindices[dis_ind_step] = dis_ind_it->second;
+                     }
+                 }
+             }
+             float object_horizontal_distance = std::get<0>(class_disatances["veget"]);
+             float object_vertical_distance = std::get<1>(class_disatances["veget"]);
+
+             if (object_horizontal_distance != 0 || object_vertical_distance != 0)
+             {
+                 if (objectkdtree.radiusSearch(serachLine->at(j), object_horizontal_distance, objectindices, objectsqr_distances))
+                 {
+                     std::map<float, int> dis_ind;
+                     if (object_horizontal_distance != 0)
+                     {
+                         Check_Distanceerror(serachLine->at(j), groundObject, objectindices, objectsqr_distances, true, object_horizontal_distance, dis_ind);
+                     }
+                     if (object_vertical_distance != 0)
+                     {
+                         Check_Distanceerror(serachLine->at(j), groundObject, objectindices, objectsqr_distances, false, object_vertical_distance, dis_ind);
+                     }
+                     objectindices.resize(dis_ind.size());
+                     objectsqr_distances.resize(dis_ind.size());
+
+                     int dis_ind_step = 0;
+                     for (auto dis_ind_it = dis_ind.begin(); dis_ind_it != dis_ind.end(); dis_ind_it++, dis_ind_step++)
+                     {
+                         objectsqr_distances[dis_ind_step] = dis_ind_it->first;
+                         objectindices[dis_ind_step] = dis_ind_it->second;
+                     }
+                 }
+             }
+           
+             serachNum = objectindices.size() + groundindices.size();
+             std::cout << "serachNum" << serachNum << std::endl;
+
+
              if (serachNum)
              {
                  linekdtree.radiusSearch(serachLine->at(j), leafSize * 2, lineindices, line_distances);
@@ -303,7 +380,43 @@ void DangerousDistanceCheck::TooNearCheck()
          c.nearst.dis = std::get<3>(all_crash_point_distance[nearst_index]);
          c.nearst.subVec = vec(c.nearst.linept.x, c.nearst.linept.y, c.nearst.linept.z) - vec(c.nearst.otherpt.x, c.nearst.otherpt.y, c.nearst.otherpt.z);
          c.crashtype = std::get<5>(all_crash_point_distance[nearst_index]);
-         c.overtoplimit = (K - c.nearst.dis) / K * 100;
+         if (pct::Distance2d(c.nearst.linept.x, c.nearst.linept.y, c.nearst.otherpt.x, c.nearst.otherpt.y) > std::abs(c.nearst.linept.z - c.nearst.otherpt.z))  // 水平距离危险
+         {
+             if ((c.crashtype & CrashType::Other) && (CrashType::Ground & c.crashtype))  // 如果是地面和地物同时碰撞，则最小的碰撞规则为最小的类型
+             {
+                 float k = std::min(std::get<0>(class_disatances["ground"]), std::get<0>(class_disatances["veget"]));
+                 c.overtoplimit = (k - c.nearst.dis) / k * 100;
+             }
+             else if (c.crashtype & CrashType::Other)  // 
+             {
+                 float k = std::get<0>(class_disatances["veget"]);
+                 c.overtoplimit = (k - c.nearst.dis) / k * 100;
+             }
+             else if (CrashType::Ground & c.crashtype)  // 
+             {
+                 float k = std::get<0>(class_disatances["ground"]);
+                 c.overtoplimit = (k - c.nearst.dis) / k * 100;
+             }
+         }
+         else
+         {
+             if ((c.crashtype & CrashType::Other) && (CrashType::Ground & c.crashtype))  // 如果是地面和地物同时碰撞，则最小的碰撞规则为最小的类型
+             {
+                 float k = std::min(std::get<1>(class_disatances["ground"]), std::get<1>(class_disatances["veget"]));
+                 c.overtoplimit = (k - c.nearst.dis) / k * 100;
+             }
+             else if (c.crashtype & CrashType::Other)  // 
+             {
+                 float k = std::get<1>(class_disatances["veget"]);
+                 c.overtoplimit = (k - c.nearst.dis) / k * 100;
+             }
+             else if (CrashType::Ground & c.crashtype)  // 
+             {
+                 float k = std::get<1>(class_disatances["ground"]);
+                 c.overtoplimit = (k - c.nearst.dis) / k * 100;
+             }
+         }
+         
 
          // 离地距离
          groundindices.resize(1);   groundsqr_distances.resize(1);
@@ -553,12 +666,16 @@ void DangerousDistanceCheck::showNearCheck()
 
 
     // 导出json
+    std::map<std::string, std::tuple<float, float>> class_diastances = setting.get_distances();
     std::stringstream sstr;
     sstr.setf(ios::fixed, ios::floatfield);
     sstr << fixed << setprecision(1);
-    sstr << dangerousDistance_;
+    sstr << std::get<0>(class_diastances["ground"]) << "," << std::get<1>(class_diastances["ground"]);
     boost::property_tree::ptree pt;
     pt.put("距离要求.地面", sstr.str());
+    sstr.clear();
+    sstr.str("");
+    sstr << std::get<0>(class_diastances["veget"]) << "," << std::get<1>(class_diastances["veget"]);
     pt.put("距离要求.植被", sstr.str());
     pt.put("图例颜色.地面", setting.cls_strcolor(ground_str));
     pt.put("图例颜色.铁塔", setting.cls_strcolor(tower_str));
@@ -567,10 +684,12 @@ void DangerousDistanceCheck::showNearCheck()
     pt.put("xy平面图路径", "images/总图.png");
     boost::property_tree::ptree errpt_array;
 
-    std::cout << "遍历balls" << std::endl;
+    std::cout << "遍历balls" << balls_.size() << std::endl;
      for (int i = 0; i < balls_.size(); ++i)
      {
          boost::property_tree::ptree errpt_child;
+         sstr.clear();
+         sstr.str("");
          streamCat<int>(sstr, i+1);
          errpt_child.put("序号", sstr.str());
          streamCat<std::string>(sstr, balls_[i].lineno);
