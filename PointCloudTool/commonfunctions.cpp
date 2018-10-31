@@ -25,6 +25,7 @@
 #include "pctio.h"
 #include <QDir>
 #include <QFileInfo>
+#include "CoorConv.hpp"
 
 struct ClusterInfo{
     ClusterInfo() :radiu(0){};
@@ -292,6 +293,14 @@ bool pct::combineTrainXmlFiles(std::vector<std::string> xmls, std::string dst_xm
 #endif
     return true;
 }
+void pct::UTMXY2LatLon(double &x, double &y, int zone, bool southhemi)
+{
+    CoorConv::WGS84Corr latlon;
+    CoorConv::UTMXYToLatLon(x, y, 50, false, latlon);
+    x = CoorConv::RadToDeg(latlon.log);
+    y = CoorConv::RadToDeg(latlon.lat); 
+}
+
 
 void pct::simple(std::string inputfile, std::string outputfile, float gridsize)
 {
@@ -899,7 +908,7 @@ bool pct::LikePowerLine(pct::LineInfo &line, int min_length /*= 5*/, double erro
 bool pct::LikePowerLine1(pcl::PointCloud<pcl::PointXYZRGB>::Ptr ground_cloud, pct::LineInfo &line, int min_length /*= 5*/, double error_probability /*= 0.1*/
     , float yerrOffset /*= 1.0f*/, float zerrOffset /*= 0.5f*/)
 {
-	if (line.indices.indices.size() < 30)
+	if (line.indices.indices.size() < 20)
 		return false;
     float distance = Distance2d(line.sta.x, line.sta.y, line.end.x, line.end.y);
     pct::LineInfo::Asix maxAxis = line.maxAsix;

@@ -12,6 +12,9 @@
 #include <Point_set_item_classification.h>
 #include <QFileInfo>
 #include <QMessageBox>
+#include <QAxObject>
+#include <QAxWidget>
+#include <QDir>
 
 #include <pcl/io/io.h>
 #include <pcl/filters/extract_indices.h>
@@ -44,6 +47,8 @@ bool ReadyTrainOpts(pct::Setting& setting, boost::program_options::variables_map
 bool ReadyClassifOpts(pct::Setting& setting, boost::program_options::variables_map &vm);
 bool ReadyDistancecheckOpts(pct::Setting& setting, boost::program_options::variables_map &vm);
 void checkLinesDistanceDangerous(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud, pcl::PointIndicesPtr ground_indices, std::vector <pct::VegetInfo>& vegetClusters, std::vector <pct::LineInfo>& lineClusters, std::vector <pct::TowerInfo>& towerClusters);
+void SaveTowers(QString filepath, std::vector <pct::TowerInfo> &towerClusters);
+void SaveLines(QString filepath, std::vector <pct::LineInfo> &towerClusters);
 
 int main(int argc, char *argv[])
 {
@@ -51,7 +56,7 @@ int main(int argc, char *argv[])
     vtkOutputWindow::SetGlobalWarningDisplay(0);
     vtkOpenGLRenderWindow::SetGlobalMaximumNumberOfMultiSamples(8); //1     
 
-    srand((unsigned)time(NULL));
+    srand((unsigned int)time(NULL));
     const pct::Setting & setting = pct::Setting::ins();
     if (false == ParserCmdline(argc, argv))
     {
@@ -65,17 +70,14 @@ int main(int argc, char *argv[])
     }
     else if (setting.cmdtype == "classif")
     {
-        classif();
-        correct();
-    }
-    else if (setting.cmdtype == "distancecheck")
-    {
+        //classif();
+        //correct();
         classif();
         std::string inputfile = setting.outputdir + "\\out.las";
         pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
         pct::io::Load_las(src_cloud, inputfile);
         std::cout << "离群点过滤" << std::endl;
-        pct::OutlierRemoval(src_cloud);
+        //pct::OutlierRemoval(src_cloud);
 
         // 因为cgal分类结果是整体的，并不能把每个个体提取出来
         pcl::PointIndicesPtr ground_indices(new pcl::PointIndices);
@@ -84,6 +86,28 @@ int main(int argc, char *argv[])
         std::vector <pct::TowerInfo> towerClusters;
         std::vector <pct::VegetInfo> vegetClusters;
         correct(src_cloud, ground_indices, otheCluster, lineClusters, towerClusters, vegetClusters);
+
+        SaveTowers(QString::fromLocal8Bit((setting.outputdir + "\\" + pct::ExtractExeName(setting.inputfile) + "铁塔.xlsx").c_str()) , towerClusters);
+        SaveLines(QString::fromLocal8Bit((setting.outputdir + "\\" + pct::ExtractExeName(setting.inputfile) + "电力线.xlsx").c_str()), lineClusters);
+    }
+    else if (setting.cmdtype == "distancecheck")
+    {
+        classif();
+        std::string inputfile = setting.outputdir + "\\out.las";
+        pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
+        pct::io::Load_las(src_cloud, inputfile);
+        std::cout << "离群点过滤" << std::endl;
+        //pct::OutlierRemoval(src_cloud);
+
+        // 因为cgal分类结果是整体的，并不能把每个个体提取出来
+        pcl::PointIndicesPtr ground_indices(new pcl::PointIndices);
+        std::vector <pcl::PointIndices> otheCluster;
+        std::vector <pct::LineInfo> lineClusters;
+        std::vector <pct::TowerInfo> towerClusters;
+        std::vector <pct::VegetInfo> vegetClusters;
+        correct(src_cloud, ground_indices, otheCluster, lineClusters, towerClusters, vegetClusters);
+        SaveTowers(QString::fromLocal8Bit((setting.outputdir + "\\" + pct::ExtractExeName(setting.inputfile) + "铁塔.xlsx").c_str()), towerClusters);
+        SaveLines(QString::fromLocal8Bit((setting.outputdir + "\\" + pct::ExtractExeName(setting.inputfile) + "电力线.xlsx").c_str()), lineClusters);
         std::cout << "correct end：end end" << std::endl;
         checkLinesDistanceDangerous(src_cloud, ground_indices, vegetClusters, lineClusters, towerClusters);
 
@@ -111,6 +135,144 @@ int main(int argc, char *argv[])
     
 
     return EXIT_SUCCESS;
+}
+
+void SaveTowers(QString filepath, std::vector <pct::TowerInfo> &towerClusters)
+{
+    std::cout << filepath.toLocal8Bit().data() << std::endl;
+    if (!filepath.isEmpty() && QFile(filepath).isOpen()){
+        if (QFile::exists(filepath))
+            QFile::remove(filepath);
+        HRESULT r = OleInitialize(0);
+        if (r != S_OK && r != S_FALSE) {
+            qWarning("Qt: Could not initialize OLE (error %x)", (unsigned int)r);
+        }
+        QAxObject *excel = new QAxObject("Excel.Application");//连接Excel控件
+        excel->dynamicCall("SetVisible (bool Visible)", false);//不显示窗体
+        excel->setProperty("DisplayAlerts", true);//不显示任何警告信息。如果为true那么在关闭是会出现类似“文件已修改，是否保存”的提示
+        QAxObject *workbooks = excel->querySubObject("WorkBooks");//获取工作簿集合
+        workbooks->dynamicCall("Add");//新建一个工作簿
+        QAxObject *workbook = excel->querySubObject("ActiveWorkBook");//获取当前工作簿
+        QAxObject *worksheets = workbook->querySubObject("Sheets");//获取工作表集合
+        QAxObject *worksheet = worksheets->querySubObject("Item(int)", 1);//获取工作表集合的工作表1，即sheet1
+
+        QList<QVariant> allRowsData;//保存所有行数据
+        QList<QVariant> headRowData;//excel头
+
+        headRowData.append(QVariant(QStringLiteral("编号")));
+        headRowData.append(QVariant(QStringLiteral("经度")));
+        headRowData.append(QVariant(QStringLiteral("纬度")));
+        headRowData.append(QVariant(QStringLiteral("高程值")));
+        allRowsData.append(QVariant(headRowData));
+        pct::TowerInfo *tower_iter;
+        
+        for (int row = 1; row <= towerClusters.size(); row++)
+        {
+            tower_iter = &towerClusters[row - 1];
+            double x = tower_iter->cen.x;
+            double y = tower_iter->cen.y;
+            QList<QVariant> aRowData;//保存一行数据
+            pct::UTMXY2LatLon(x, y);
+
+            aRowData.append(QVariant(QString::fromLocal8Bit(tower_iter->getNo().c_str()).remove('#')));
+            aRowData.append(QVariant(x));
+            aRowData.append(QVariant(y));
+            aRowData.append(QVariant(tower_iter->max.z));
+            allRowsData.append(QVariant(aRowData));
+        }
+
+        QAxObject *range = worksheet->querySubObject("Range(const QString )", QString("A1:D") + QString::number(towerClusters.size()+1));
+        range->dynamicCall("SetValue(const QVariant&)", QVariant(allRowsData));//存储所有数据到 excel 中,批量操作,速度极快
+        range->setProperty("HorizontalAlignment", -4108);
+        range->setProperty("VerticalAlignment", -4108);
+        QAxObject * cells = range->querySubObject("Columns");
+        cells->dynamicCall("AutoFit");
+
+        range->querySubObject("Font")->setProperty("Size", 14);//设置字号
+
+        std::cout << QDir::toNativeSeparators(QFileInfo(filepath).absoluteFilePath()).toLocal8Bit().data() << std::endl;
+        workbook->dynamicCall("SaveAs(const QString&)", QDir::toNativeSeparators(QFileInfo(filepath).absoluteFilePath()));//保存至filepath，注意一定要用QDir::toNativeSeparators将路径中的"/"转换为"\"，不然一定保存不了。
+        workbook->dynamicCall("Close()");//关闭工作簿
+        excel->dynamicCall("Quit()");//关闭excel
+        delete excel;
+        excel = NULL;
+        OleUninitialize();
+    }
+}
+
+void SaveLines(QString filepath, std::vector <pct::LineInfo> &lineClusters)
+{
+    
+    std::cout << filepath.toLocal8Bit().data() << std::endl;
+    if (!filepath.isEmpty() && QFile(filepath).isOpen()){
+        if (QFile::exists(filepath))
+            QFile::remove(filepath);
+        HRESULT r = OleInitialize(0);
+        if (r != S_OK && r != S_FALSE) {
+            qWarning("Qt: Could not initialize OLE (error %x)", (unsigned int)r);
+        }
+        QAxObject *excel = new QAxObject("Excel.Application");//连接Excel控件
+        excel->dynamicCall("SetVisible (bool Visible)", false);//不显示窗体
+        excel->setProperty("DisplayAlerts", true);//不显示任何警告信息。如果为true那么在关闭是会出现类似“文件已修改，是否保存”的提示
+        QAxObject *workbooks = excel->querySubObject("WorkBooks");//获取工作簿集合
+        workbooks->dynamicCall("Add");//新建一个工作簿
+        QAxObject *workbook = excel->querySubObject("ActiveWorkBook");//获取当前工作簿
+        QAxObject *worksheets = workbook->querySubObject("Sheets");//获取工作表集合
+        QAxObject *worksheet = worksheets->querySubObject("Item(int)", 1);//获取工作表集合的工作表1，即sheet1
+
+        QList<QVariant> allRowsData;//保存所有行数据
+        QList<QVariant> headRowData;//excel头
+
+        headRowData.append(QVariant(QStringLiteral("编号")));
+        headRowData.append(QVariant(QStringLiteral("起始经度")));
+        headRowData.append(QVariant(QStringLiteral("起始纬度")));
+        headRowData.append(QVariant(QStringLiteral("起始高程")));
+        headRowData.append(QVariant(QStringLiteral("终点经度")));
+        headRowData.append(QVariant(QStringLiteral("终点纬度")));
+        headRowData.append(QVariant(QStringLiteral("终点高程")));
+        headRowData.append(QVariant(QStringLiteral("水平长度")));
+        allRowsData.append(QVariant(headRowData));
+        pct::LineInfo *line_iter;
+        
+        for (int row = 1; row <= lineClusters.size(); row++)
+        {
+            line_iter = &lineClusters[row - 1];
+            double stax = line_iter->sta.x;
+            double stay = line_iter->sta.y;
+            double endx = line_iter->end.x;
+            double endy = line_iter->end.y;
+            QList<QVariant> aRowData;//保存一行数据
+            pct::UTMXY2LatLon(stax, stay);
+            pct::UTMXY2LatLon(endx, endy);
+
+            aRowData.append(QVariant(QString::fromLocal8Bit(line_iter->getLineNo().c_str()).remove('#').replace('-','_')));
+            aRowData.append(QVariant(stax));
+            aRowData.append(QVariant(stay));
+            aRowData.append(QVariant(line_iter->sta.z));
+            aRowData.append(QVariant(endx));
+            aRowData.append(QVariant(endy));
+            aRowData.append(QVariant(line_iter->end.z));
+            aRowData.append(QVariant(pct::Distance2d(line_iter->sta.x, line_iter->sta.y, line_iter->end.x, line_iter->end.y)));
+            allRowsData.append(QVariant(aRowData));
+        }
+
+        QAxObject *range = worksheet->querySubObject("Range(const QString )", QString("A1:H") + QString::number(lineClusters.size() + 1));
+        range->dynamicCall("SetValue(const QVariant&)", QVariant(allRowsData));//存储所有数据到 excel 中,批量操作,速度极快
+        range->setProperty("HorizontalAlignment", -4108);
+        range->setProperty("VerticalAlignment", -4108);
+        QAxObject * cells = range->querySubObject("Columns");
+        cells->dynamicCall("AutoFit");
+
+        range->querySubObject("Font")->setProperty("Size", 14);//设置字号
+
+        std::cout << QDir::toNativeSeparators(QFileInfo(filepath).absoluteFilePath()).toLocal8Bit().data() << std::endl;
+        workbook->dynamicCall("SaveAs(const QString&)", QDir::toNativeSeparators(QFileInfo(filepath).absoluteFilePath()));//保存至filepath，注意一定要用QDir::toNativeSeparators将路径中的"/"转换为"\"，不然一定保存不了。
+        workbook->dynamicCall("Close()");//关闭工作簿
+        excel->dynamicCall("Quit()");//关闭excel
+        delete excel;
+        excel = NULL;
+        OleUninitialize();
+    }
 }
 
 void checkLinesDistanceDangerous(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud,
@@ -179,7 +341,7 @@ bool ReadyClassifOpts(pct::Setting& setting, boost::program_options::variables_m
         std::cout << classdir << std::endl;
         return false;
     }
-    setsettingitem(method, int, false, 0);
+    setsettingitem(method, int, false, 2);
 
     setsettingitem(gridsize, float, false, 0.3);
 
@@ -366,7 +528,7 @@ bool classif()
     const pct::Setting & setting = pct::Setting::ins();
     int nb_scales = setting.value<int>("nb_scales");
     int method = setting.method;
-
+    std::cout << "method" << method << std::endl;
     std::string labelname_traverse;
     std::string config_xml = setting.classdir + "\\config.xml";
 
@@ -608,23 +770,27 @@ void correct(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud,
 
     //  提取植被
     pcl::KdTreeFLANN<pcl::PointXYZRGB> ground_kdtree;
-    ground_kdtree.setInputCloud(ground);
-    indices.clear();
-    sqr_distances.clear();
-    for (auto it = jlClusters.begin(); it != jlClusters.end();)
+    if (ground->size())
     {
-        pct::VegetInfo veg(src_cloud, *it);
-        // 最低点与离地高度<10并且大于30个点，有可能是植物！
-        if (it->indices.size() > 30 && ground_kdtree.radiusSearch(veg.min.z, 10, indices, sqr_distances) > 0)
+        ground_kdtree.setInputCloud(ground);
+        indices.clear();
+        sqr_distances.clear();
+        for (auto it = jlClusters.begin(); it != jlClusters.end();)
         {
-            vegetClusters.push_back(veg);
-            it = jlClusters.erase(it);
-        }
-        else
-        {
-            ++it;
+            pct::VegetInfo veg(src_cloud, *it);
+            // 最低点与离地高度<10并且大于30个点，有可能是植物！
+            if (it->indices.size() > 30 && ground_kdtree.radiusSearch(veg.min.z, 10, indices, sqr_distances) > 0)
+            {
+                vegetClusters.push_back(veg);
+                it = jlClusters.erase(it);
+            }
+            else
+            {
+                ++it;
+            }
         }
     }
+
     std::cout << "other数量：" << jlClusters.size() << "电力线识别数量：" << lineClusters.size() << "铁塔识别数量：" << towerClusters.size() 
         << "植被数量：" << vegetClusters.size() << "\n一共" << jlClusters.size() + lineClusters.size() + towerClusters.size() + vegetClusters.size() << std::endl;
 

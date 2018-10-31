@@ -58,6 +58,7 @@ namespace pct
     std::wstring String2WString(const std::string& s);
     std::string WString2String(const std::wstring& ws);
     bool DelDir(const QString &path);
+    void UTMXY2LatLon(double &x, double &y, int zone=50, bool southhemi=false);
 }
 
 

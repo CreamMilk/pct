@@ -10,7 +10,6 @@
 #include <pcl/common/impl/common.hpp>
  #include "mydef.h"
 #include "setting.hpp"
-#include "CoorConv.hpp"
 #include <vtkRenderer.h>
 #include <vtkRenderWindow.h>
 
@@ -427,9 +426,13 @@ void DangerousDistanceCheck::TooNearCheck()
          // 计算包围盒半径
          c.radiu = c.GetExtraBoxRadiu(*farst_pt);
          c.id = (QStringLiteral("ball") + QString::number(i + 1)).toLocal8Bit().data();
-         CoorConv::WGS84Corr latlon;
-         CoorConv::UTMXYToLatLon(c.cen.x, c.cen.y, 50, false, latlon);
-         c.description = QString().sprintf("%.7f  %.7f  %.1f  %.1f\n", CoorConv::RadToDeg(latlon.lat), CoorConv::RadToDeg(latlon.log), c.cen.z, c.radiu).toStdString();
+         double x = c.cen.x;
+         double y = c.cen.y;
+         pct::UTMXY2LatLon(x, y);
+         //CoorConv::WGS84Corr latlon;
+         //CoorConv::UTMXYToLatLon(c.cen.x, c.cen.y, 50, false, latlon);
+         //c.description = QString().sprintf("%.7f  %.7f  %.1f  %.1f\n", CoorConv::RadToDeg(latlon.lat), CoorConv::RadToDeg(latlon.log), c.cen.z, c.radiu).toStdString();
+         c.description = QString().sprintf("%.7f  %.7f  %.1f  %.1f\n", x, y, c.cen.z, c.radiu).toStdString();
          balls_.push_back(c);
          //std::cout.setf(ios::fixed, ios::floatfield);
          //std::cout << fixed << setprecision(6);
@@ -657,12 +660,12 @@ void DangerousDistanceCheck::showNearCheck()
     view->saveScreenshot(std::string(pic_dir.toLocal8Bit().data()) + "\\总图.png");
     std::cout << "截图完成" << std::endl;
 
-    // 调试观看
-    while (!view->wasStopped())
-    {
-        view->spinOnce(100);
-        boost::this_thread::sleep(boost::posix_time::microseconds(100000));
-    }
+    //// 调试观看
+    //while (!view->wasStopped())
+    //{
+    //    view->spinOnce(100);
+    //    boost::this_thread::sleep(boost::posix_time::microseconds(100000));
+    //}
 
 
     // 导出json
@@ -696,9 +699,10 @@ void DangerousDistanceCheck::showNearCheck()
          errpt_child.put("塔杆区间", sstr.str());
          sstr.clear();
          sstr.str("");
-         CoorConv::WGS84Corr latlon;
-         CoorConv::UTMXYToLatLon(balls_[i].cen.x, balls_[i].cen.y, 50, false, latlon);
-         sstr << std::fixed << setprecision(8) << CoorConv::RadToDeg(latlon.lat) << "," << CoorConv::RadToDeg(latlon.log) << "," << std::fixed << setprecision(1) << balls_[i].cen.z;
+         double x = balls_[i].cen.x;
+         double y = balls_[i].cen.y;
+         pct::UTMXY2LatLon(x, y);
+         sstr << std::fixed << setprecision(8) << x << "," << y << "," << std::fixed << setprecision(1) << balls_[i].cen.z;
          std::cout << sstr.str() << std::endl;
          errpt_child.put("隐患坐标", sstr.str());
 
