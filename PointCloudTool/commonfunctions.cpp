@@ -296,11 +296,44 @@ bool pct::combineTrainXmlFiles(std::vector<std::string> xmls, std::string dst_xm
 void pct::UTMXY2LatLon(double &x, double &y, int zone, bool southhemi)
 {
     CoorConv::WGS84Corr latlon;
-    CoorConv::UTMXYToLatLon(x, y, 50, false, latlon);
+    CoorConv::UTMXYToLatLon(x, y, zone, southhemi, latlon);
     x = CoorConv::RadToDeg(latlon.log);
     y = CoorConv::RadToDeg(latlon.lat); 
 }
 
+void pct::LatLon2UTMXY(double &x, double &y, int zone)
+{
+    if ((zone < 1) || (zone > 60))
+        zone = std::floor((y + 180.0) / 6) + 1;
+    x = DegToRad(x);
+    y = DegToRad(y);
+    CoorConv::UTMCoor xy;
+    CoorConv::LatLonToUTMXY(x, y, zone, xy);
+    x = xy.x;
+    y = xy.y;
+}
+
+// 角度转弧度
+double rad(double d)
+{
+    const double PI = 3.1415926535898;
+    return d * PI / 180.0;
+}
+
+// 传入两个经纬度，计算之间的大致直线距离
+double pct::getLonDistance(float fLati1, float fLong1, float fLati2, float fLong2)
+{
+    const float EARTH_RADIUS = 6378.137;
+
+    double radLat1 = rad(fLati1);
+    double radLat2 = rad(fLati2);
+    double a = radLat1 - radLat2;
+    double b = rad(fLong1) - rad(fLong2);
+    double s = 2 * asin(sqrt(pow(sin(a / 2), 2) + cos(radLat1)*cos(radLat2)*pow(sin(b / 2), 2)));
+    s = s * EARTH_RADIUS;
+    s = (int)(s * 10000000) / 10000;
+    return s;
+}
 
 void pct::simple(std::string inputfile, std::string outputfile, float gridsize)
 {

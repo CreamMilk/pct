@@ -22,7 +22,10 @@ namespace pct
 
     private:
         Setting()
-            :gridsize(0)
+            :gridsize(0),
+            reclassif(false),
+            overrideExcel(false),
+            stampcorrectcell(true)
         {
             // 获得程序目录
             char *tmpstr;
@@ -115,7 +118,11 @@ namespace pct
         std::string classdir; //输出结果目录 [dir]
         int method; //分类处理方法 [int]
         float gridsize;
-        
+        bool reclassif;
+        std::string exceldir; // 纠偏塔数据目录 [std::string]
+        bool overrideExcel;  // 是否覆盖源excel [bool]
+        bool stampcorrectcell;  // 是否标记修改cell [bool]
+
     };
   
 

@@ -46,9 +46,12 @@ void correct(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud, pcl::PointIndices
 bool ReadyTrainOpts(pct::Setting& setting, boost::program_options::variables_map &vm);
 bool ReadyClassifOpts(pct::Setting& setting, boost::program_options::variables_map &vm);
 bool ReadyDistancecheckOpts(pct::Setting& setting, boost::program_options::variables_map &vm);
+bool ReadPoscorrectOpts(pct::Setting& setting, boost::program_options::variables_map &vm);
 void checkLinesDistanceDangerous(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud, pcl::PointIndicesPtr ground_indices, std::vector <pct::VegetInfo>& vegetClusters, std::vector <pct::LineInfo>& lineClusters, std::vector <pct::TowerInfo>& towerClusters);
 void SaveTowers(QString filepath, std::vector <pct::TowerInfo> &towerClusters);
 void SaveLines(QString filepath, std::vector <pct::LineInfo> &towerClusters);
+void PositionCorrection(QString tower_excel);
+void LoadTowers(QString filepath, std::vector <std::tuple<double, double>> &towerClusters);
 
 int main(int argc, char *argv[])
 {
@@ -58,11 +61,13 @@ int main(int argc, char *argv[])
 
     srand((unsigned int)time(NULL));
     const pct::Setting & setting = pct::Setting::ins();
+
+    std::cout << "ParserCmdline" << std::endl;
     if (false == ParserCmdline(argc, argv))
     {
         return EXIT_FAILURE;
     }
-
+    std::cout << "ParserCmdline" << std::endl;
 
     if (setting.cmdtype == "train")
     {
@@ -128,6 +133,42 @@ int main(int argc, char *argv[])
         }
 
     }
+    else if (setting.cmdtype == "poscorrect")
+    {
+        if (setting.reclassif)
+        {
+            classif();
+            std::string inputfile = setting.outputdir + "\\out.las";
+            pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
+            pct::io::Load_las(src_cloud, inputfile);
+            std::cout << "离群点过滤" << std::endl;
+            //pct::OutlierRemoval(src_cloud);
+
+            // 因为cgal分类结果是整体的，并不能把每个个体提取出来
+            pcl::PointIndicesPtr ground_indices(new pcl::PointIndices);
+            std::vector <pcl::PointIndices> otheCluster;
+            std::vector <pct::LineInfo> lineClusters;
+            std::vector <pct::TowerInfo> towerClusters;
+            std::vector <pct::VegetInfo> vegetClusters;
+            correct(src_cloud, ground_indices, otheCluster, lineClusters, towerClusters, vegetClusters);
+
+            QString tower_excle = QString::fromLocal8Bit((setting.outputdir + "\\" + pct::ExtractExeName(setting.inputfile) + "铁塔.xlsx").c_str());
+            QString line_excel  = QString::fromLocal8Bit((setting.outputdir + "\\" + pct::ExtractExeName(setting.inputfile) + "电力线.xlsx").c_str());
+            std::cout << tower_excle.toLocal8Bit().data() << std::endl;
+            std::cout << line_excel.toLocal8Bit().data() << std::endl;
+
+            SaveTowers(tower_excle, towerClusters);
+            SaveLines(line_excel, lineClusters);
+            std::cout << "全部识别完成" << std::endl;
+
+            PositionCorrection(tower_excle);
+        }
+        else
+        {
+            QString tower_excle = QString::fromLocal8Bit((setting.outputdir + "\\" + pct::ExtractExeName(setting.inputfile) + ".xlsx").c_str());
+            PositionCorrection(tower_excle);
+        }
+    }
     else
     {
         return EXIT_FAILURE;
@@ -137,19 +178,175 @@ int main(int argc, char *argv[])
     return EXIT_SUCCESS;
 }
 
-void SaveTowers(QString filepath, std::vector <pct::TowerInfo> &towerClusters)
+void PositionCorrection(QString tower_excel)
 {
-    std::cout << filepath.toLocal8Bit().data() << std::endl;
-    if (!filepath.isEmpty() && QFile(filepath).isOpen()){
-        if (QFile::exists(filepath))
-            QFile::remove(filepath);
+    pct::Setting &setting = pct::Setting::ins();
+    bool overrideExcel = setting.overrideExcel;         // 覆盖excel
+    bool stampcorrectcell = setting.stampcorrectcell;   // 提示修改
+    std::vector <std::tuple<double, double>> towerClusters;
+    LoadTowers(tower_excel, towerClusters);
+    QString src_tower_dir = QString::fromLocal8Bit(setting.exceldir.c_str());
+
+    QDir dir(src_tower_dir);
+    if (!dir.exists())
+    {
+        std::cout << "excel目录不存在!" << std::endl;
+        return;
+    }
+
+    QStringList filters;
+    filters << QString("*.xlsx");
+    dir.setFilter(QDir::Files | QDir::NoSymLinks); //设置类型过滤器，只为文件格式
+    dir.setNameFilters(filters);
+    QFileInfoList list = dir.entryInfoList();
+    int file_count = list.count();
+    if (file_count <= 0)
+    {
+        std::cout << "excel文件数目小于0!" << std::endl;
+        return;
+    }
+    std::cout << "list" << std::endl;
+    QStringList string_list;
+    for (int i = 0; i < list.count(); i++)
+    {
+        QFileInfo file_info = list.at(i);
+        QString suffix = file_info.suffix();
+        if (QString::compare(suffix, QString("xlsx"), Qt::CaseInsensitive) == 0 && !file_info.fileName().count(QStringLiteral("纠偏")))
+        {
+            QString absolute_file_path = file_info.absoluteFilePath();
+            string_list.append(absolute_file_path);
+        }
+    }
+
+    std::cout << "string_list" << string_list.size() << std::endl;
+    // 遍历原始excels
+    for (int i = 0; i < string_list.size(); ++i)
+    {
         HRESULT r = OleInitialize(0);
         if (r != S_OK && r != S_FALSE) {
             qWarning("Qt: Could not initialize OLE (error %x)", (unsigned int)r);
         }
+        QAxObject excel("Excel.Application");
+        excel.setProperty("Visible", false); //隐藏打开的excel文件界面
+        excel.setProperty("DisplayAlerts", false);//不显示任何警告信息
+        QAxObject *workbooks = excel.querySubObject("WorkBooks");
+        QAxObject *workbook = workbooks->querySubObject("Open(QString, QVariant)", string_list[i]); //打开文件
+        QAxObject * worksheet = workbook->querySubObject("WorkSheets(int)", 1); //访问第一个工作表
+        QAxObject * usedrange = worksheet->querySubObject("UsedRange");
+        QAxObject * rows = usedrange->querySubObject("Rows");
+        int intRows = rows->property("Count").toInt(); //行数
+
+        QString Range = "A2:I" + QString::number(intRows);
+        QAxObject *allEnvData = worksheet->querySubObject("Range(QString)", Range); //读取范围
+        QVariant allEnvDataQVariant = allEnvData->property("Value");
+        QVariantList allEnvDataList = allEnvDataQVariant.toList();
+        
+        // 遍历单个原始excel每行
+        std::cout << "intRows" << intRows << string_list[i].toLocal8Bit().data() << std::endl;
+        for (int j = 0; j < intRows-1; j++)
+        {
+            QVariantList allEnvDataList_j = allEnvDataList[j].toList();
+            double j_log = allEnvDataList_j[7].toDouble();
+            double j_lat = allEnvDataList_j[8].toDouble();
+
+            // 遍历识别铁塔
+            for (int k = 0; k < towerClusters.size(); ++k)
+            {
+                double offset = pct::getLonDistance(j_log, j_lat, std::get<0>(towerClusters[k]), std::get<1>(towerClusters[k]));
+                std::cout << std::fixed << setprecision(7) 
+                    << j_log << " " << j_lat << "    "
+                    << std::get<0>(towerClusters[k]) << " " << std::get<1>(towerClusters[k]) << " " << offset << std::endl;
+
+                if (offset < 30 && offset > 0.2)    //  30米内误差大于20厘米
+                {
+                    if (stampcorrectcell)
+                    {
+                        std::cout << "stampcorrectcell" << std::endl;
+                        worksheet->querySubObject("Cells(int,int)", j + 2, 8)->querySubObject("Interior")->setProperty("Color", QColor(0, 255, 0));
+                        worksheet->querySubObject("Cells(int,int)", j + 2, 9)->querySubObject("Interior")->setProperty("Color", QColor(0, 255, 0));
+                    }
+                    worksheet->querySubObject("Cells(int,int)", j + 2, 8)->dynamicCall("SetValue(const QVariant&)", std::get<0>(towerClusters[k]));
+                    worksheet->querySubObject("Cells(int,int)", j + 2, 9)->dynamicCall("SetValue(const QVariant&)", std::get<1>(towerClusters[k]));
+                    //allEnvDataList_j[7].setValue(std::get<0>(towerClusters[k]));
+                    //allEnvDataList_j[8].setValue(std::get<1>(towerClusters[k]));
+                }
+            }
+        }
+        // 回写入原数据
+        //allEnvData->dynamicCall("SetValue(const QVariant&)", QVariant(allEnvDataList));//存储所有数据到 excel 中,批量操作,速度极快
+        QString write_path = QDir::toNativeSeparators(QFileInfo(string_list[i]).absoluteFilePath());
+        
+        if (!overrideExcel)
+            write_path = QFileInfo(string_list[i]).absolutePath() + "\\" + QFileInfo(string_list[i]).baseName() + QStringLiteral("纠偏.xlsx");
+        else
+            write_path = QFileInfo(string_list[i]).absoluteFilePath();
+        if (QFile::exists(write_path))
+            QFile::remove(write_path);
+
+        workbook->dynamicCall("SaveAs(const QString&)", QDir::toNativeSeparators(write_path));//保存至filepath，注意一定要用QDir::toNativeSeparators将路径中的"/"转换为"\"，不然一定保存不了。
+
+        workbook->dynamicCall("Close (Boolean)", false);
+        excel.dynamicCall("Quit()");
+        OleUninitialize();
+    }
+}
+
+void LoadTowers(QString filepath, std::vector <std::tuple<double, double>> &towerClusters)
+{
+    HRESULT r = OleInitialize(0);
+    if (r != S_OK && r != S_FALSE) {
+        qWarning("Qt: Could not initialize OLE (error %x)", (unsigned int)r);
+    }
+    std::cout << "LoadTowers filepath" << filepath.toLocal8Bit().data() << std::endl;
+    QAxObject excel("Excel.Application");
+    excel.setProperty("DisplayAlerts", false);//不显示任何警告信息
+    excel.setProperty("Visible", false); //隐藏打开的excel文件界面
+    QAxObject *workbooks = excel.querySubObject("WorkBooks");
+    QAxObject *workbook = workbooks->querySubObject("Open(QString, QVariant)", filepath); //打开文件
+    QAxObject * worksheet = workbook->querySubObject("WorkSheets(int)", 1); //访问第一个工作表
+    QAxObject * usedrange = worksheet->querySubObject("UsedRange");
+    QAxObject * rows = usedrange->querySubObject("Rows");
+    int intRows = rows->property("Count").toInt(); //行数
+
+    QString Range = "A2:D" + QString::number(intRows);
+    QAxObject *allEnvData = worksheet->querySubObject("Range(QString)", Range); //读取范围
+    QVariant allEnvDataQVariant = allEnvData->property("Value");
+    QVariantList allEnvDataList = allEnvDataQVariant.toList();
+
+    std::cout << "LoadTowers intRows" << intRows << std::endl;
+    for (int i = 0; i < intRows - 1; i++)
+    {
+        QVariantList allEnvDataList_i = allEnvDataList[i].toList();
+
+        double log = allEnvDataList_i[1].toDouble();
+        double lat = allEnvDataList_i[2].toDouble();
+        //double x = log;
+        //double y = lat;
+        //pct::LatLon2UTMXY(x, y);
+        towerClusters.push_back(std::tuple<double, double>(log, lat));
+    }
+   
+    workbook->dynamicCall("Close (Boolean)", false);
+    excel.dynamicCall("Quit()");
+    OleUninitialize();
+}
+
+void SaveTowers(QString filepath, std::vector <pct::TowerInfo> &towerClusters)
+{
+    if (!filepath.isEmpty() && QFile(filepath).exists()){
+        if (QFile::exists(filepath))
+        {
+            std::cout << "QFile::exists(filepath)   QFile::remove(filepath);" << std::endl;
+            QFile::remove(filepath);
+        }
+         
+        HRESULT r = OleInitialize(0);
+        if (r != S_OK && r != S_FALSE) {
+            std::cout << "Qt: Could not initialize OLE;" << std::endl;
+        }
         QAxObject *excel = new QAxObject("Excel.Application");//连接Excel控件
         excel->dynamicCall("SetVisible (bool Visible)", false);//不显示窗体
-        excel->setProperty("DisplayAlerts", true);//不显示任何警告信息。如果为true那么在关闭是会出现类似“文件已修改，是否保存”的提示
+        excel->setProperty("DisplayAlerts", false);//不显示任何警告信息。如果为true那么在关闭是会出现类似“文件已修改，是否保存”的提示
         QAxObject *workbooks = excel->querySubObject("WorkBooks");//获取工作簿集合
         workbooks->dynamicCall("Add");//新建一个工作簿
         QAxObject *workbook = excel->querySubObject("ActiveWorkBook");//获取当前工作簿
@@ -192,19 +389,19 @@ void SaveTowers(QString filepath, std::vector <pct::TowerInfo> &towerClusters)
 
         std::cout << QDir::toNativeSeparators(QFileInfo(filepath).absoluteFilePath()).toLocal8Bit().data() << std::endl;
         workbook->dynamicCall("SaveAs(const QString&)", QDir::toNativeSeparators(QFileInfo(filepath).absoluteFilePath()));//保存至filepath，注意一定要用QDir::toNativeSeparators将路径中的"/"转换为"\"，不然一定保存不了。
-        workbook->dynamicCall("Close()");//关闭工作簿
+        workbook->dynamicCall("Close (Boolean)", false);
         excel->dynamicCall("Quit()");//关闭excel
         delete excel;
         excel = NULL;
         OleUninitialize();
     }
+    std::cout << filepath.toLocal8Bit().data() << std::endl;
 }
 
 void SaveLines(QString filepath, std::vector <pct::LineInfo> &lineClusters)
 {
-    
     std::cout << filepath.toLocal8Bit().data() << std::endl;
-    if (!filepath.isEmpty() && QFile(filepath).isOpen()){
+    if (!filepath.isEmpty() && QFile(filepath).exists()){
         if (QFile::exists(filepath))
             QFile::remove(filepath);
         HRESULT r = OleInitialize(0);
@@ -267,7 +464,7 @@ void SaveLines(QString filepath, std::vector <pct::LineInfo> &lineClusters)
 
         std::cout << QDir::toNativeSeparators(QFileInfo(filepath).absoluteFilePath()).toLocal8Bit().data() << std::endl;
         workbook->dynamicCall("SaveAs(const QString&)", QDir::toNativeSeparators(QFileInfo(filepath).absoluteFilePath()));//保存至filepath，注意一定要用QDir::toNativeSeparators将路径中的"/"转换为"\"，不然一定保存不了。
-        workbook->dynamicCall("Close()");//关闭工作簿
+        workbooks->dynamicCall("Close (boolean)", false);
         excel->dynamicCall("Quit()");//关闭excel
         delete excel;
         excel = NULL;
@@ -358,8 +555,92 @@ bool ReadyDistancecheckOpts(pct::Setting& setting, boost::program_options::varia
     return true;
 }
 
+bool ReadPoscorrectOpts(pct::Setting& setting, boost::program_options::variables_map &vm)
+{
+    std::cout << "ReadPoscorrectOpts" << std::endl;
+    setsettingitem(inputfile, std::string, true, "");
+
+    boost::filesystem::path path_file(inputfile);
+    boost::filesystem::path path_dir(path_file.parent_path().string());
+
+    std::cout << "boost::filesystem::extension(path_file)" << std::endl;
+    if (boost::filesystem::extension(path_file) == ".xlsx")
+    {
+        setting.reclassif = false;
+    }
+    else if (boost::filesystem::extension(path_file) == ".las")
+    {
+        setting.reclassif = true;
+    }
+    else
+    {
+        std::cout << "选项inputfile文件路径错误！" << std::endl;
+        std::cout << inputfile << std::endl;
+        return false;
+    }
+    std::cout << "setting.reclassif" << setting.reclassif << std::endl;
+
+    if (!boost::filesystem::exists(path_file) || !boost::filesystem::is_regular_file(path_file))
+    {
+        std::cout << "选项inputfile文件路径错误！" << std::endl;
+        std::cout << inputfile << std::endl;
+        return false;
+    }
+
+    std::cout << path_dir.string() + "\\" + path_file.stem().string() << std::endl;
+    if (setting.reclassif == true)
+    {
+        setsettingitem(outputdir, std::string, false, path_dir.string() + "\\" + path_file.stem().string());
+        boost::filesystem::path out_dir = boost::filesystem::path(outputdir);
+        if (!boost::filesystem::exists(out_dir))
+        {
+            boost::filesystem::create_directories(out_dir);
+        }
+        if (!boost::filesystem::is_directory(out_dir))
+        {
+            std::cout << "选项outputdir目录错误！" << std::endl;
+            std::cout << outputdir << std::endl;
+            return false;
+        }
+    }
+    else
+    {
+        setting.outputdir = path_dir.string();
+    }
+
+    setsettingitem(exceldir, std::string, true, "");
+    boost::filesystem::path excel_dir = boost::filesystem::path(exceldir);
+    if (!boost::filesystem::exists(excel_dir) || !boost::filesystem::is_directory(excel_dir))
+    {
+        std::cout << "选项excel_dir目录错误！" << std::endl;
+        std::cout << excel_dir << std::endl;
+        return false;
+    }
+    
+    setsettingitem(classdir, std::string, true, "");
+    if (!boost::filesystem::exists(classdir) || !boost::filesystem::is_directory(classdir) || _access((classdir + "\\config.xml").c_str(), 0) == -1) //如果文件夹不存在，或者不是文件夹
+    {
+        std::cout << "样本文件夹中没有训练文件config.xml，请先训练样本！" << std::endl;
+        std::cout << classdir << std::endl;
+        return false;
+    }
+    setsettingitem(method, int, false, 2);
+
+    setsettingitem(gridsize, float, false, 0.3);
+
+    //setsettingitem(reclassif, bool, false, true);
+
+    setsettingitem(overrideExcel, bool, false, false)
+
+    setsettingitem(stampcorrectcell, bool, false, true);
+
+
+    return true;
+}
+
 bool ParserCmdline(int argc, char *argv[])
 {
+    std::cout << "ParserCmdline entry" << std::endl;
     std::string exe_name = pct::GetExeName();
     pct::Setting& setting = pct::Setting::ins();
     // 解析命令行
@@ -369,6 +650,7 @@ bool ParserCmdline(int argc, char *argv[])
          "\n（1）" + exe_name + " --cmdtype train --classdir classdir --gridsize 0.3"
          "\n（2）" + exe_name + " --cmdtype classif --inputfile inputfile --outputdir outputdir --classdir classdir --method 2"
          "\n（3）" + exe_name + " --cmdtype distancecheck --inputfile inputfile --outputdir outputdir --classdir classdir --method 2"
+         "\n（4）" + exe_name + " --cmdtype poscorrect --inputfile inputfile --overrideExcel false --stampcorrectcell true  --exceldir \"铁塔纠偏数据\"  --outputdir outputdir --classdir classdir --method 2"
          "\n参数");
 
     opts.add_options()
@@ -378,6 +660,10 @@ bool ParserCmdline(int argc, char *argv[])
         ("outputdir", boost::program_options::value<std::string>(), "输出结果目录 [dir]")
         ("method", boost::program_options::value<int>(), "分类方法 [int] 0-普通 1-平滑 2-非常平滑")
         ("gridsize", boost::program_options::value<float>(), "叶节点尺寸 [float]")
+        //("reclassif", boost::program_options::value<bool>(), "是否重新分类 [bool]")
+        ("exceldir", boost::program_options::value<std::string>(), "纠偏塔数据目录 [std::string]")
+        ("overrideExcel", boost::program_options::value<bool>(), "是否覆盖源excel [bool]")
+        ("stampcorrectcell", boost::program_options::value<bool>(), "是否标记修改cell [bool]")
         ("help", "帮助");
 
     try{
@@ -409,6 +695,12 @@ bool ParserCmdline(int argc, char *argv[])
         else if (cmdtype == "distancecheck")
         {
             if (!ReadyDistancecheckOpts(setting, vm))
+                return false;
+        }
+        else if (cmdtype == "poscorrect")
+        {
+            std::cout << "ReadPoscorrectOpts start" << std::endl;
+            if (!ReadPoscorrectOpts(setting, vm))
                 return false;
         }
         else

@@ -6,7 +6,7 @@
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <LocalDebuggerCommandArguments>--cmdtype classif --inputfile F:/pointcloudTool/project/pct/x64/Release/testdata/2-1.las --classdir F:/pointcloudTool/project/pct/x64/Release/classdir</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>--cmdtype poscorrect --inputfile E:\project\powerline\solution\pct\x64\Release\testdata\2-1.las --classdir E:\project\powerline\solution\pct\x64\Release\classdir --method 2 --exceldir E:\project\powerline\solution\pct\x64\Release\testdata\铁塔纠偏数据 --overrideExcel false --stampcorrectcell true</LocalDebuggerCommandArguments>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
 </Project>
