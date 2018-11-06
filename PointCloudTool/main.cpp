@@ -719,6 +719,7 @@ bool train()
     const pct::Setting & setting = pct::Setting::ins();
     int nb_scales = setting.value<int>("nb_scales");
     int nb_trials = setting.value<int>("nb_trials");
+    int simplify_model = setting.value<int>("simplify");
     // 遍历样本文件夹
     boost::filesystem::path yangbendir(setting.classdir);
     std::cout << "setting.classdir：" << setting.classdir << std::endl;
@@ -746,10 +747,14 @@ bool train()
                     
                     // 抽稀  
                     std::ostringstream tempfile;
-                    tempfile << getpid() << "temp2018.las";
-                    pct::simple(laspath, tempfile.str(), setting.gridsize);
+                    tempfile << setting.outputdir << "\\" << lasname << "_simple.las";
+                    if (boost::filesystem::exists(boost::filesystem::path(tempfile.str())))
+                        boost::filesystem::remove(boost::filesystem::path(tempfile.str()));
+                   
+
+                    pct::simple(laspath, tempfile.str(), setting.gridsize, simplify_model);
                     boost::shared_ptr<Scene_points_with_normal_item> scene_item(pct::io::lasload(tempfile.str()));
-                    boost::filesystem::remove(boost::filesystem::path(tempfile.str()));
+                    
 
                     std::cout << "文件：" << lasname << "..." << std::endl;
                     if (scene_item && scene_item->point_set()->check_colors())
@@ -819,18 +824,21 @@ bool classif()
     std::cout << "开始分类..." << std::endl;
     const pct::Setting & setting = pct::Setting::ins();
     int nb_scales = setting.value<int>("nb_scales");
+    int simplify_model = setting.value<int>("simplify");
     int method = setting.method;
     std::cout << "method" << method << std::endl;
+    std::cout << "simplify_model" << simplify_model << std::endl;
     std::string labelname_traverse;
     std::string config_xml = setting.classdir + "\\config.xml";
 
 
     // 抽稀  
     std::ostringstream tempfile;
-    tempfile << getpid() << "temp2018.las";
-    pct::simple(setting.inputfile, tempfile.str(), setting.gridsize);
+    tempfile << setting.outputdir << "\\" << "simple.las";
+    if (boost::filesystem::exists(boost::filesystem::path(tempfile.str())))
+        boost::filesystem::remove(boost::filesystem::path(tempfile.str()));
+    pct::simple(setting.inputfile, tempfile.str(), setting.gridsize, simplify_model);
     boost::shared_ptr<Scene_points_with_normal_item> scene_item(pct::io::lasload(tempfile.str()));
-    boost::filesystem::remove(boost::filesystem::path(tempfile.str()));
 
     if (scene_item)
     {

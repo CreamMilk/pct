@@ -335,22 +335,26 @@ double pct::getLonDistance(float fLati1, float fLong1, float fLati2, float fLong
     return s;
 }
 
-void pct::simple(std::string inputfile, std::string outputfile, float gridsize)
+void pct::simple(std::string inputfile, std::string outputfile, float gridsize, int model)
 {
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
     pct::io::Load_las(cloud, inputfile);
 
-    //均匀采样点云并提取关键点      体素下采样，重心代替
-    pcl::UniformSampling<pcl::PointXYZRGB> uniform_sampling;
-    uniform_sampling.setInputCloud(cloud);  //输入点云
-    uniform_sampling.setRadiusSearch(gridsize);   //设置半径 
-    uniform_sampling.filter(*cloud);   //滤波
-
-
-    //pcl::VoxelGrid<pcl::PointXYZRGB> grid;
-    //grid.setLeafSize(gridsize, gridsize, gridsize);
-    //grid.setInputCloud(cloud);
-    //grid.filter(*cloud);
+    if (model == 0)
+    {
+        //均匀采样点云并提取关键点      体素下采样，重心代替
+        pcl::UniformSampling<pcl::PointXYZRGB> uniform_sampling;
+        uniform_sampling.setInputCloud(cloud);  //输入点云
+        uniform_sampling.setRadiusSearch(gridsize);   //设置半径 
+        uniform_sampling.filter(*cloud);   //滤波
+    }
+    else
+    {
+        pcl::VoxelGrid<pcl::PointXYZRGB> grid;
+        grid.setLeafSize(gridsize, gridsize, gridsize);
+        grid.setInputCloud(cloud);
+        grid.filter(*cloud);
+    }
 
     pct::io::save_las(cloud, outputfile);
 }
