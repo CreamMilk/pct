@@ -293,6 +293,11 @@ void PositionCorrection(QString tower_excel)
 
 void LoadTowers(QString filepath, std::vector <std::tuple<double, double>> &towerClusters)
 {
+    if (!QFile(filepath).exists())
+    {
+        std::cout << "void LoadTowers()  !QFile(filepath).exists()" << std::endl;
+        return;
+    }
     HRESULT r = OleInitialize(0);
     if (r != S_OK && r != S_FALSE) {
         qWarning("Qt: Could not initialize OLE (error %x)", (unsigned int)r);
@@ -333,7 +338,7 @@ void LoadTowers(QString filepath, std::vector <std::tuple<double, double>> &towe
 
 void SaveTowers(QString filepath, std::vector <pct::TowerInfo> &towerClusters)
 {
-    if (!filepath.isEmpty() && QFile(filepath).exists()){
+    if (!filepath.isEmpty()){
         if (QFile::exists(filepath))
         {
             std::cout << "QFile::exists(filepath)   QFile::remove(filepath);" << std::endl;
@@ -401,7 +406,7 @@ void SaveTowers(QString filepath, std::vector <pct::TowerInfo> &towerClusters)
 void SaveLines(QString filepath, std::vector <pct::LineInfo> &lineClusters)
 {
     std::cout << filepath.toLocal8Bit().data() << std::endl;
-    if (!filepath.isEmpty() && QFile(filepath).exists()){
+    if (!filepath.isEmpty()){
         if (QFile::exists(filepath))
             QFile::remove(filepath);
         HRESULT r = OleInitialize(0);
@@ -613,7 +618,7 @@ bool ReadPoscorrectOpts(pct::Setting& setting, boost::program_options::variables
     if (!boost::filesystem::exists(excel_dir) || !boost::filesystem::is_directory(excel_dir))
     {
         std::cout << "Ñ¡Ïîexcel_dirÄ¿Â¼´íÎó£¡" << std::endl;
-        std::cout << excel_dir << std::endl;
+        std::cout << "excel_dir" << excel_dir << std::endl;
         return false;
     }
     
