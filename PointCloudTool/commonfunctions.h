@@ -28,6 +28,7 @@ namespace pct
     double Distance2d(double x, double y, double m, double n);
     std::string GetExeName();
     std::string GetExePath();
+    QString GetFileDir(std::string file_path);
     std::string ExtractExeName(const std::string &input);
     bool combineTrainXmlFiles(std::vector<std::string> xmls, std::string dst_xml);
     void simple(std::string inputfile, std::string outputfile, float gridsize, int model = 0);

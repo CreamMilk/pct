@@ -86,6 +86,11 @@ std::string pct::GetExePath()
     return exe_path;
 }
 
+QString pct::GetFileDir(std::string file_path)
+{
+    return QFileInfo(QString::fromLocal8Bit(file_path.c_str())).absolutePath();
+}
+
 std::string pct::GetExeName()
 {
     std::string exe_path = "";

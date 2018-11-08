@@ -152,20 +152,23 @@ int main(int argc, char *argv[])
             std::vector <pct::VegetInfo> vegetClusters;
             correct(src_cloud, ground_indices, otheCluster, lineClusters, towerClusters, vegetClusters);
 
-            QString tower_excle = QString::fromLocal8Bit((setting.outputdir + "\\" + pct::ExtractExeName(setting.inputfile) + "铁塔.xlsx").c_str());
-            QString line_excel  = QString::fromLocal8Bit((setting.outputdir + "\\" + pct::ExtractExeName(setting.inputfile) + "电力线.xlsx").c_str());
-            std::cout << tower_excle.toLocal8Bit().data() << std::endl;
-            std::cout << line_excel.toLocal8Bit().data() << std::endl;
+            QFileInfo inputfile_info(QString::fromLocal8Bit(setting.inputfile.c_str()));
+            QString tower_excle = QDir::toNativeSeparators(inputfile_info.absolutePath() + QStringLiteral("\\") + inputfile_info.baseName() + QStringLiteral("\\") + inputfile_info.baseName() + QStringLiteral("铁塔.xlsx"));
+            QString line_excel = QDir::toNativeSeparators(inputfile_info.absolutePath() + QStringLiteral("\\") + inputfile_info.baseName() + QStringLiteral("\\") + inputfile_info.baseName() + QStringLiteral("电力线.xlsx"));
+
+            std::cout << "tower_excle" << tower_excle.toLocal8Bit().data() << std::endl;
+            std::cout << "line_excel" << line_excel.toLocal8Bit().data() << std::endl;
 
             SaveTowers(tower_excle, towerClusters);
             SaveLines(line_excel, lineClusters);
-            std::cout << "全部识别完成" << std::endl;
 
             PositionCorrection(tower_excle);
         }
         else
         {
-            QString tower_excle = QString::fromLocal8Bit((setting.outputdir + "\\" + pct::ExtractExeName(setting.inputfile) + ".xlsx").c_str());
+            QFileInfo inputfile_info(QString::fromLocal8Bit(setting.inputfile.c_str()));
+            QString tower_excle = QDir::toNativeSeparators(inputfile_info.absolutePath() + QStringLiteral("\\") + inputfile_info.baseName() + QStringLiteral("铁塔.xlsx"));
+            //QString tower_excle = QString::fromLocal8Bit((setting.outputdir + "\\" + pct::ExtractExeName(setting.inputfile) + ".xlsx").c_str());
             PositionCorrection(tower_excle);
         }
     }
@@ -267,8 +270,6 @@ void PositionCorrection(QString tower_excel)
                     }
                     worksheet->querySubObject("Cells(int,int)", j + 2, 8)->dynamicCall("SetValue(const QVariant&)", std::get<0>(towerClusters[k]));
                     worksheet->querySubObject("Cells(int,int)", j + 2, 9)->dynamicCall("SetValue(const QVariant&)", std::get<1>(towerClusters[k]));
-                    //allEnvDataList_j[7].setValue(std::get<0>(towerClusters[k]));
-                    //allEnvDataList_j[8].setValue(std::get<1>(towerClusters[k]));
                 }
             }
         }
@@ -293,6 +294,7 @@ void PositionCorrection(QString tower_excel)
 
 void LoadTowers(QString filepath, std::vector <std::tuple<double, double>> &towerClusters)
 {
+    std::cout << "LoadTowers()" << filepath.toLocal8Bit().data() << std::endl;
     if (!QFile(filepath).exists())
     {
         std::cout << "void LoadTowers()  !QFile(filepath).exists()" << std::endl;
@@ -325,9 +327,6 @@ void LoadTowers(QString filepath, std::vector <std::tuple<double, double>> &towe
 
         double log = allEnvDataList_i[1].toDouble();
         double lat = allEnvDataList_i[2].toDouble();
-        //double x = log;
-        //double y = lat;
-        //pct::LatLon2UTMXY(x, y);
         towerClusters.push_back(std::tuple<double, double>(log, lat));
     }
    
@@ -338,10 +337,10 @@ void LoadTowers(QString filepath, std::vector <std::tuple<double, double>> &towe
 
 void SaveTowers(QString filepath, std::vector <pct::TowerInfo> &towerClusters)
 {
+    std::cout << "SaveTowers()" << filepath.toLocal8Bit().data() << std::endl;
     if (!filepath.isEmpty()){
         if (QFile::exists(filepath))
         {
-            std::cout << "QFile::exists(filepath)   QFile::remove(filepath);" << std::endl;
             QFile::remove(filepath);
         }
          
@@ -400,12 +399,12 @@ void SaveTowers(QString filepath, std::vector <pct::TowerInfo> &towerClusters)
         excel = NULL;
         OleUninitialize();
     }
-    std::cout << filepath.toLocal8Bit().data() << std::endl;
+   
 }
 
 void SaveLines(QString filepath, std::vector <pct::LineInfo> &lineClusters)
 {
-    std::cout << filepath.toLocal8Bit().data() << std::endl;
+    std::cout << "SaveLines()" << filepath.toLocal8Bit().data() << std::endl;
     if (!filepath.isEmpty()){
         if (QFile::exists(filepath))
             QFile::remove(filepath);
@@ -592,7 +591,7 @@ bool ReadPoscorrectOpts(pct::Setting& setting, boost::program_options::variables
         return false;
     }
 
-    std::cout << path_dir.string() + "\\" + path_file.stem().string() << std::endl;
+    std::cout << "path_dir.string()" << path_dir.string() + "\\" + path_file.stem().string() << std::endl;
     if (setting.reclassif == true)
     {
         setsettingitem(outputdir, std::string, false, path_dir.string() + "\\" + path_file.stem().string());
