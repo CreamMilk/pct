@@ -458,19 +458,26 @@ int Otsu(std::vector<double> &hist)
 void pct::ExtractGround(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, pcl::PointIndicesPtr cloud_indices, pcl::PointIndicesPtr ground_indices)
 {
     // 地面提取
-    int windowsize = 2;
-    float slope = 1;
-    float minlDistance = 5;
-    float maxlDistance = 30;
+     pct::Setting setting = pct::Setting::ins();
+    
+     int windowsize = setting.pt.get_child(pct::to_utf8(pct::String2WString("提取地面"))).get_optional<int>("windowsize").value();
+     float slope = setting.pt.get_child(pct::to_utf8(pct::String2WString("提取地面"))).get_optional<float>("slope").value();
+     float minlDistance = setting.pt.get_child(pct::to_utf8(pct::String2WString("提取地面"))).get_optional<float>("minlDistance").value();
+     float maxlDistance = setting.pt.get_child(pct::to_utf8(pct::String2WString("提取地面"))).get_optional<float>("maxlDistance").value();
+ 
+     // RecoverGround
+     double gridSize = setting.pt.get_child(pct::to_utf8(pct::String2WString("提取地面"))).get_optional<float>("gridSize").value();
+     double heightSize = setting.pt.get_child(pct::to_utf8(pct::String2WString("提取地面"))).get_optional<float>("heightSize").value();
 
-    // RecoverGround
-    double gridSize = 20;
-    double heightSize = 1;
+//     int windowsize = 2;
+//     float slope = 1;
+//     float minlDistance = 5;
+//     float maxlDistance = 30;
+// 
+//     // RecoverGround
+//     double gridSize = 20;
+//     double heightSize = 1;
 
-
-    /********** 粗提取地面start **************/
-    //pcl::PointIndicesPtr cloud_indices(new pcl::PointIndices);
-    //pcl::PointIndicesPtr ground_indices(new pcl::PointIndices);
 
     //	生成形态滤波器
     pcl::ProgressiveMorphologicalFilter<pcl::PointXYZRGB> pmf;
@@ -491,28 +498,6 @@ void pct::ExtractGround(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, pcl::Point
             cloud_indices->indices.push_back(i);
     }
 
-    
-    // 从标号到点云
-    //pcl::ExtractIndices<pcl::PointXYZRGB> extract;
-    //extract.setInputCloud(cloud);
-    //extract.setIndices(groundindices);
-    //extract.setNegative(true);
-    //extract.filter(*cloud);
-    //extract.setNegative(false);
-    //extract.filter(*ground);
-    /********** 粗提取地面end **************/
-
-
-
-
-    /********** 离群点过滤start **************/
-    //std::cout << "离群点过滤" << std::endl;
-    //OutlierRemoval(cloud, cloud_indices);
-    /********** 离群点过滤end **************/
-
-
-
-    /********** 排除错误的地面点start **************/
     if (!ground_indices->indices.size())
     {
         std::cout<< ("地面为空？？？");
@@ -619,27 +604,6 @@ void pct::ExtractGround(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, pcl::Point
         ground_indices->indices.clear();
         ground_indices->indices.insert(ground_indices->indices.end(), ground_indices_set.begin(), ground_indices_set.end());
     }
-    /********** 排除错误的地面点end **************/
-
-    // 地物提取  貌似这不需要
-    // RoughExtractGroundObject();
-
-    //pcl::PointXYZRGB *pt;
-    //for (int i = 0; i < ground_indices->indices.size(); ++i)
-    //{
-    //    pt = &cloud->at(ground_indices->indices[i]);
-    //    pt->r = 0;
-    //    pt->g = 64;
-    //    pt->b = 128;
-    //}
-    //
-    //for (int i = 0; i <cloud_indices->indices.size(); ++i)
-    //{
-    //    pt = &cloud->at(cloud_indices->indices[i]);
-    //    pt->r = 255;
-    //    pt->g = 0;
-    //    pt->b = 0;
-    //}
 }
 
 void pct::colorClusters(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, std::vector <pcl::PointIndices>& jlClusters)

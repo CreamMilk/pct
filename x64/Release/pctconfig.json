@@ -19,5 +19,13 @@
 	"ground":"0.5, 15",
 	"veget":"10, 10",
 	"budding":"-, -"
+  },
+  "提取地面":{
+  "windowsize":2,
+  "slope":1,
+  "minlDistance":5,
+  "maxlDistance":30,
+  "gridSize":20,
+  "heightSize":1
   }
 }
