@@ -31,7 +31,7 @@ namespace pct
     QString GetFileDir(std::string file_path);
     std::string ExtractExeName(const std::string &input);
     bool combineTrainXmlFiles(std::vector<std::string> xmls, std::string dst_xml);
-    void simple(std::string inputfile, std::string outputfile, float gridsize, int model = 0);
+    void simpleAndOutlierRemoval(std::string inputfile, std::string outputfile, float gridsize, int model = 0);
 
     void OutlierRemoval(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, pcl::PointIndicesPtr cloud_indices = nullptr);
     void colorClusters(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, std::vector <pcl::PointIndices>& jlClusters);

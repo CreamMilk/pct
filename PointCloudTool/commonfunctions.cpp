@@ -340,7 +340,7 @@ double pct::getLonDistance(float fLati1, float fLong1, float fLati2, float fLong
     return s;
 }
 
-void pct::simple(std::string inputfile, std::string outputfile, float gridsize, int model)
+void pct::simpleAndOutlierRemoval(std::string inputfile, std::string outputfile, float gridsize, int model)
 {
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
     pct::io::Load_las(cloud, inputfile);
@@ -360,7 +360,7 @@ void pct::simple(std::string inputfile, std::string outputfile, float gridsize, 
         grid.setInputCloud(cloud);
         grid.filter(*cloud);
     }
-
+    pct::OutlierRemoval(cloud);
     pct::io::save_las(cloud, outputfile);
 }
 
@@ -928,7 +928,11 @@ bool pct::LikePowerLine1(pcl::PointCloud<pcl::PointXYZRGB>::Ptr ground_cloud, pc
     for (int i = 0; i < line.pts.size(); ++i)
     {
         if (line.pts[i].z > maxZ.z)
+        {
+            maxZ.x  = line.pts[i].x;
+            maxZ.y = line.pts[i].y;
             maxZ.z = line.pts[i].z;
+        }
     }
 
     pcl::KdTreeFLANN<pcl::PointXYZRGB> ground_kdtree;
@@ -942,9 +946,18 @@ bool pct::LikePowerLine1(pcl::PointCloud<pcl::PointXYZRGB>::Ptr ground_cloud, pc
         std::cout << "最高点与离地高度<10，则认为不是电力线！" << std::endl;
         return false;
     }
+//     if (ground_kdtree.radiusSearch(minZ, 5, indices, sqr_distances) > 50)
+//     {
+//         std::cout << "最低点与地面<5的点超过50，则认为不是电力线！" << std::endl;
+//         return false;
+//     }
 
     // 如果小于15米，则判断他偏离率
-    if (distance < 15)
+    if (distance < 3)
+    {
+        return false;
+    }
+    else if (distance < 15)
     {
         int ptSize = line.pts.size();
         int errpt = 0;

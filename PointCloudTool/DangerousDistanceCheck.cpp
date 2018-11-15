@@ -217,7 +217,6 @@ void DangerousDistanceCheck::TooNearCheck()
              }
            
              serachNum = objectindices.size() + groundindices.size();
-             std::cout << "serachNum" << serachNum << std::endl;
 
 
              if (serachNum)
@@ -462,14 +461,14 @@ void streamCat(std::stringstream& ss, T num)
     ss << num;
 }
 
-void DangerousDistanceCheck::getObbInfo(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud, OBB &obb, vec *axis_vec/*[3]*/, vec &axis_r)
+void DangerousDistanceCheck::getObbInfo(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud, OBB &obb, vec *axis_vec/*[3]*/, vec &axis_r, double midz)
 {
     int ptct = src_cloud->size();
     boost::shared_ptr<vec> points(new vec[ptct], std::default_delete<vec[]>());
     for (int j = 0; j < ptct; ++j)
     {
         int &curindex = j;
-        points.get()[j] = vec(src_cloud->at(curindex).x, src_cloud->at(curindex).y, src_cloud->at(curindex).z); // 
+        points.get()[j] = vec(src_cloud->at(curindex).x, src_cloud->at(curindex).y, /*src_cloud->at(curindex).z*/midz-1+rand()%3); // 
     }
     // 计算铁塔obb，设定铁塔最小长宽高范围为5
     
@@ -484,29 +483,27 @@ void DangerousDistanceCheck::getObbInfo(pcl::PointCloud<pcl::PointXYZRGB>::Ptr s
     
 
 
-    vec tempvec;
-    float tempf;
-    for (int i = 0; i < 3 - 1; ++i)
-    {
-        float ix = axis_vec[i].Length();
-        for (int j = i + 1; j < 3; ++j)
-        {
-            float jx = axis_vec[j].Length();
-            if (ix < jx)
-            {
-                tempvec = axis_vec[i];
-                axis_vec[i] = axis_vec[j];
-                axis_vec[j] = tempvec;
-
-                tempf = axis_r[i];
-                axis_r[i] = axis_r[j];
-                axis_r[j] = tempf;
-            }
-        }
-    }
-    axis_vec[0].z = 0;
-    axis_vec[1].z = 0;
-    axis_vec[2].z = 0;
+     vec tempvec;
+     float tempf;
+     for (int i = 0; i < 3 - 1; ++i)
+     {
+         for (int j = i + 1; j < 3; ++j)
+         {
+             if (axis_r[i] < axis_r[j])
+             {
+                 tempvec = axis_vec[i];
+                 axis_vec[i] = axis_vec[j];
+                 axis_vec[j] = tempvec;
+ 
+                 tempf = axis_r[i];
+                 axis_r[i] = axis_r[j];
+                 axis_r[j] = tempf;
+             }
+         }
+     }
+//     axis_vec[0].z = 0;
+//     axis_vec[1].z = 0;
+//     axis_vec[2].z = 0;
 }
 
 void DangerousDistanceCheck::showNearCheck()
@@ -537,8 +534,9 @@ void DangerousDistanceCheck::showNearCheck()
     vec axis_vec[3];
     vec axis_r;
     OBB obb;
-    getObbInfo(src_cloud_, obb, axis_vec, axis_r);  // 根据轴长排序
-
+    getObbInfo(src_cloud_, obb, axis_vec, axis_r, (cloudmax.z + cloudmin.z) / 2);  // 根据轴长排序
+    std::cout << "seevec" << vec(axis_vec[1].x*axis_r[1], axis_vec[1].y*axis_r[1], aabb_subz*0.45/*axis_vec[1].z*(aabb_subz / 2)*/) << std::endl;
+    std::cout << axis_vec[0] << " " << axis_r[0] << "\n" << axis_vec[1] << " " << axis_r[1] << "\n" << axis_vec[2] << " " << axis_r[2] << " " << std::endl;
     // 添加点云
     view->addPointCloud<pcl::PointXYZRGB>(src_cloud_, "cloud");      // no need to add the handler, we use a random handler by default
 
@@ -562,9 +560,9 @@ void DangerousDistanceCheck::showNearCheck()
     float cameralen = camervec.Length();
     
    // 计算相机最佳位置和方向
-    vec seevec = vec(axis_vec[1].x*axis_r[1], axis_vec[1].y*axis_r[1], aabb_subz / 2).Normalized();  // 全局观看方向
+    vec seevec = vec(axis_vec[1].x*axis_r[1], axis_vec[1].y*axis_r[1], aabb_subz*0.45/*axis_vec[1].z*(aabb_subz / 2)*/).Normalized();  // 全局观看方向
     vec camerapos = obb.pos + seevec * cameralen*0.5;  // 相机位置 = 焦点 + 向量
-    std::cout << "seevec" << vec(axis_vec[1].x*axis_r[1], axis_vec[1].y*axis_r[1], aabb_subz / 2) << std::endl;
+    
 
     // 添加碰撞球编号
     for (int i = 0; i < balls_.size(); ++i)

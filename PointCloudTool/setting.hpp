@@ -53,8 +53,7 @@ namespace pct
             }
         }
 
-        // 配置文件
-        boost::property_tree::ptree pt;                       //define property_tree object
+       
 
     public:
         template<class Type>
@@ -108,6 +107,8 @@ namespace pct
             return distances;
         }
 
+        // 配置文件
+        boost::property_tree::ptree pt;                       //define property_tree object
         // 程序路径之类
         std::string appdir;
 

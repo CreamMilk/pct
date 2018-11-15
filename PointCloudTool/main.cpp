@@ -82,7 +82,7 @@ int main(int argc, char *argv[])
         pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
         pct::io::Load_las(src_cloud, inputfile);
         std::cout << "离群点过滤" << std::endl;
-        //pct::OutlierRemoval(src_cloud);
+        
 
         // 因为cgal分类结果是整体的，并不能把每个个体提取出来
         pcl::PointIndicesPtr ground_indices(new pcl::PointIndices);
@@ -102,7 +102,7 @@ int main(int argc, char *argv[])
         pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
         pct::io::Load_las(src_cloud, inputfile);
         std::cout << "离群点过滤" << std::endl;
-        //pct::OutlierRemoval(src_cloud);
+        
 
         // 因为cgal分类结果是整体的，并不能把每个个体提取出来
         pcl::PointIndicesPtr ground_indices(new pcl::PointIndices);
@@ -142,7 +142,7 @@ int main(int argc, char *argv[])
             pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
             pct::io::Load_las(src_cloud, inputfile);
             std::cout << "离群点过滤" << std::endl;
-            //pct::OutlierRemoval(src_cloud);
+            
 
             // 因为cgal分类结果是整体的，并不能把每个个体提取出来
             pcl::PointIndicesPtr ground_indices(new pcl::PointIndices);
@@ -756,7 +756,7 @@ bool train()
                         boost::filesystem::remove(boost::filesystem::path(tempfile.str()));
                    
 
-                    pct::simple(laspath, tempfile.str(), setting.gridsize, simplify_model);
+                    pct::simpleAndOutlierRemoval(laspath, tempfile.str(), setting.gridsize, simplify_model);
                     boost::shared_ptr<Scene_points_with_normal_item> scene_item(pct::io::lasload(tempfile.str()));
                     
 
@@ -841,7 +841,7 @@ bool classif()
     tempfile << setting.outputdir << "\\" << "simple.las";
     if (boost::filesystem::exists(boost::filesystem::path(tempfile.str())))
         boost::filesystem::remove(boost::filesystem::path(tempfile.str()));
-    pct::simple(setting.inputfile, tempfile.str(), setting.gridsize, simplify_model);
+    pct::simpleAndOutlierRemoval(setting.inputfile, tempfile.str(), setting.gridsize, simplify_model);
     boost::shared_ptr<Scene_points_with_normal_item> scene_item(pct::io::lasload(tempfile.str()));
 
     if (scene_item)
