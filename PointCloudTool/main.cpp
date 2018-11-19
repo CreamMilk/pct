@@ -900,7 +900,7 @@ void correct(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud,
     const int tower_intersectline_threshold = 3;
 
     std::cout << "correct begin" << std::endl;
-    pct::io::save_las(src_cloud, setting.outputdir + "\\cgalclassif.las");
+    pct::io::save_las(src_cloud, setting.outputdir + "\\classif.las");
 
 
     // 提取地面点索引
@@ -909,10 +909,20 @@ void correct(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud,
     std::cout << "非地面点：" << cloud_indices->indices.size()
         << "地面点：" << ground_indices->indices.size() << std::endl;
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr ground(new pcl::PointCloud<pcl::PointXYZRGB>);
+    
     pcl::ExtractIndices<pcl::PointXYZRGB> extract;
     extract.setInputCloud(src_cloud);
     extract.setIndices(ground_indices);
     extract.filter(*ground);
+
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr extractground_cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
+    pcl::ExtractIndices<pcl::PointXYZRGB> extractground;
+    extractground.setInputCloud(src_cloud);
+    extractground.setIndices(ground_indices);
+    extractground.setNegative(true);
+    extractground.filter(*extractground_cloud);
+    pct::io::save_las(extractground_cloud, setting.outputdir + "\\extractground.las");
+    extractground_cloud->clear();
 
 
     // 再对剩余的点颜色聚类
@@ -943,7 +953,7 @@ void correct(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud,
         tmppt1->g = 0;
         tmppt1->b = 255;
     }
-    pct::io::save_las(tmpcloud, setting.outputdir + "\\pcljl.las");
+    pct::io::save_las(tmpcloud, setting.outputdir + "\\jl.las");
     tmpcloud.reset();
 
 	std::cout << "电力线提取begin"  << std::endl;

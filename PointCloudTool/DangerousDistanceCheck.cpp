@@ -55,6 +55,20 @@
  }
 
  // 参与碰撞的点云， 
+ void Check_Distanceerror_vecAndhor(pcl::PointXYZRGB pt, pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, std::vector<int> &indices, std::vector<float> &distances, float hor_K, float vec_K, std::map<float, int>& dis_ind)
+ {
+     pcl::PointXYZRGB *tmpPt;
+     for (int i = 0; i < indices.size(); ++i)
+     {
+         tmpPt = &cloud->at(indices[i]);
+         if ((std::abs(tmpPt->z - pt.z) < vec_K) && pct::Distance2d(tmpPt->x, tmpPt->y, pt.x, pt.y) < hor_K)
+         {
+             dis_ind.insert(make_pair(distances[i], indices[i]));
+         }
+     }
+ }
+
+ // 参与碰撞的点云， 
  void Check_Distanceerror(pcl::PointXYZRGB pt, pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, std::vector<int> &indices, std::vector<float> &distances, bool direction, float K, std::map<float, int>& dis_ind)
  {
      pcl::PointXYZRGB *tmpPt;
@@ -163,17 +177,22 @@ void DangerousDistanceCheck::TooNearCheck()
          {
              float ground_horizontal_distance = std::get<0>(class_disatances["ground"]);
              float ground_vertical_distance = std::get<1>(class_disatances["ground"]);
+             float ground_duijiaoxian_distance = std::sqrt(std::pow(ground_horizontal_distance,2) + std::pow(ground_vertical_distance,2));
              
              if (ground_horizontal_distance != 0 || ground_vertical_distance != 0)
              {
-                 if (groundkdtree.radiusSearch(serachLine->at(j), ground_horizontal_distance, groundindices, groundsqr_distances))
+                 if (groundkdtree.radiusSearch(serachLine->at(j), ground_duijiaoxian_distance, groundindices, groundsqr_distances))
                  {
                      std::map<float, int> dis_ind;
-                     if (ground_horizontal_distance != 0)
+                     if (ground_horizontal_distance != 0 && ground_vertical_distance != 0)
+                     {
+                         Check_Distanceerror_vecAndhor(serachLine->at(j), ground, groundindices, groundsqr_distances, ground_horizontal_distance, ground_vertical_distance, dis_ind);
+                     }
+                     else if (ground_horizontal_distance != 0)
                      {
                          Check_Distanceerror(serachLine->at(j), ground, groundindices, groundsqr_distances, true, ground_horizontal_distance, dis_ind);
                      }
-                     if (ground_vertical_distance != 0)
+                     else if (ground_vertical_distance != 0)
                      {
                          Check_Distanceerror(serachLine->at(j), ground, groundindices, groundsqr_distances, false, ground_vertical_distance, dis_ind);
                      }
@@ -190,17 +209,22 @@ void DangerousDistanceCheck::TooNearCheck()
              }
              float object_horizontal_distance = std::get<0>(class_disatances["veget"]);
              float object_vertical_distance = std::get<1>(class_disatances["veget"]);
+             float object_duijiaoxian_distance = std::sqrt(std::pow(object_horizontal_distance,2) + std::pow(object_vertical_distance,2));
 
              if (object_horizontal_distance != 0 || object_vertical_distance != 0)
              {
-                 if (objectkdtree.radiusSearch(serachLine->at(j), object_horizontal_distance, objectindices, objectsqr_distances))
+                 if (objectkdtree.radiusSearch(serachLine->at(j), object_duijiaoxian_distance, objectindices, objectsqr_distances))
                  {
                      std::map<float, int> dis_ind;
-                     if (object_horizontal_distance != 0)
+                     if (object_horizontal_distance != 0 && object_vertical_distance != 0)
+                     {
+                         Check_Distanceerror_vecAndhor(serachLine->at(j), groundObject, objectindices, objectsqr_distances, object_horizontal_distance, object_vertical_distance, dis_ind);
+                     }
+                     else if (object_horizontal_distance != 0)
                      {
                          Check_Distanceerror(serachLine->at(j), groundObject, objectindices, objectsqr_distances, true, object_horizontal_distance, dis_ind);
                      }
-                     if (object_vertical_distance != 0)
+                     else if (object_vertical_distance != 0)
                      {
                          Check_Distanceerror(serachLine->at(j), groundObject, objectindices, objectsqr_distances, false, object_vertical_distance, dis_ind);
                      }
@@ -221,7 +245,7 @@ void DangerousDistanceCheck::TooNearCheck()
 
              if (serachNum)
              {
-                 linekdtree.radiusSearch(serachLine->at(j), leafSize * 2, lineindices, line_distances);
+                 linekdtree.radiusSearch(serachLine->at(j), leafSize * 2.5f, lineindices, line_distances);
                  for (int k = 0; k < lineindices.size(); ++k)
                  {
  #pragma omp critical 
@@ -276,7 +300,8 @@ void DangerousDistanceCheck::TooNearCheck()
                  }
              }
          }
- 
+         std::cout << "line_groundindices" << line_groundindices.size() << std::endl;
+         std::cout << "line_objectindices" << line_objectindices.size() << std::endl;
          // 如果相交了
          if (crashPoint->size())
          {
