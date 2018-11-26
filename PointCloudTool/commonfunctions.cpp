@@ -340,8 +340,19 @@ double pct::getLonDistance(float fLati1, float fLong1, float fLati2, float fLong
     return s;
 }
 
+void pct::ExtractCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, pcl::PointIndicesPtr inices, pcl::PointCloud<pcl::PointXYZRGB>::Ptr out_cloud)
+{
+    pcl::ExtractIndices<pcl::PointXYZRGB> extract;
+    extract.setInputCloud(cloud);
+    extract.setIndices(inices);
+    extract.filter(*out_cloud);
+}
+
 void pct::simpleAndOutlierRemoval(std::string inputfile, std::string outputfile, float gridsize, int model)
 {
+    if (boost::filesystem::exists(boost::filesystem::path(outputfile.c_str())))
+        boost::filesystem::remove(boost::filesystem::path(outputfile.c_str()));
+
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
     pct::io::Load_las(cloud, inputfile);
 
@@ -455,7 +466,7 @@ int Otsu(std::vector<double> &hist)
     return k_max;
 }
 
-void pct::ExtractGround(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, pcl::PointIndicesPtr cloud_indices, pcl::PointIndicesPtr ground_indices)
+void pct::FindGroundIndices(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, pcl::PointIndicesPtr cloud_indices, pcl::PointIndicesPtr ground_indices)
 {
     // 地面提取
      pct::Setting setting = pct::Setting::ins();
@@ -588,8 +599,6 @@ void pct::ExtractGround(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, pcl::Point
         }
 
         std::cout << "遍历平面网格结束" << std::endl;
-        pcl::PointCloud<pcl::PointXYZRGB> tempCloud;
-        pcl::ExtractIndices<pcl::PointXYZRGB> extract1;
 
         ground_indices_set.clear();
         std::set<int>::iterator ground_indices_eraseit;

@@ -43,7 +43,7 @@ namespace pct
     bool LikePowerLine1(pcl::PointCloud<pcl::PointXYZRGB>::Ptr ground_cloud, pct::LineInfo &line, int min_length /*= 5*/, double error_probability /*= 0.1*/, float yerrOffset /*= 1.0f*/, float zerrOffset /*= 0.5f*/);
     void getMinMax3D(const pcl::PointCloud<pcl::PointXYZRGB> &cloud, const pcl::PointIndices &indices,
         pcl::PointXYZRGB &min_pt, pcl::PointXYZRGB &max_pt);
-    void ExtractGround(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, pcl::PointIndicesPtr cloud_indices, pcl::PointIndicesPtr ground_indices);
+    void FindGroundIndices(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, pcl::PointIndicesPtr cloud_indices, pcl::PointIndicesPtr ground_indices);
 
 
     bool likeTower(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, std::vector<int> indices);
@@ -62,6 +62,7 @@ namespace pct
     void UTMXY2LatLon(double &x, double &y, int zone=50, bool southhemi=false);
     void LatLon2UTMXY(double &x, double &y, int zone = 0);
     double getLonDistance(float fLati1, float fLong1, float fLati2, float fLong2);
+    void ExtractCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, pcl::PointIndicesPtr inices, pcl::PointCloud<pcl::PointXYZRGB>::Ptr out_cloud);
 }
 
 

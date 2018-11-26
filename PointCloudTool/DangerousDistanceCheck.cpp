@@ -46,14 +46,6 @@
      ground_indices_ = ground_indices;
  }
 
- void ExtractCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, pcl::PointIndicesPtr inices, pcl::PointCloud<pcl::PointXYZRGB>::Ptr out_cloud)
- {
-     pcl::ExtractIndices<pcl::PointXYZRGB> extract;
-     extract.setInputCloud(cloud);
-     extract.setIndices(inices);
-     extract.filter(*out_cloud);
- }
-
  // 参与碰撞的点云， 
  void Check_Distanceerror_vecAndhor(pcl::PointXYZRGB pt, pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, std::vector<int> &indices, std::vector<float> &distances, float hor_K, float vec_K, std::map<float, int>& dis_ind)
  {
@@ -120,13 +112,13 @@ void DangerousDistanceCheck::TooNearCheck()
      int stepindex = 0;
      pcl::PointCloud<pcl::PointXYZRGB>::Ptr groundObject(new pcl::PointCloud<pcl::PointXYZRGB>);
      pcl::PointCloud<pcl::PointXYZRGB>::Ptr ground(new pcl::PointCloud<pcl::PointXYZRGB>);
-     ExtractCloud(src_cloud_, ground_indices_, ground);
+     pct::ExtractCloud(src_cloud_, ground_indices_, ground);
      std::cout << "ground数量" << ground->size() << "\tsrc_cloud数量" << src_cloud_->size() << std::endl;
 
      for (int i = 0; i < vegetClusters_.size(); ++i)
      {
          pcl::PointCloud<pcl::PointXYZRGB>::Ptr tmp_object(new pcl::PointCloud<pcl::PointXYZRGB>);
-         ExtractCloud(src_cloud_, boost::make_shared<pcl::PointIndices>(vegetClusters_[i].indices), tmp_object);
+         pct::ExtractCloud(src_cloud_, boost::make_shared<pcl::PointIndices>(vegetClusters_[i].indices), tmp_object);
          sectionBeginSet.push_back(stepindex);
          groundObject->insert(groundObject->end(), tmp_object->begin(), tmp_object->end());
          stepindex += vegetClusters_[i].indices.indices.size();
@@ -141,7 +133,7 @@ void DangerousDistanceCheck::TooNearCheck()
      {
          pcl::PointCloud<pcl::PointXYZRGB>::Ptr line(new pcl::PointCloud<pcl::PointXYZRGB>);
          pcl::PointCloud<pcl::PointXYZRGB>::Ptr serachLine(new pcl::PointCloud<pcl::PointXYZRGB>);
-         ExtractCloud(src_cloud_, boost::make_shared<pcl::PointIndices>(lineClusters_[i].indices), line);
+         pct::ExtractCloud(src_cloud_, boost::make_shared<pcl::PointIndices>(lineClusters_[i].indices), line);
  
          pcl::KdTreeFLANN<pcl::PointXYZRGB> groundkdtree;
          groundkdtree.setInputCloud(ground);

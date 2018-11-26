@@ -41,8 +41,9 @@
 bool ParserCmdline(int argc, char *argv[]);
 bool train();
 bool classif();
-void correct();
-void correct(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud, pcl::PointIndicesPtr ground_indices, std::vector <pcl::PointIndices>& jlClusters, std::vector < pct::LineInfo>& lineClusters, std::vector <pct::TowerInfo>& towerClusters, std::vector <pct::VegetInfo> &vegetClusters);
+
+void ExtractGround(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud,pcl::PointIndicesPtr cloud_indices,pcl::PointIndicesPtr ground_indices);
+void ExtractLinesAndTower(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud, pcl::PointIndicesPtr cloud_indices, pcl::PointIndicesPtr ground_indices, std::vector <pcl::PointIndices>& jlClusters, std::vector < pct::LineInfo>& lineClusters, std::vector <pct::TowerInfo>& towerClusters, std::vector <pct::VegetInfo> &vegetClusters);
 bool ReadyTrainOpts(pct::Setting& setting, boost::program_options::variables_map &vm);
 bool ReadyClassifOpts(pct::Setting& setting, boost::program_options::variables_map &vm);
 bool ReadyDistancecheckOpts(pct::Setting& setting, boost::program_options::variables_map &vm);
@@ -61,6 +62,8 @@ int main(int argc, char *argv[])
 
     srand((unsigned int)time(NULL));
     const pct::Setting & setting = pct::Setting::ins();
+    bool priorityClassif = setting.pt.get_optional<bool>(pct::to_utf8(pct::String2WString("先分类后提取地面"))).value();
+
 
     std::cout << "ParserCmdline" << std::endl;
     if (false == ParserCmdline(argc, argv))
@@ -75,45 +78,68 @@ int main(int argc, char *argv[])
     }
     else if (setting.cmdtype == "classif")
     {
-        //classif();
-        //correct();
-        classif();
-        std::string inputfile = setting.outputdir + "\\out.las";
-        pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
-        pct::io::Load_las(src_cloud, inputfile);
-        std::cout << "离群点过滤" << std::endl;
-        
-
-        // 因为cgal分类结果是整体的，并不能把每个个体提取出来
         pcl::PointIndicesPtr ground_indices(new pcl::PointIndices);
+        pcl::PointIndicesPtr cloud_indices(new pcl::PointIndices);
         std::vector <pcl::PointIndices> otheCluster;
         std::vector <pct::LineInfo> lineClusters;
         std::vector <pct::TowerInfo> towerClusters;
         std::vector <pct::VegetInfo> vegetClusters;
-        correct(src_cloud, ground_indices, otheCluster, lineClusters, towerClusters, vegetClusters);
+        pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
+
+        // 抽稀  
+        pct::simpleAndOutlierRemoval(setting.inputfile, setting.outputdir + "\\simple.las", setting.gridsize, setting.value<int>("simplify"));
+
+        if (priorityClassif)
+        {
+            classif();
+            pct::io::Load_las(src_cloud, setting.outputdir + "\\classif.las");
+            ExtractGround(src_cloud, cloud_indices, ground_indices);
+        }
+        else
+        {
+            pct::io::Load_las(src_cloud, setting.outputdir + "\\simple.las");
+            ExtractGround(src_cloud, cloud_indices, ground_indices);
+            classif();
+        }
+
+        // 因为cgal分类结果是整体的，并不能把每个个体提取出来
+        pct::io::Load_las(src_cloud, setting.outputdir + "\\classif.las");
+        ExtractLinesAndTower(src_cloud, cloud_indices, ground_indices, otheCluster, lineClusters, towerClusters, vegetClusters);
 
         SaveTowers(QString::fromLocal8Bit((setting.outputdir + "\\" + pct::ExtractExeName(setting.inputfile) + "铁塔.xlsx").c_str()) , towerClusters);
         SaveLines(QString::fromLocal8Bit((setting.outputdir + "\\" + pct::ExtractExeName(setting.inputfile) + "电力线.xlsx").c_str()), lineClusters);
     }
     else if (setting.cmdtype == "distancecheck")
     {
-        classif();
-        std::string inputfile = setting.outputdir + "\\out.las";
-        pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
-        pct::io::Load_las(src_cloud, inputfile);
-        std::cout << "离群点过滤" << std::endl;
-        
-
-        // 因为cgal分类结果是整体的，并不能把每个个体提取出来
         pcl::PointIndicesPtr ground_indices(new pcl::PointIndices);
+        pcl::PointIndicesPtr cloud_indices(new pcl::PointIndices);
         std::vector <pcl::PointIndices> otheCluster;
         std::vector <pct::LineInfo> lineClusters;
         std::vector <pct::TowerInfo> towerClusters;
         std::vector <pct::VegetInfo> vegetClusters;
-        correct(src_cloud, ground_indices, otheCluster, lineClusters, towerClusters, vegetClusters);
+        pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
+
+        // 抽稀  
+        pct::simpleAndOutlierRemoval(setting.inputfile, setting.outputdir + "\\simple.las", setting.gridsize, setting.value<int>("simplify"));
+
+        if (priorityClassif)
+        {
+            classif();
+            pct::io::Load_las(src_cloud, setting.outputdir + "\\classif.las");
+            ExtractGround(src_cloud, cloud_indices, ground_indices);
+        }
+        else
+        {
+            pct::io::Load_las(src_cloud, setting.outputdir + "\\simple.las");
+            ExtractGround(src_cloud, cloud_indices, ground_indices);
+            classif();
+        }
+
+        pct::io::Load_las(src_cloud, setting.outputdir + "\\classif.las");
+        ExtractLinesAndTower(src_cloud, cloud_indices, ground_indices, otheCluster, lineClusters, towerClusters, vegetClusters);
         SaveTowers(QString::fromLocal8Bit((setting.outputdir + "\\" + pct::ExtractExeName(setting.inputfile) + "铁塔.xlsx").c_str()), towerClusters);
         SaveLines(QString::fromLocal8Bit((setting.outputdir + "\\" + pct::ExtractExeName(setting.inputfile) + "电力线.xlsx").c_str()), lineClusters);
-        std::cout << "correct end：end end" << std::endl;
+        std::cout << "ExtractLinesAndTower end：end end" << std::endl;
         checkLinesDistanceDangerous(src_cloud, ground_indices, vegetClusters, lineClusters, towerClusters);
 
         // 导出pdf
@@ -131,26 +157,36 @@ int main(int argc, char *argv[])
             WinExec(cmd_str.c_str(), SW_HIDE);
             std::cout <<  cmd_str << "\n导出pdf成功！";
         }
-
     }
     else if (setting.cmdtype == "poscorrect")
     {
         if (setting.reclassif)
         {
-            classif();
-            std::string inputfile = setting.outputdir + "\\out.las";
-            pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
-            pct::io::Load_las(src_cloud, inputfile);
-            std::cout << "离群点过滤" << std::endl;
-            
-
-            // 因为cgal分类结果是整体的，并不能把每个个体提取出来
             pcl::PointIndicesPtr ground_indices(new pcl::PointIndices);
+            pcl::PointIndicesPtr cloud_indices(new pcl::PointIndices);
             std::vector <pcl::PointIndices> otheCluster;
             std::vector <pct::LineInfo> lineClusters;
             std::vector <pct::TowerInfo> towerClusters;
             std::vector <pct::VegetInfo> vegetClusters;
-            correct(src_cloud, ground_indices, otheCluster, lineClusters, towerClusters, vegetClusters);
+            pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
+            // 抽稀  
+            pct::simpleAndOutlierRemoval(setting.inputfile, setting.outputdir + "\\simple.las", setting.gridsize, setting.value<int>("simplify"));
+
+            if (priorityClassif)
+            {
+                classif();
+                pct::io::Load_las(src_cloud, setting.outputdir + "\\classif.las");
+                ExtractGround(src_cloud, cloud_indices, ground_indices);
+            }
+            else
+            {
+                pct::io::Load_las(src_cloud, setting.outputdir + "\\simple.las");
+                ExtractGround(src_cloud, cloud_indices, ground_indices);
+                classif();
+            }
+
+            pct::io::Load_las(src_cloud, setting.outputdir + "\\classif.las");
+            ExtractLinesAndTower(src_cloud, cloud_indices, ground_indices, otheCluster, lineClusters, towerClusters, vegetClusters);
 
             QFileInfo inputfile_info(QString::fromLocal8Bit(setting.inputfile.c_str()));
             QString tower_excle = QDir::toNativeSeparators(inputfile_info.absolutePath() + QStringLiteral("\\") + inputfile_info.baseName() + QStringLiteral("\\") + inputfile_info.baseName() + QStringLiteral("铁塔.xlsx"));
@@ -168,7 +204,6 @@ int main(int argc, char *argv[])
         {
             QFileInfo inputfile_info(QString::fromLocal8Bit(setting.inputfile.c_str()));
             QString tower_excle = QDir::toNativeSeparators(inputfile_info.absolutePath() + QStringLiteral("\\") + inputfile_info.baseName() + QStringLiteral("铁塔.xlsx"));
-            //QString tower_excle = QString::fromLocal8Bit((setting.outputdir + "\\" + pct::ExtractExeName(setting.inputfile) + ".xlsx").c_str());
             PositionCorrection(tower_excle);
         }
     }
@@ -828,103 +863,87 @@ bool classif()
     std::cout << "开始分类..." << std::endl;
     const pct::Setting & setting = pct::Setting::ins();
     int nb_scales = setting.value<int>("nb_scales");
-    int simplify_model = setting.value<int>("simplify");
     int method = setting.method;
     std::cout << "method" << method << std::endl;
-    std::cout << "simplify_model" << simplify_model << std::endl;
+   
     std::string labelname_traverse;
     std::string config_xml = setting.classdir + "\\config.xml";
 
-
-    // 抽稀  
-    std::ostringstream tempfile;
-    tempfile << setting.outputdir << "\\" << "simple.las";
-    if (boost::filesystem::exists(boost::filesystem::path(tempfile.str())))
-        boost::filesystem::remove(boost::filesystem::path(tempfile.str()));
-    pct::simpleAndOutlierRemoval(setting.inputfile, tempfile.str(), setting.gridsize, simplify_model);
-    boost::shared_ptr<Scene_points_with_normal_item> scene_item(pct::io::lasload(tempfile.str()));
-
+    boost::shared_ptr<Scene_points_with_normal_item> scene_item(pct::io::lasload(setting.outputdir+"\\simple.las"));
     if (scene_item)
     {
         // 计算特征
-        boost::shared_ptr<Point_set_item_classification> classif(new Point_set_item_classification(scene_item.get()));
-        classif->compute_features(nb_scales);
+        boost::shared_ptr<Point_set_item_classification> classifyy(new Point_set_item_classification(scene_item.get()));
+        classifyy->compute_features(nb_scales);
 
         // 添加label
-        std::string labelname;
         boost::property_tree::ptree pt;
         boost::property_tree::xml_parser::read_xml(config_xml, pt);
         BOOST_AUTO(labels, pt.get_child("classification.labels"));
         for (BOOST_AUTO(label, labels.begin()); label != labels.end(); ++label)
         {
             labelname_traverse = label->second.get<std::string>("name");
-            classif->add_new_label(labelname_traverse.c_str(), setting.cls_intcolor(labelname_traverse));
+            classifyy->add_new_label(labelname_traverse.c_str(), setting.cls_intcolor(labelname_traverse));
         }
 
         // 分类
-        classif->load_config(config_xml.c_str(), 0);
-        classif->run(method, 0, 16, 0.5);
-        pct::io::lassave(scene_item.get(), setting.outputdir + "\\out.las");
+        classifyy->load_config(config_xml.c_str(), 0);
+        classifyy->run(method, 0, 16, 0.5);
+        pct::io::lassave(scene_item.get(), setting.outputdir + "\\classif.las");
     }
     return true;
 }
 
-void correct()
-{
-    const pct::Setting & setting = pct::Setting::ins();
-    std::string inputfile = setting.outputdir + "\\out.las";
-    pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
-    pct::io::Load_las(src_cloud, inputfile);
-    std::cout << "离群点过滤" << std::endl;
-    //pct::OutlierRemoval(src_cloud);
 
-    // 因为cgal分类结果是整体的，并不能把每个个体提取出来
-    std::vector <pcl::PointIndices> otheCluster;
-    std::vector < pct::LineInfo> lineClusters;
-    std::vector <pct::TowerInfo> towerClusters;
-    std::vector <pct::VegetInfo> vegetClusters;
-    pcl::PointIndicesPtr ground_indices(new pcl::PointIndices);
-    correct(src_cloud, ground_indices, otheCluster, lineClusters, towerClusters, vegetClusters);
+void ExtractGround(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud,
+    pcl::PointIndicesPtr cloud_indices,
+    pcl::PointIndicesPtr ground_indices)
+{
+    // 提取地面点索引
+    pct::FindGroundIndices(src_cloud, cloud_indices, ground_indices);
+    std::cout << "非地面点：" << cloud_indices->indices.size()
+        << "地面点：" << ground_indices->indices.size() << std::endl;
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr ground(new pcl::PointCloud<pcl::PointXYZRGB>);
+
+    pcl::ExtractIndices<pcl::PointXYZRGB> extract;
+    extract.setInputCloud(src_cloud);
+    extract.setIndices(ground_indices);
+    extract.filter(*ground);
+
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr FindGroundIndices_cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
+    pcl::ExtractIndices<pcl::PointXYZRGB> ground_extract_indices;
+    ground_extract_indices.setInputCloud(src_cloud);
+    ground_extract_indices.setIndices(ground_indices);
+    ground_extract_indices.setNegative(true);
+    ground_extract_indices.filter(*FindGroundIndices_cloud);
+    for (int i = 0; i < FindGroundIndices_cloud->size(); ++i)
+    {
+        FindGroundIndices_cloud->at(i).rgb = 0;
+    }
+    pct::io::save_las(FindGroundIndices_cloud, pct::Setting::ins().outputdir + "\\NoGround.las");
+    FindGroundIndices_cloud->clear();
 }
 
-void correct(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud,
+void ExtractLinesAndTower(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud,
+    pcl::PointIndicesPtr cloud_indices,
     pcl::PointIndicesPtr ground_indices,
     std::vector <pcl::PointIndices>& jlClusters,
     std::vector <pct::LineInfo>& lineClusters,
     std::vector <pct::TowerInfo>& towerClusters,
     std::vector <pct::VegetInfo> &vegetClusters)
 {
+    std::cout << "ExtractLinesAndTower begin" << std::endl;
+
     const pct::Setting & setting = pct::Setting::ins();
-   
     std::string outputfile = setting.outputdir + "\\out.las";
     const int tower_intersectline_threshold = 3;
 
-    std::cout << "correct begin" << std::endl;
-    pct::io::save_las(src_cloud, setting.outputdir + "\\classif.las");
-
-
-    // 提取地面点索引
-    pcl::PointIndicesPtr cloud_indices(new pcl::PointIndices);
-    pct::ExtractGround(src_cloud, cloud_indices, ground_indices);
-    std::cout << "非地面点：" << cloud_indices->indices.size()
-        << "地面点：" << ground_indices->indices.size() << std::endl;
+    // 地面点
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr ground(new pcl::PointCloud<pcl::PointXYZRGB>);
-    
-    pcl::ExtractIndices<pcl::PointXYZRGB> extract;
-    extract.setInputCloud(src_cloud);
-    extract.setIndices(ground_indices);
-    extract.filter(*ground);
+    std::cout << "ExtractCloud" << src_cloud->size() << " " << ground_indices->indices.size() << std::endl;
+    pct::ExtractCloud(src_cloud, ground_indices, ground);
 
-    pcl::PointCloud<pcl::PointXYZRGB>::Ptr extractground_cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
-    pcl::ExtractIndices<pcl::PointXYZRGB> extractground;
-    extractground.setInputCloud(src_cloud);
-    extractground.setIndices(ground_indices);
-    extractground.setNegative(true);
-    extractground.filter(*extractground_cloud);
-    pct::io::save_las(extractground_cloud, setting.outputdir + "\\extractground.las");
-    extractground_cloud->clear();
-
-
+    std::cout << "colorClusters begin" << std::endl;
     // 再对剩余的点颜色聚类
     pct::colorClusters(src_cloud, *cloud_indices, jlClusters);
     std::cout << "聚类数量：" << jlClusters.size() << std::endl;
@@ -956,25 +975,25 @@ void correct(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud,
     pct::io::save_las(tmpcloud, setting.outputdir + "\\jl.las");
     tmpcloud.reset();
 
-	std::cout << "电力线提取begin"  << std::endl;
+    std::cout << "电力线提取begin" << std::endl;
     // 电力线提取
     // 聚类结果是否含有70%以上的电力线点，如果是，就说明是电力线点
-    for (auto it = jlClusters.begin(); it != jlClusters.end(); )
+    for (auto it = jlClusters.begin(); it != jlClusters.end();)
     {
-		std::cout << "电力线提取1" << std::endl;
+        std::cout << "电力线提取1" << std::endl;
         if (pct::pointsCountsForColor(src_cloud, *it, setting.cls_intcolor(power_line_str)) > it->indices.size()*0.25)  // power_line":"255, 255, 0
         {
-			std::cout << "电力线提取2" << std::endl;
+            std::cout << "电力线提取2" << std::endl;
             pct::LineInfo line = pct::lineInfoFactory(src_cloud, *it);
-			std::cout << "电力线提取begin" << std::endl;
+            std::cout << "电力线提取begin" << std::endl;
             if (pct::LikePowerLine1(ground, line, 10, 0.1, 0.5, 0.5))
             {
-				std::cout << "电力线提取3" << std::endl;
+                std::cout << "电力线提取3" << std::endl;
                 lineClusters.push_back(line);
                 it = jlClusters.erase(it);
                 continue;
             }
-			std::cout << "电力线提取4" << std::endl;
+            std::cout << "电力线提取4" << std::endl;
         }
         ++it;
     }
@@ -983,7 +1002,7 @@ void correct(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud,
     // 铁塔提取，如果某个聚类与3条电力线相交小于2米，则认为是铁塔
     std::vector<int> indices;
     std::vector<float> sqr_distances;
-    for (auto it = jlClusters.begin(); it != jlClusters.end(); )
+    for (auto it = jlClusters.begin(); it != jlClusters.end();)
     {
         pcl::PointCloud<pcl::PointXYZRGB>::Ptr unknowclass(new pcl::PointCloud<pcl::PointXYZRGB>);
         pcl::ExtractIndices<pcl::PointXYZRGB> extract;
@@ -1028,7 +1047,7 @@ void correct(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud,
     {
         pct::getMinMax3D(*src_cloud, towerClusters[i].indices, towerClusters[i].min, towerClusters[i].max);
         pcl::PointXYZRGB midpt;
-        
+
         midpt.x = (towerClusters[i].min.x + towerClusters[i].max.x) / 2;
         midpt.y = (towerClusters[i].min.y + towerClusters[i].max.y) / 2;
         midpt.z = (towerClusters[i].min.z + towerClusters[i].max.z) / 2;
@@ -1037,7 +1056,7 @@ void correct(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud,
     std::cout << "计算铁塔中心点完成" << std::endl;
     pcl::PointXYZRGB temppt;
     pct::TowerInfo tempcluster;
-    for (int i = 0; i < (int)towerClusters.size()-1; i++)
+    for (int i = 0; i < (int)towerClusters.size() - 1; i++)
     {
         std::cout << "铁塔排序" << i << std::endl;
         pcl::PointXYZRGB minpt, maxpt;
@@ -1058,7 +1077,7 @@ void correct(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud,
             }
             std::cout << "移动铁塔j完成" << i << " " << j << std::endl;
         }
-        towerClusters[i].tower_no = i+1;
+        towerClusters[i].tower_no = i + 1;
         std::cout << "铁塔排序完成" << i << std::endl;
     }
     std::cout << "铁塔编号完成" << std::endl;
@@ -1105,7 +1124,7 @@ void correct(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud,
         }
     }
 
-    std::cout << "other数量：" << jlClusters.size() << "电力线识别数量：" << lineClusters.size() << "铁塔识别数量：" << towerClusters.size() 
+    std::cout << "other数量：" << jlClusters.size() << "电力线识别数量：" << lineClusters.size() << "铁塔识别数量：" << towerClusters.size()
         << "植被数量：" << vegetClusters.size() << "\n一共" << jlClusters.size() + lineClusters.size() + towerClusters.size() + vegetClusters.size() << std::endl;
 
 
@@ -1136,12 +1155,12 @@ void correct(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud,
     r = *(((unsigned char *)&color) + 2);
     g = *(((unsigned char *)&color) + 1);
     b = *(((unsigned char *)&color) + 0);
-   
+
     for (auto it = lineClusters.begin(); it != lineClusters.end(); ++it)
     {
         for (auto itt = it->indices.indices.begin(); itt != it->indices.indices.end(); ++itt)
         {
-            tmppt = &src_cloud->at(*itt);     
+            tmppt = &src_cloud->at(*itt);
             tmppt->r = r;
             tmppt->g = g;
             tmppt->b = b;
@@ -1156,7 +1175,7 @@ void correct(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud,
     {
         for (auto itt = it->indices.indices.begin(); itt != it->indices.indices.end(); ++itt)
         {
-            tmppt = &src_cloud->at(*itt);     
+            tmppt = &src_cloud->at(*itt);
             tmppt->r = r;
             tmppt->g = g;
             tmppt->b = b;
@@ -1189,7 +1208,7 @@ void correct(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud,
     {
         for (auto itt = it->indices.begin(); itt != it->indices.end(); ++itt)
         {
-            tmppt = &src_cloud->at(*itt);     
+            tmppt = &src_cloud->at(*itt);
             tmppt->r = r;
             tmppt->g = g;
             tmppt->b = b;
@@ -1197,7 +1216,7 @@ void correct(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud,
     }
 
     pct::io::save_las(src_cloud, outputfile);
-   
+
 
 
 
@@ -1275,11 +1294,12 @@ void correct(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud,
     // 保存ground .las
     ground->clear();
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr ground_cloud(new pcl::PointCloud<pcl::PointXYZRGB>());
+    pcl::ExtractIndices<pcl::PointXYZRGB> extract;
     extract.setInputCloud(src_cloud);
     extract.setIndices(boost::make_shared<std::vector<int>>(ground_indices->indices));
     extract.filter(*ground_cloud);
     pct::io::save_las(ground_cloud, setting.outputdir + "\\ground.las");
     ground_cloud.reset();
-    std::cout << "correct end：end" << std::endl;
+    std::cout << "ExtractLinesAndTower end：end" << std::endl;
 }
 

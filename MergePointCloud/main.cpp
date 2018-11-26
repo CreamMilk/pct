@@ -17,6 +17,8 @@ void Save_las(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, std::string path);
 pcl::PointXYZRGB GetMidPt(pcl::PointXYZRGB minpt, pcl::PointXYZRGB maxpt);
 void simple(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, float gridsize);
 void OutlierRemoval(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud);
+void MergePointCloudNoOffset(boost::filesystem::path &mergedir);
+void MergePointCloud(boost::filesystem::path &mergedir);
 
 int main(int argc, char **argv)
 {
@@ -29,6 +31,16 @@ int main(int argc, char **argv)
     if ((argc!=2) || (!boost::filesystem::is_directory(mergedir)))
         return 0;
 
+    MergePointCloudNoOffset(mergedir);
+
+    //MergePointCloud(mergedir);
+ 
+
+    return /*a.exec()*/0;
+}
+
+void MergePointCloud(boost::filesystem::path &mergedir)
+{
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr totol_cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
     int file_step = 0;
     int xoff = 0;  // 每隔一千五百米放一个点云
@@ -61,7 +73,7 @@ int main(int argc, char **argv)
             pcl::PointXYZRGB minpt, maxpt, midpt;
             pcl::getMinMax3D(*las_cloud, minpt, maxpt);
             midpt = GetMidPt(minpt, maxpt);
-            
+
             for (auto it = las_cloud->begin(); it != las_cloud->end(); ++it)
             {
                 it->x = it->x - midpt.x + xoff;
@@ -75,9 +87,40 @@ int main(int argc, char **argv)
             file_step++;
         }
     }
+    std::cout << std::string(mergedir.string()) + "\\mergeCloud.las" << std::endl;
+    Save_las(totol_cloud, std::string(mergedir.string()) + "\\mergeCloud.las");
+}
 
-    Save_las(totol_cloud, std::string(argv[1]) + "\\mergeCloud.las");
-    return /*a.exec()*/0;
+void MergePointCloudNoOffset(boost::filesystem::path &mergedir)
+{
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr totol_cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
+    boost::filesystem::directory_iterator iter_dirend;
+    for (boost::filesystem::directory_iterator fileiter(mergedir); fileiter != iter_dirend; ++fileiter)
+    {
+        // 如果文件有效，而且后缀名为las，则是我们要训练的东西
+        if (boost::filesystem::is_regular_file(*fileiter) && boost::algorithm::to_lower_copy(boost::filesystem::extension(*fileiter)) == ".las")
+        {
+            std::string laspath = fileiter->path().string(); // 得到文件路径
+            std::string lasname = fileiter->path().stem().string(); // 得到文件名
+            if (lasname == "mergeCloud")
+                continue;
+
+            std::cout << lasname << std::endl;
+
+
+            // 加载点云
+            pcl::PointCloud<pcl::PointXYZRGB>::Ptr las_cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
+            Load_las(las_cloud, laspath);
+  
+
+            *totol_cloud += *las_cloud;
+        }
+    }
+
+    simple(totol_cloud, 0.3);
+    OutlierRemoval(totol_cloud);
+    std::cout << std::string(mergedir.string()) + "\\mergeCloud.las" << std::endl;
+    Save_las(totol_cloud, std::string(mergedir.string()) + "\\mergeCloud.las");
 }
 
 pcl::PointXYZRGB GetMidPt(pcl::PointXYZRGB minpt, pcl::PointXYZRGB maxpt)
