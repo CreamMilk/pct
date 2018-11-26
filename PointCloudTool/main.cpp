@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
     bool priorityClassif = setting.pt.get_optional<bool>(pct::to_utf8(pct::String2WString("先分类后提取地面"))).value();
 
 
-    std::cout << "ParserCmdline" << std::endl;
+    std::cout << "priorityClassif = " << priorityClassif << std::endl;
     if (false == ParserCmdline(argc, argv))
     {
         return EXIT_FAILURE;
