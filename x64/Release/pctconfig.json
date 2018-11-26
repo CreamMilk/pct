@@ -2,7 +2,7 @@
   "nb_trials":800,
   "nb_scales":5,
   "simplify":0,
-  "先分类后提取地面":false,
+  "先分类后提取地面":true,
   "classif_color":{
 	"ground":"167, 170, 162",
 	"veget":"204, 255, 201",
