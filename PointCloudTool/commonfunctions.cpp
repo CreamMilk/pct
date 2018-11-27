@@ -389,11 +389,11 @@ void pct::simpleAndOutlierRemoval(std::string inputfile, std::string outputfile,
 //    sor.filter(*cloud);                    //存储
 //}
 
-void pct::OutlierRemoval(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, pcl::PointIndicesPtr cloud_indices /*= nullptr*/)
+void pct::OutlierRemoval(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, int liqunK /*= 10*/, double avgDistance /*= 10*/, pcl::PointIndicesPtr cloud_indices /*= nullptr*/)
 {
     // 离群点
-    int liqunK = 10;
-    double avgDistance = 10;
+	//int liqunK = 10;
+	//double avgDistance = 10;
     // 创建滤波器，对每个点分析的临近点的个数设置为50 ，并将标准差的倍数设置为1  这意味着如果一
     //个点的距离超出了平均距离一个标准差以上，则该点被标记为离群点，并将它移除，存储起来
     pcl::StatisticalOutlierRemoval<pcl::PointXYZRGB> sor;   //创建滤波器对象
@@ -639,7 +639,7 @@ void pct::colorClusters(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, cons
     float distanceThreshold = 0.8;
     float pointColorThreshold = 0;
     float regionColorThreshold = 0;
-    int minClusterSize = 50;
+    int minClusterSize = 10;
 
     pcl::search::Search<pcl::PointXYZRGB>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZRGB>);
     pcl::RegionGrowingRGB<pcl::PointXYZRGB> reg;//创建基于颜色的区域生长分割类的对象
@@ -950,7 +950,7 @@ bool pct::LikePowerLine1(pcl::PointCloud<pcl::PointXYZRGB>::Ptr ground_cloud, pc
     std::vector<float> sqr_distances;
 
     // 最高点与离地高度<10，则认为不是电力线！
-    if (ground_kdtree.radiusSearch(maxZ, 10, indices, sqr_distances) > 0)
+    if (ground_kdtree.radiusSearch(maxZ, 15, indices, sqr_distances) > 0)
     {
         std::cout << "最高点与离地高度<10，则认为不是电力线！" << std::endl;
         return false;

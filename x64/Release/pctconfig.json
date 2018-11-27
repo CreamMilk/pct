@@ -1,4 +1,4 @@
-{
+﻿{
   "nb_trials":800,
   "nb_scales":5,
   "simplify":0,
@@ -25,7 +25,7 @@
   "windowsize":2,
   "slope":1,
   "minlDistance":5,
-  "maxlDistance":30,
+  "maxlDistance":35,
   "gridSize":20,
   "heightSize":1
   }

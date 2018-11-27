@@ -38,11 +38,22 @@ namespace pct
             cen.x = (min.x + max.x) / 2;
             cen.y = (min.y + max.y) / 2;
             cen.z = (min.z + max.z) / 2;
+
+			minzPt.z = (std::numeric_limits<float>::max)();
+			for (int i = 0; i < indices.indices.size(); ++i)
+			{
+				if (src_cloud->at(indices.indices[i]).z < minzPt.z)
+				{
+					minzPt = src_cloud->at(indices.indices[i]);
+				}
+			}
         }
         pcl::PointIndices indices;
         pcl::PointXYZRGB cen;
         pcl::PointXYZRGB  min;
         pcl::PointXYZRGB  max;
+		pcl::PointXYZRGB  minzPt;
+
 
         static unsigned int g_next_no;
         unsigned int veget_no;

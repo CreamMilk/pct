@@ -3,159 +3,187 @@
    <features>
       <feature>
          <name>distance_to_plane_3</name>
-         <weight>1.2758497</weight>
+         <weight>1.61268818</weight>
       </feature>
       <feature>
          <name>distance_to_plane_4</name>
-         <weight>0.0501187518</weight>
+         <weight>3.16228056</weight>
+      </feature>
+      <feature>
+         <name>eigentropy_1</name>
+         <weight>0.82851696</weight>
+      </feature>
+      <feature>
+         <name>eigentropy_2</name>
+         <weight>1.62085676</weight>
       </feature>
       <feature>
          <name>eigentropy_3</name>
-         <weight>1.59695172</weight>
+         <weight>0.340078622</weight>
       </feature>
       <feature>
          <name>eigentropy_4</name>
-         <weight>2.31582737</weight>
+         <weight>0.412847608</weight>
       </feature>
       <feature>
          <name>elevation_0</name>
-         <weight>5.29090405</weight>
+         <weight>15.8489618</weight>
       </feature>
       <feature>
          <name>elevation_1</name>
-         <weight>54.361908</weight>
+         <weight>15.8489618</weight>
       </feature>
       <feature>
          <name>elevation_2</name>
-         <weight>50.000061</weight>
+         <weight>14.5599117</weight>
       </feature>
       <feature>
          <name>elevation_3</name>
-         <weight>50.000061</weight>
+         <weight>17.252121</weight>
       </feature>
       <feature>
          <name>elevation_4</name>
-         <weight>2.13507152</weight>
+         <weight>17.4624767</weight>
       </feature>
       <feature>
-         <name>omnivariance_3</name>
-         <weight>0.506295025</weight>
+         <name>linearity_4</name>
+         <weight>0.441073328</weight>
+      </feature>
+      <feature>
+         <name>omnivariance_1</name>
+         <weight>0.221060306</weight>
+      </feature>
+      <feature>
+         <name>omnivariance_2</name>
+         <weight>0.483293235</weight>
       </feature>
       <feature>
          <name>omnivariance_4</name>
-         <weight>0.762699246</weight>
+         <weight>0.403459072</weight>
       </feature>
       <feature>
          <name>planarity_2</name>
-         <weight>1.01019156</weight>
+         <weight>0.00831764005</weight>
+      </feature>
+      <feature>
+         <name>planarity_3</name>
+         <weight>0.120226488</weight>
       </feature>
       <feature>
          <name>planarity_4</name>
-         <weight>0.35241887</weight>
+         <weight>0.0509976633</weight>
+      </feature>
+      <feature>
+         <name>sphericity_1</name>
+         <weight>0.794328868</weight>
       </feature>
       <feature>
          <name>sphericity_3</name>
-         <weight>0.622469604</weight>
+         <weight>0.000242661015</weight>
       </feature>
       <feature>
          <name>sphericity_4</name>
-         <weight>0.474756747</weight>
+         <weight>0.000237137385</weight>
+      </feature>
+      <feature>
+         <name>sum_eigen_2</name>
+         <weight>47.3593063</weight>
       </feature>
       <feature>
          <name>sum_eigen_3</name>
-         <weight>135.570786</weight>
+         <weight>211.613281</weight>
       </feature>
       <feature>
          <name>sum_eigen_4</name>
-         <weight>539.717102</weight>
+         <weight>531.548523</weight>
       </feature>
       <feature>
-         <name>surface_variation_3</name>
-         <weight>0.320540339</weight>
+         <name>surface_variation_1</name>
+         <weight>0.01337568</weight>
+      </feature>
+      <feature>
+         <name>surface_variation_2</name>
+         <weight>0.371535361</weight>
       </feature>
       <feature>
          <name>surface_variation_4</name>
-         <weight>0.303636193</weight>
-      </feature>
-      <feature>
-         <name>vertical_dispersion_0</name>
-         <weight>1.58114421</weight>
+         <weight>0.0375837795</weight>
       </feature>
       <feature>
          <name>vertical_dispersion_1</name>
-         <weight>0.69370842</weight>
-      </feature>
-      <feature>
-         <name>vertical_dispersion_2</name>
-         <weight>0.69370842</weight>
-      </feature>
-      <feature>
-         <name>vertical_dispersion_3</name>
-         <weight>1.25594831</weight>
-      </feature>
-      <feature>
-         <name>vertical_dispersion_4</name>
-         <weight>0.99763608</weight>
-      </feature>
-      <feature>
-         <name>verticality_1</name>
-         <weight>1.58213794</weight>
+         <weight>1.75594473</weight>
       </feature>
       <feature>
          <name>verticality_2</name>
-         <weight>1.19253492</weight>
+         <weight>0.0262000002</weight>
       </feature>
       <feature>
          <name>verticality_3</name>
-         <weight>0.196842045</weight>
+         <weight>1.83298254</weight>
       </feature>
       <feature>
          <name>verticality_4</name>
-         <weight>0.171907321</weight>
+         <weight>0.0176753718</weight>
       </feature>
    </features>
    <labels>
       <label>
-         <name>ground</name>
+         <name>power_line</name>
          <feature>
             <name>distance_to_plane_3</name>
-            <effect>neutral</effect>
+            <effect>penalized</effect>
          </feature>
          <feature>
             <name>distance_to_plane_4</name>
-            <effect>favored</effect>
+            <effect>penalized</effect>
+         </feature>
+         <feature>
+            <name>eigentropy_1</name>
+            <effect>neutral</effect>
+         </feature>
+         <feature>
+            <name>eigentropy_2</name>
+            <effect>penalized</effect>
          </feature>
          <feature>
             <name>eigentropy_3</name>
-            <effect>neutral</effect>
+            <effect>penalized</effect>
          </feature>
          <feature>
             <name>eigentropy_4</name>
-            <effect>penalized</effect>
+            <effect>neutral</effect>
          </feature>
          <feature>
             <name>elevation_0</name>
-            <effect>penalized</effect>
+            <effect>neutral</effect>
          </feature>
          <feature>
             <name>elevation_1</name>
-            <effect>penalized</effect>
+            <effect>favored</effect>
          </feature>
          <feature>
             <name>elevation_2</name>
-            <effect>penalized</effect>
+            <effect>favored</effect>
          </feature>
          <feature>
             <name>elevation_3</name>
-            <effect>penalized</effect>
+            <effect>favored</effect>
          </feature>
          <feature>
             <name>elevation_4</name>
-            <effect>penalized</effect>
+            <effect>favored</effect>
          </feature>
          <feature>
-            <name>omnivariance_3</name>
+            <name>linearity_4</name>
+            <effect>favored</effect>
+         </feature>
+         <feature>
+            <name>omnivariance_1</name>
             <effect>neutral</effect>
+         </feature>
+         <feature>
+            <name>omnivariance_2</name>
+            <effect>penalized</effect>
          </feature>
          <feature>
             <name>omnivariance_4</name>
@@ -166,27 +194,43 @@
             <effect>neutral</effect>
          </feature>
          <feature>
+            <name>planarity_3</name>
+            <effect>penalized</effect>
+         </feature>
+         <feature>
             <name>planarity_4</name>
-            <effect>favored</effect>
+            <effect>neutral</effect>
+         </feature>
+         <feature>
+            <name>sphericity_1</name>
+            <effect>penalized</effect>
          </feature>
          <feature>
             <name>sphericity_3</name>
-            <effect>penalized</effect>
+            <effect>neutral</effect>
          </feature>
          <feature>
             <name>sphericity_4</name>
-            <effect>penalized</effect>
+            <effect>neutral</effect>
+         </feature>
+         <feature>
+            <name>sum_eigen_2</name>
+            <effect>neutral</effect>
          </feature>
          <feature>
             <name>sum_eigen_3</name>
-            <effect>penalized</effect>
+            <effect>neutral</effect>
          </feature>
          <feature>
             <name>sum_eigen_4</name>
-            <effect>penalized</effect>
+            <effect>neutral</effect>
          </feature>
          <feature>
-            <name>surface_variation_3</name>
+            <name>surface_variation_1</name>
+            <effect>neutral</effect>
+         </feature>
+         <feature>
+            <name>surface_variation_2</name>
             <effect>penalized</effect>
          </feature>
          <feature>
@@ -194,40 +238,20 @@
             <effect>penalized</effect>
          </feature>
          <feature>
-            <name>vertical_dispersion_0</name>
-            <effect>neutral</effect>
-         </feature>
-         <feature>
             <name>vertical_dispersion_1</name>
             <effect>neutral</effect>
          </feature>
          <feature>
-            <name>vertical_dispersion_2</name>
-            <effect>neutral</effect>
-         </feature>
-         <feature>
-            <name>vertical_dispersion_3</name>
-            <effect>neutral</effect>
-         </feature>
-         <feature>
-            <name>vertical_dispersion_4</name>
-            <effect>neutral</effect>
-         </feature>
-         <feature>
-            <name>verticality_1</name>
-            <effect>penalized</effect>
-         </feature>
-         <feature>
             <name>verticality_2</name>
-            <effect>penalized</effect>
+            <effect>neutral</effect>
          </feature>
          <feature>
             <name>verticality_3</name>
-            <effect>neutral</effect>
+            <effect>penalized</effect>
          </feature>
          <feature>
             <name>verticality_4</name>
-            <effect>penalized</effect>
+            <effect>favored</effect>
          </feature>
       </label>
       <label>
@@ -238,19 +262,27 @@
          </feature>
          <feature>
             <name>distance_to_plane_4</name>
+            <effect>neutral</effect>
+         </feature>
+         <feature>
+            <name>eigentropy_1</name>
             <effect>favored</effect>
+         </feature>
+         <feature>
+            <name>eigentropy_2</name>
+            <effect>neutral</effect>
          </feature>
          <feature>
             <name>eigentropy_3</name>
-            <effect>neutral</effect>
+            <effect>favored</effect>
          </feature>
          <feature>
             <name>eigentropy_4</name>
-            <effect>neutral</effect>
+            <effect>favored</effect>
          </feature>
          <feature>
             <name>elevation_0</name>
-            <effect>favored</effect>
+            <effect>penalized</effect>
          </feature>
          <feature>
             <name>elevation_1</name>
@@ -258,7 +290,7 @@
          </feature>
          <feature>
             <name>elevation_2</name>
-            <effect>penalized</effect>
+            <effect>neutral</effect>
          </feature>
          <feature>
             <name>elevation_3</name>
@@ -266,10 +298,18 @@
          </feature>
          <feature>
             <name>elevation_4</name>
+            <effect>penalized</effect>
+         </feature>
+         <feature>
+            <name>linearity_4</name>
+            <effect>neutral</effect>
+         </feature>
+         <feature>
+            <name>omnivariance_1</name>
             <effect>favored</effect>
          </feature>
          <feature>
-            <name>omnivariance_3</name>
+            <name>omnivariance_2</name>
             <effect>neutral</effect>
          </feature>
          <feature>
@@ -278,19 +318,31 @@
          </feature>
          <feature>
             <name>planarity_2</name>
-            <effect>neutral</effect>
+            <effect>favored</effect>
+         </feature>
+         <feature>
+            <name>planarity_3</name>
+            <effect>favored</effect>
          </feature>
          <feature>
             <name>planarity_4</name>
+            <effect>favored</effect>
+         </feature>
+         <feature>
+            <name>sphericity_1</name>
             <effect>neutral</effect>
          </feature>
          <feature>
             <name>sphericity_3</name>
-            <effect>neutral</effect>
+            <effect>favored</effect>
          </feature>
          <feature>
             <name>sphericity_4</name>
-            <effect>neutral</effect>
+            <effect>favored</effect>
+         </feature>
+         <feature>
+            <name>sum_eigen_2</name>
+            <effect>penalized</effect>
          </feature>
          <feature>
             <name>sum_eigen_3</name>
@@ -301,7 +353,11 @@
             <effect>penalized</effect>
          </feature>
          <feature>
-            <name>surface_variation_3</name>
+            <name>surface_variation_1</name>
+            <effect>favored</effect>
+         </feature>
+         <feature>
+            <name>surface_variation_2</name>
             <effect>neutral</effect>
          </feature>
          <feature>
@@ -309,147 +365,12 @@
             <effect>neutral</effect>
          </feature>
          <feature>
-            <name>vertical_dispersion_0</name>
-            <effect>penalized</effect>
-         </feature>
-         <feature>
             <name>vertical_dispersion_1</name>
             <effect>penalized</effect>
          </feature>
          <feature>
-            <name>vertical_dispersion_2</name>
-            <effect>penalized</effect>
-         </feature>
-         <feature>
-            <name>vertical_dispersion_3</name>
-            <effect>penalized</effect>
-         </feature>
-         <feature>
-            <name>vertical_dispersion_4</name>
-            <effect>penalized</effect>
-         </feature>
-         <feature>
-            <name>verticality_1</name>
-            <effect>neutral</effect>
-         </feature>
-         <feature>
             <name>verticality_2</name>
-            <effect>neutral</effect>
-         </feature>
-         <feature>
-            <name>verticality_3</name>
             <effect>favored</effect>
-         </feature>
-         <feature>
-            <name>verticality_4</name>
-            <effect>favored</effect>
-         </feature>
-      </label>
-      <label>
-         <name>power_line</name>
-         <feature>
-            <name>distance_to_plane_3</name>
-            <effect>penalized</effect>
-         </feature>
-         <feature>
-            <name>distance_to_plane_4</name>
-            <effect>favored</effect>
-         </feature>
-         <feature>
-            <name>eigentropy_3</name>
-            <effect>penalized</effect>
-         </feature>
-         <feature>
-            <name>eigentropy_4</name>
-            <effect>penalized</effect>
-         </feature>
-         <feature>
-            <name>elevation_0</name>
-            <effect>favored</effect>
-         </feature>
-         <feature>
-            <name>elevation_1</name>
-            <effect>neutral</effect>
-         </feature>
-         <feature>
-            <name>elevation_2</name>
-            <effect>neutral</effect>
-         </feature>
-         <feature>
-            <name>elevation_3</name>
-            <effect>neutral</effect>
-         </feature>
-         <feature>
-            <name>elevation_4</name>
-            <effect>favored</effect>
-         </feature>
-         <feature>
-            <name>omnivariance_3</name>
-            <effect>penalized</effect>
-         </feature>
-         <feature>
-            <name>omnivariance_4</name>
-            <effect>penalized</effect>
-         </feature>
-         <feature>
-            <name>planarity_2</name>
-            <effect>penalized</effect>
-         </feature>
-         <feature>
-            <name>planarity_4</name>
-            <effect>neutral</effect>
-         </feature>
-         <feature>
-            <name>sphericity_3</name>
-            <effect>penalized</effect>
-         </feature>
-         <feature>
-            <name>sphericity_4</name>
-            <effect>penalized</effect>
-         </feature>
-         <feature>
-            <name>sum_eigen_3</name>
-            <effect>neutral</effect>
-         </feature>
-         <feature>
-            <name>sum_eigen_4</name>
-            <effect>neutral</effect>
-         </feature>
-         <feature>
-            <name>surface_variation_3</name>
-            <effect>penalized</effect>
-         </feature>
-         <feature>
-            <name>surface_variation_4</name>
-            <effect>penalized</effect>
-         </feature>
-         <feature>
-            <name>vertical_dispersion_0</name>
-            <effect>neutral</effect>
-         </feature>
-         <feature>
-            <name>vertical_dispersion_1</name>
-            <effect>favored</effect>
-         </feature>
-         <feature>
-            <name>vertical_dispersion_2</name>
-            <effect>favored</effect>
-         </feature>
-         <feature>
-            <name>vertical_dispersion_3</name>
-            <effect>neutral</effect>
-         </feature>
-         <feature>
-            <name>vertical_dispersion_4</name>
-            <effect>neutral</effect>
-         </feature>
-         <feature>
-            <name>verticality_1</name>
-            <effect>neutral</effect>
-         </feature>
-         <feature>
-            <name>verticality_2</name>
-            <effect>neutral</effect>
          </feature>
          <feature>
             <name>verticality_3</name>

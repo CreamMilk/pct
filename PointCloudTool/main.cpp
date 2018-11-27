@@ -1019,14 +1019,14 @@ void ExtractLinesAndTower(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud,
             // 遍历聚类的每一个点
             for (int k = 0; k < lineClusters[j].indices.indices.size(); ++k)
             {
-                if (unknowclass_kdtree.radiusSearch(src_cloud->at(lineClusters[j].indices.indices[k]), 2, indices, sqr_distances))
+                if (unknowclass_kdtree.radiusSearch(src_cloud->at(lineClusters[j].indices.indices[k]), 1, indices, sqr_distances))
                 {
                     insrt_size++;
                     break;
                 }
             }
         }
-        if (insrt_size >= tower_intersectline_threshold)  // 有3根电力线和他相交了，基本可以确定他就是铁塔了
+        if (insrt_size >= tower_intersectline_threshold)  // 有2根电力线和他相交了，基本可以确定他就是铁塔了
         {
             towerClusters.push_back(pct::TowerInfo(*it));
             it = jlClusters.erase(it);
@@ -1112,7 +1112,7 @@ void ExtractLinesAndTower(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud,
         {
             pct::VegetInfo veg(src_cloud, *it);
             // 最低点与离地高度<10并且大于30个点，有可能是植物！
-            if (it->indices.size() > 30 && ground_kdtree.radiusSearch(veg.min.z, 10, indices, sqr_distances) > 0)
+            if (it->indices.size() > 30 && ground_kdtree.radiusSearch(veg.minzPt, 10, indices, sqr_distances) > 0)
             {
                 vegetClusters.push_back(veg);
                 it = jlClusters.erase(it);
