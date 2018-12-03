@@ -620,7 +620,7 @@ void pct::colorClusters(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, std:
     float distanceThreshold = 0.5;
     float pointColorThreshold = 0;
     float regionColorThreshold = 0;
-    int minClusterSize = 50;
+    int minClusterSize = 5;
 
     pcl::search::Search<pcl::PointXYZRGB>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZRGB>);
     pcl::RegionGrowingRGB<pcl::PointXYZRGB> reg;//创建基于颜色的区域生长分割类的对象
@@ -639,7 +639,7 @@ void pct::colorClusters(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, cons
     float distanceThreshold = 0.8;
     float pointColorThreshold = 0;
     float regionColorThreshold = 0;
-    int minClusterSize = 10;
+    int minClusterSize = 5;
 
     pcl::search::Search<pcl::PointXYZRGB>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZRGB>);
     pcl::RegionGrowingRGB<pcl::PointXYZRGB> reg;//创建基于颜色的区域生长分割类的对象
