@@ -7,8 +7,9 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <QTDIR>E:\project\powerline\solution\Dependence\5.10\5.10.1\msvc2013_64</QTDIR>
-    <LocalDebuggerEnvironment>PATH=$(QTDIR)\bin%3b$(PATH)</LocalDebuggerEnvironment>
-    <LocalDebuggerCommandArguments>E:\project\powerline\solution\pct\x64\Release\testdata2</LocalDebuggerCommandArguments>
+    <LocalDebuggerEnvironment>PATH=$(SolutionDir)\..\Dependence\5.10\5.10.1\msvc2013_64\bin%3b$(PATH)</LocalDebuggerEnvironment>
+    <LocalDebuggerCommandArguments>
+    </LocalDebuggerCommandArguments>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
 </Project>

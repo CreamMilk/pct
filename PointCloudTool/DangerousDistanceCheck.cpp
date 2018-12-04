@@ -539,7 +539,10 @@ void DangerousDistanceCheck::showNearCheck()
 
 
     QString pic_dir = QString::fromLocal8Bit(setting.outputdir.c_str()) +  QStringLiteral("\\images");
-    pct::DelDir(pic_dir);
+	if (QFileInfo(pic_dir).exists())
+	{
+		pct::DelDir(pic_dir);
+	}
     QDir().mkpath(pic_dir);
     // 准备点云信息
     boost::shared_ptr<pcl::visualization::PCLVisualizer> view(new pcl::visualization::PCLVisualizer("test"));
@@ -674,7 +677,7 @@ void DangerousDistanceCheck::showNearCheck()
     // 截图
     view->saveScreenshot(std::string(pic_dir.toLocal8Bit().data()) + "\\总图.png");
     std::cout << "截图完成" << std::endl;
-
+	pct::ScreenshotHeightColor(src_cloud_, (pic_dir + QStringLiteral("\\高程颜色图.png")).toLocal8Bit().data());
     //// 调试观看
     //while (!view->wasStopped())
     //{
@@ -700,6 +703,7 @@ void DangerousDistanceCheck::showNearCheck()
     pt.put("图例颜色.电力线", setting.cls_strcolor(power_line_str));
     pt.put("图例颜色.植被", setting.cls_strcolor(veget_str));
     pt.put("xy平面图路径", "images/总图.png");
+	pt.put("高程颜色图路径", "images/高程颜色图.png");
     boost::property_tree::ptree errpt_array;
 
     std::cout << "遍历balls" << balls_.size() << std::endl;

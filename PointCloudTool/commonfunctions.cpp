@@ -19,6 +19,7 @@
 #include "pctio.h"
 #include <Geometry/OBB.h>
 #include <pcl/segmentation/extract_clusters.h>
+#include <pcl/visualization/cloud_viewer.h>   //类cloud_viewer头文件申明
 #include <windows.h>
 #include <string.h>
 #include "setting.hpp"
@@ -613,6 +614,49 @@ void pct::FindGroundIndices(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, pcl::P
         ground_indices->indices.clear();
         ground_indices->indices.insert(ground_indices->indices.end(), ground_indices_set.begin(), ground_indices_set.end());
     }
+}
+
+void pct::ScreenshotHeightColor(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud, std::string pic_path)
+{
+	pcl::PointXYZRGB min;
+	pcl::PointXYZRGB max;
+	pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
+	pcl::copyPointCloud(*src_cloud, *cloud);
+	pcl::getMinMax3D(*cloud, min, max);
+
+	uchar staC[3] = { 0, 255, 255 };
+	uchar endC[3] = { 255, 0, 0 };
+	short subR = endC[0] - staC[0];
+	short subG = endC[1] - staC[1];
+	short subB = endC[2] - staC[2];
+
+
+	double heig = max.z - min.z;
+	if (heig == 0)
+		return;
+
+	std::cout << "ScreenshotHeightColor heig = " << heig << "\t cloud->size() = " << cloud->size() << std::endl;
+	for (int i = 0; i < cloud->size(); ++i)
+	{
+		pcl::PointXYZRGB &pt = cloud->at(i);
+		double l = (pt.z - min.z) / heig;
+		pt.r = (subR)* (l)+staC[0];
+		pt.b = (subG)* (l)+staC[1];
+		pt.g = (subB)* (l)+staC[2];
+	}
+
+
+	boost::shared_ptr<pcl::visualization::PCLVisualizer> view(new pcl::visualization::PCLVisualizer("HeightColor"));
+
+	view->setBackgroundColor(0,0,0);
+	view->addPointCloud<pcl::PointXYZRGB>(cloud, "HeightColorCloud");      // no need to add the handler, we use a random handler by default
+	view->resetCamera();
+	view->saveScreenshot(pic_path);
+	while (!view->wasStopped())
+	{
+		view->spinOnce(100);
+		boost::this_thread::sleep(boost::posix_time::microseconds(100000));
+	}
 }
 
 void pct::colorClusters(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, std::vector <pcl::PointIndices>& jlClusters)

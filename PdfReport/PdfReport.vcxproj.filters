@@ -43,17 +43,15 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="GeneratedFiles\qrc_PdfReport.cpp">
-      <Filter>Generated Files</Filter>
-    </ClCompile>
+    
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="PdfReport.ui">
+    <QtUic Include="PdfReport.ui">
       <Filter>Form Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="PdfReport.qrc">
+    </QtUic>
+    <QtRcc Include="PdfReport.qrc">
       <Filter>Resource Files</Filter>
-    </CustomBuild>
+    </QtRcc>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GeneratedFiles\ui_PdfReport.h">

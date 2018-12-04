@@ -25,6 +25,15 @@
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <PropertyGroup Condition="'$(QtMsBuild)'=='' or !Exists('$(QtMsBuild)\qt.targets')">
+    <QtMsBuild>$(MSBuildProjectDirectory)\QtMsBuild</QtMsBuild>
+  </PropertyGroup>
+  <Target Name="QtMsBuildNotFound" BeforeTargets="CustomBuild;ClCompile" Condition="!Exists('$(QtMsBuild)\qt.targets') or !Exists('$(QtMsBuild)\qt.props')">
+    <Message Importance="High" Text="QtMsBuild: could not locate qt.targets, qt.props; project may not build correctly." />
+  </Target>
+  <ImportGroup Condition="Exists('$(QtMsBuild)\qt.props')">
+    <Import Project="$(QtMsBuild)\qt.props" />
+  </ImportGroup>
   <ImportGroup Label="ExtensionSettings" />
   <ImportGroup Label="Shared" />
   <ImportGroup Label="PropertySheets" />
@@ -38,84 +47,97 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <PreprocessorDefinitions>UNICODE;_UNICODE;WIN32;WIN64;QT_CORE_LIB;QT_GUI_LIB;QT_PRINTSUPPORT_LIB;QT_WIDGETS_LIB;QT_WEBKITWIDGETS_LIB;QT_XMLPATTERNS_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtPrintSupport;$(QTDIR)\include\QtWidgets;$(QTDIR)\include\QtWebKit;$(QTDIR)\include\QtWebkitWidgets;$(QTDIR)\include\QtXmlPatterns;E:\thlibrary\wkhtmltopdf-master;E:\pcl\bulid\boost_1_67_0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>GeneratedFiles\$(ConfigurationName);GeneratedFiles;.\GeneratedFiles;.;\include;.\GeneratedFiles\$(ConfigurationName);\include\QtCore;\include\QtGui;\include\QtPrintSupport;\include\QtWidgets;\include\QtWebKit;\include\QtWebkitWidgets;\include\QtXmlPatterns;E:\thlibrary\wkhtmltopdf-master;E:\pcl\bulid\boost_1_67_0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Disabled</Optimization>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <OutputFile>$(OutDir)\$(ProjectName).exe</OutputFile>
-      <AdditionalLibraryDirectories>$(QTDIR)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>E:\pcl\bulid\boost_1_67_0\lib64-msvc-12.0\libboost_system-vc120-mt-x64-1_67.lib;E:\pcl\bulid\boost_1_67_0\lib64-msvc-12.0\libboost_filesystem-vc120-mt-x64-1_67.lib;E:\pcl\bulid\boost_1_67_0\lib64-msvc-12.0\libboost_program_options-vc120-mt-x64-1_67.lib;E:\pcl\bulid\boost_1_67_0\lib64-msvc-12.0\libboost_locale-vc120-mt-x64-1_67.lib;qtmaind.lib;Qt5Cored.lib;Qt5Guid.lib;Qt5PrintSupportd.lib;Qt5Widgetsd.lib;Qt5WebKitd.lib;Qt5WebkitWidgetsd.lib;Qt5XmlPatternsd.lib;E:\thlibrary\wkhtmltopdf-master\bin\wkhtmltox.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>E:\pcl\bulid\boost_1_67_0\lib64-msvc-12.0\libboost_system-vc120-mt-x64-1_67.lib;E:\pcl\bulid\boost_1_67_0\lib64-msvc-12.0\libboost_filesystem-vc120-mt-x64-1_67.lib;E:\pcl\bulid\boost_1_67_0\lib64-msvc-12.0\libboost_program_options-vc120-mt-x64-1_67.lib;E:\pcl\bulid\boost_1_67_0\lib64-msvc-12.0\libboost_locale-vc120-mt-x64-1_67.lib;\lib\qtmaind.lib;\lib\Qt5Cored.lib;\lib\Qt5Guid.lib;\lib\Qt5PrintSupportd.lib;\lib\Qt5Widgetsd.lib;\lib\Qt5WebKitd.lib;\lib\Qt5WebkitWidgetsd.lib;\lib\Qt5XmlPatternsd.lib;E:\thlibrary\wkhtmltopdf-master\bin\wkhtmltox.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>copy "E:\thlibrary\wkhtmltopdf-master\bin\wkhtmltox.dll" "$(OutDir)"</Command>
     </PostBuildEvent>
+    <QtRcc>
+      <QTDIR>C:</QTDIR>
+      <InputFile>%(FullPath)</InputFile>
+      <OutputFile>GeneratedFiles\qrc_%(Filename).cpp</OutputFile>
+      <InitFuncName>%(Filename)</InitFuncName>
+      <Compression>default</Compression>
+      <NoCompression>true</NoCompression>
+      <ExecutionDescription>Rcc'ing %(Identity)...</ExecutionDescription>
+    </QtRcc>
+    <QtUic>
+      <QTDIR>C:</QTDIR>
+      <InputFile>%(FullPath)</InputFile>
+      <OutputFile>GeneratedFiles\ui_%(Filename).h</OutputFile>
+      <ExecutionDescription>Uic'ing %(Identity)...</ExecutionDescription>
+    </QtUic>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <PreprocessorDefinitions>UNICODE;_UNICODE;WIN32;WIN64;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_PRINTSUPPORT_LIB;QT_WIDGETS_LIB;QT_WEBKITWIDGETS_LIB;QT_XMLPATTERNS_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtPrintSupport;$(QTDIR)\include\QtWidgets;$(QTDIR)\include\QtWebKit;$(QTDIR)\include\QtWebkitWidgets;$(QTDIR)\include\QtXmlPatterns;$(SolutionDir)\..\Dependence\wkhtmltopdf-master;$(SolutionDir)\..\Dependence\boost_1_67_0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\GeneratedFiles;.;$(SolutionDir)\..\Dependence\Qt5.4.2\5.4\msvc2013_64_opengl\include;.\GeneratedFiles\$(ConfigurationName);$(SolutionDir)\..\Dependence\Qt5.4.2\5.4\msvc2013_64_opengl\include\QtCore;$(SolutionDir)\..\Dependence\Qt5.4.2\5.4\msvc2013_64_opengl\include\QtGui;$(SolutionDir)\..\Dependence\Qt5.4.2\5.4\msvc2013_64_opengl\include\QtPrintSupport;$(SolutionDir)\..\Dependence\Qt5.4.2\5.4\msvc2013_64_opengl\include\QtWidgets;$(SolutionDir)\..\Dependence\Qt5.4.2\5.4\msvc2013_64_opengl\include\QtWebKit;$(SolutionDir)\..\Dependence\Qt5.4.2\5.4\msvc2013_64_opengl\include\QtWebkitWidgets;$(SolutionDir)\..\Dependence\Qt5.4.2\5.4\msvc2013_64_opengl\include\QtXmlPatterns;$(SolutionDir)\..\Dependence\wkhtmltopdf-master;$(SolutionDir)\..\Dependence\boost_1_67_0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <OutputFile>$(OutDir)\$(ProjectName).exe</OutputFile>
-      <AdditionalLibraryDirectories>$(QTDIR)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)\..\Dependence\Qt5.4.2\5.4\msvc2013_64_opengl\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>$(SolutionDir)\..\Dependence\boost_1_67_0\lib64-msvc-12.0\libboost_system-vc120-mt-x64-1_67.lib;$(SolutionDir)\..\Dependence\boost_1_67_0\lib64-msvc-12.0\libboost_filesystem-vc120-mt-x64-1_67.lib;$(SolutionDir)\..\Dependence\boost_1_67_0\lib64-msvc-12.0\libboost_program_options-vc120-mt-x64-1_67.lib;$(SolutionDir)\..\Dependence\boost_1_67_0\lib64-msvc-12.0\libboost_locale-vc120-mt-x64-1_67.lib;qtmain.lib;Qt5Core.lib;Qt5Gui.lib;Qt5PrintSupport.lib;Qt5Widgets.lib;Qt5WebKit.lib;Qt5WebkitWidgets.lib;Qt5XmlPatterns.lib;$(SolutionDir)\..\Dependence\wkhtmltopdf-master\bin\wkhtmltox.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>copy "$(SolutionDir)\..\Dependence\wkhtmltopdf-master\bin\wkhtmltox.dll" "$(OutDir)"</Command>
     </PostBuildEvent>
+    <QtRcc>
+      <QTDIR>C:</QTDIR>
+      <InputFile>%(FullPath)</InputFile>
+      <OutputFile>GeneratedFiles\qrc_%(Filename).cpp</OutputFile>
+      <InitFuncName>%(Filename)</InitFuncName>
+      <Compression>default</Compression>
+      <NoCompression>true</NoCompression>
+      <ExecutionDescription>Rcc'ing %(Identity)...</ExecutionDescription>
+    </QtRcc>
+    <QtUic>
+      <QTDIR>C:</QTDIR>
+      <InputFile>%(FullPath)</InputFile>
+      <OutputFile>GeneratedFiles\ui_%(Filename).h</OutputFile>
+      <ExecutionDescription>Uic'ing %(Identity)...</ExecutionDescription>
+    </QtUic>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="GeneratedFiles\qrc_PdfReport.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-      </PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-      </PrecompiledHeader>
-    </ClCompile>
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="PdfReport.ui">
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Uic%27ing %(Identity)...</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles\ui_%(Filename).h;%(Outputs)</Outputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(QTDIR)\bin\uic.exe" -o ".\GeneratedFiles\ui_%(Filename).h" "%(FullPath)"</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Uic%27ing %(Identity)...</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\GeneratedFiles\ui_%(Filename).h;%(Outputs)</Outputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(QTDIR)\bin\uic.exe" -o ".\GeneratedFiles\ui_%(Filename).h" "%(FullPath)"</Command>
-    </CustomBuild>
+    <QtUic Include="PdfReport.ui">
+    </QtUic>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GeneratedFiles\ui_PdfReport.h" />
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="PdfReport.qrc">
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(FullPath);%(AdditionalInputs)</AdditionalInputs>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Rcc%27ing %(Identity)...</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles\qrc_%(Filename).cpp;%(Outputs)</Outputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(QTDIR)\bin\rcc.exe" -name "%(Filename)" -no-compress "%(FullPath)" -o .\GeneratedFiles\qrc_%(Filename).cpp</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(FullPath);%(AdditionalInputs)</AdditionalInputs>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Rcc%27ing %(Identity)...</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\GeneratedFiles\qrc_%(Filename).cpp;%(Outputs)</Outputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(QTDIR)\bin\rcc.exe" -name "%(Filename)" -no-compress "%(FullPath)" -o .\GeneratedFiles\qrc_%(Filename).cpp</Command>
-    </CustomBuild>
+    <QtRcc Include="PdfReport.qrc">
+    </QtRcc>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">
+    <Import Project="$(QtMsBuild)\qt.targets" />
+  </ImportGroup>
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties MocDir=".\GeneratedFiles\$(ConfigurationName)" UicDir=".\GeneratedFiles" RccDir=".\GeneratedFiles" lupdateOptions="" lupdateOnBuild="0" lreleaseOptions="" Qt5Version_x0020_x64="qt5.4webkit" MocOptions="" />
+      <UserProperties MocDir=".\GeneratedFiles\$(ConfigurationName)" UicDir=".\GeneratedFiles" RccDir=".\GeneratedFiles" lupdateOptions="" lupdateOnBuild="0" lreleaseOptions="" MocOptions="" />
     </VisualStudio>
   </ProjectExtensions>
 </Project>

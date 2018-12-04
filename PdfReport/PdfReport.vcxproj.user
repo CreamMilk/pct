@@ -8,9 +8,9 @@
     <LocalDebuggerCommandArguments>--jsonpath E:\project\powerline\solution\PointCloudTool\x64\Release\testdata2\data-20170519-135919-179-1-1\data-20170519-135919-179-1-1检测结果.json</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <LocalDebuggerEnvironment>PATH=$(QTDIR)\bin%3b$(PATH)</LocalDebuggerEnvironment>
+    <LocalDebuggerEnvironment>PATH=$(SolutionDir)\..\Dependence\Qt5.4.2\5.4\msvc2013_64_opengl\bin%3b$(PATH)</LocalDebuggerEnvironment>
     <QTDIR>E:\project\powerline\solution\Dependence\Qt5.4.2\5.4\msvc2013_64_opengl</QTDIR>
-    <LocalDebuggerCommandArguments>--jsonpath E:\project\powerline\solution\pct\x64\Release\testdata\data-20170519-135919-179-1-1\data-20170519-135919-179-1-1检测结果.json</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>--jsonpath F:\project\powerline\solution\pct\x64\Release\testdata\data-20170519-135919-179-1-1\data-20170519-135919-179-1-1检测结果.json</LocalDebuggerCommandArguments>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
 </Project>

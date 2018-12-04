@@ -46,38 +46,28 @@
     <ClCompile Include="qcolortool.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="GeneratedFiles\Debug\moc_qcolortool.cpp">
-      <Filter>Generated Files\Debug</Filter>
-    </ClCompile>
-    <ClCompile Include="GeneratedFiles\Release\moc_qcolortool.cpp">
-      <Filter>Generated Files\Release</Filter>
-    </ClCompile>
-    <ClCompile Include="GeneratedFiles\qrc_qcolortool.cpp">
-      <Filter>Generated Files</Filter>
-    </ClCompile>
-    <ClCompile Include="GeneratedFiles\Debug\moc_qrendview.cpp">
-      <Filter>Generated Files\Debug</Filter>
-    </ClCompile>
-    <ClCompile Include="GeneratedFiles\Release\moc_qrendview.cpp">
-      <Filter>Generated Files\Release</Filter>
-    </ClCompile>
+    
+    
+    
+    
+    
     <ClCompile Include="qrendview.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="qcolortool.h">
+    <QtMoc Include="qcolortool.h">
       <Filter>Header Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="qcolortool.ui">
+    </QtMoc>
+    <QtUic Include="qcolortool.ui">
       <Filter>Form Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="qcolortool.qrc">
+    </QtUic>
+    <QtRcc Include="qcolortool.qrc">
       <Filter>Resource Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="qrendview.h">
+    </QtRcc>
+    <QtMoc Include="qrendview.h">
       <Filter>Header Files</Filter>
-    </CustomBuild>
+    </QtMoc>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GeneratedFiles\ui_qcolortool.h">

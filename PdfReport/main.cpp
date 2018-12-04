@@ -34,13 +34,13 @@ errcode = content;\
 if(1 != errcode)\
 {\
     QMessageBox::critical(nullptr, QString::number(errcode) , #content);\
-   QCoreApplication::exit(0);\
+   return false;\
 }
 
 void GenerateHtml(QString json_path, QString html_path);
 bool ParserCmdline(int argc, char *argv[]);
 std::string GetExePath();
-void ExportPdf(QString html_path, QString pdf_path);
+bool ExportPdf(QString html_path, QString pdf_path);
 void ExportImage(QString html_path, QString img_path);
 std::string GetExeName();
 
@@ -99,7 +99,7 @@ int main(int argc, char *argv[]) {
 
     GenerateHtml(g_jsonpath, g_htmlpath);
 
-    ExportPdf(g_htmlpath, g_pdfpath);
+	ExportPdf(g_htmlpath, g_pdfpath);
     ExportImage(g_htmlpath, g_imgpath);
     
 
@@ -181,7 +181,7 @@ bool ParserCmdline(int argc, char *argv[])
             if (!QFileInfo(g_jsonpath).isFile())
             {
                 QMessageBox::information(nullptr, "", "", 0);
-                QCoreApplication::exit(0);
+				return false;
             }
                
         }
@@ -377,7 +377,7 @@ void GenerateHtml(QString json_path, QString html_path)
     else
     {
         QMessageBox::information(nullptr, "json_path", "open fail£¡", 0);
-        QCoreApplication::exit(0);
+        return;
     }
     
 
@@ -535,7 +535,7 @@ void ExportImage(QString html_path, QString img_path) {
 }
 
 
-void ExportPdf(QString html_path, QString pdf_path)
+bool ExportPdf(QString html_path, QString pdf_path)
 {
     QFile::remove(pdf_path);
 
@@ -612,4 +612,7 @@ void ExportPdf(QString html_path, QString pdf_path)
 
     /* We will no longer be needing wkhtmltopdf funcionality */
     myassert(wkhtmltopdf_deinit());
+
+
+	return true;
 }
