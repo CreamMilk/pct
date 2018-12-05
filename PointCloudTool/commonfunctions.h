@@ -8,6 +8,7 @@
 #include <pcl/PointIndices.h>
 #include <QString>
 #include "types/mytypes.h"
+#include <MathGeoLibFwd.h>
 
 namespace pct
 {
@@ -63,7 +64,7 @@ namespace pct
     void LatLon2UTMXY(double &x, double &y, int zone = 0);
     double getLonDistance(float fLati1, float fLong1, float fLati2, float fLong2);
     void ExtractCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, pcl::PointIndicesPtr inices, pcl::PointCloud<pcl::PointXYZRGB>::Ptr out_cloud);
-	void ScreenshotHeightColor(pcl::PointCloud<pcl::PointXYZRGB>::Ptr  src_cloud, std::string pic_path);
+	void ScreenshotHeightColor(pcl::PointCloud<pcl::PointXYZRGB>::Ptr  src_cloud, QString pic_dir, math::vec *axis_vec);
 }
 
 

@@ -28,6 +28,7 @@
 #include <QFileInfo>
 #include "CoorConv.hpp"
 
+
 struct ClusterInfo{
     ClusterInfo() :radiu(0){};
     float radiu;
@@ -616,13 +617,20 @@ void pct::FindGroundIndices(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, pcl::P
     }
 }
 
-void pct::ScreenshotHeightColor(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud, std::string pic_path)
+void pct::ScreenshotHeightColor(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud, QString pic_dir, math::vec *axis_vec)
 {
+	if (nullptr == axis_vec)
+		return;
+
+	std::string hor_pic = (pic_dir + QStringLiteral("\\高程颜色侧视图.png")).toLocal8Bit().data();
+	std::string vec_pic = (pic_dir + QStringLiteral("\\高程颜色俯视图.png")).toLocal8Bit().data();
+
 	pcl::PointXYZRGB min;
 	pcl::PointXYZRGB max;
 	pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
 	pcl::copyPointCloud(*src_cloud, *cloud);
 	pcl::getMinMax3D(*cloud, min, max);
+	vec cen((min.x + max.x) / 2.f, (min.y + max.y) / 2.f, (min.z + max.z) / 2.f);
 
 	uchar staC[3] = { 0, 255, 255 };
 	uchar endC[3] = { 255, 0, 0 };
@@ -651,12 +659,25 @@ void pct::ScreenshotHeightColor(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud
 	view->setBackgroundColor(0,0,0);
 	view->addPointCloud<pcl::PointXYZRGB>(cloud, "HeightColorCloud");      // no need to add the handler, we use a random handler by default
 	view->resetCamera();
-	view->saveScreenshot(pic_path);
-	while (!view->wasStopped())
-	{
-		view->spinOnce(100);
-		boost::this_thread::sleep(boost::posix_time::microseconds(100000));
-	}
+
+	pcl::visualization::Camera camera;
+	view->getCameraParameters(camera);
+	float cameralen = (vec(camera.focal[0], camera.focal[1], camera.focal[2]) - vec(camera.pos[0], camera.pos[1], camera.pos[2])).Length();
+
+	math::vec horizontal_seevec = axis_vec[1];  // 全局水平观看方向
+	horizontal_seevec.z = 0;
+	horizontal_seevec = horizontal_seevec*cameralen + cen;
+	math::vec vertical_seevec = axis_vec[2];  // 全局垂直观看方向
+	vertical_seevec = vertical_seevec*cameralen + cen;
+	
+
+	// 水平观看方向
+	view->setCameraPosition(horizontal_seevec.x, horizontal_seevec.y, horizontal_seevec.z, cen.x, cen.y, cen.z, /*axis_vec[2].x, axis_vec[2].y, axis_vec[2].z*/0,0,1);
+	view->saveScreenshot(hor_pic);
+
+	// 垂直观看方向
+	view->setCameraPosition(vertical_seevec.x, vertical_seevec.y, vertical_seevec.z, cen.x, cen.y, cen.z, axis_vec[1].x, axis_vec[1].y,/* axis_vec[1].z*/0);
+	view->saveScreenshot(vec_pic);
 }
 
 void pct::colorClusters(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, std::vector <pcl::PointIndices>& jlClusters)
@@ -870,15 +891,15 @@ pct::LineInfo pct::lineInfoFactory(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud,
         info.sta += info.center;
         info.end += info.center;
 
-        int fitsize = ceil(Distance3d(info.end, info.sta) / block) + 1;
-        info.fit_pts.resize(fitsize);
-        info.fit_pts[0] = info.sta;
-        for (int i = 1; i < fitsize; ++i)
-        {
-            info.fit_pts[i] = info.sta + info.v*(block*i);
-            info.fit_pts[i].y = info.fit.getY(info.fit_pts[i].x - info.center.x) + info.center.y;
-            info.fit_pts[i].z = info.fit_z.getY(info.fit_pts[i].x - info.center.x) + info.center.z;
-        }
+        //int fitsize = ceil(Distance3d(info.end, info.sta) / block) + 1;
+        //info.fit_pts.resize(fitsize);
+        //info.fit_pts[0] = info.sta;
+        //for (int i = 1; i < fitsize; ++i)
+        //{
+        //    info.fit_pts[i] = info.sta + info.v*(block*i);
+        //    info.fit_pts[i].y = info.fit.getY(info.fit_pts[i].x - info.center.x) + info.center.y;
+        //    info.fit_pts[i].z = info.fit_z.getY(info.fit_pts[i].x - info.center.x) + info.center.z;
+        //}
     }
     else//y轴跨度大
     {
@@ -906,15 +927,15 @@ pct::LineInfo pct::lineInfoFactory(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud,
         info.sta += info.center;
         info.end += info.center;
 
-        int fitsize = ceil(Distance3d(info.end,info.sta) / block) + 1;
-        info.fit_pts.resize(fitsize);
-        info.fit_pts[0] = info.sta;
-        for (int i = 1; i < fitsize; ++i)
-        {
-            info.fit_pts[i] = info.sta + info.v*(block*i);
-            info.fit_pts[i].x = info.fit.getY(info.fit_pts[i].y - info.center.y) + info.center.x;
-            info.fit_pts[i].z = info.fit_z.getY(info.fit_pts[i].y - info.center.y) + info.center.z;
-        }
+		//int fitsize = ceil(Distance3d(info.end,info.sta) / block) + 1;
+		//info.fit_pts.resize(fitsize);
+		//info.fit_pts[0] = info.sta;
+		//for (int i = 1; i < fitsize; ++i)
+		//{
+		//    info.fit_pts[i] = info.sta + info.v*(block*i);
+		//    info.fit_pts[i].x = info.fit.getY(info.fit_pts[i].y - info.center.y) + info.center.x;
+		//    info.fit_pts[i].z = info.fit_z.getY(info.fit_pts[i].y - info.center.y) + info.center.z;
+		//}
     }
 
     return info;

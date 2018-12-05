@@ -80,7 +80,7 @@ namespace pct
         Vector3 v;
         Asix maxAsix;
         std::vector<Vector3> pts;
-        std::vector<Vector3> fit_pts;
+        //std::vector<Vector3> fit_pts;
         pcl::PointIndices indices;
         Fit fit;
         Fit fit_z;
