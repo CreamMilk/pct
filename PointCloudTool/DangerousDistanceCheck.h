@@ -21,7 +21,7 @@
      class CollisionBall
      {
      public:
-         CollisionBall(){ crashtype = 0; ground_distance = 0; overtoplimit = 0; };
+		 CollisionBall(){ crashtype = 0; ground_distance = 0; overtoplimit = 0; nearst_limit_type = 0; };
          double GetExtraBoxRadiu(const pcl::PointXYZRGB &pt);
          pcl::PointXYZRGB cen;  // 碰撞点
          pcl::PointXYZRGB min;
@@ -41,6 +41,8 @@
          std::string lineno;
          std::string id;
          std::string description;
+		 int nearst_limit_type;	// 0，地面  1，植被
+		 std::string nearst_limit_dir_type;	// 最近点的危险方向
 
          friend std::ostream& operator << (std::ostream&, CollisionBall&);  //运算符“<<”重载为友元函数
      };

@@ -21,6 +21,7 @@
 
 #include <QApplication>
 #include <QDir>
+#include <chrono>  
 
  DangerousDistanceCheck::DangerousDistanceCheck()
  {
@@ -134,7 +135,7 @@ void DangerousDistanceCheck::TooNearCheck()
      std::cout << "groundObject数量" << groundObject->size() << "\tsrc_cloud数量" << src_cloud_->size() << std::endl;
 
      pcl::PointCloud<pcl::PointXYZRGB>::Ptr allCrashPoint(new pcl::PointCloud<pcl::PointXYZRGB>);
-     std::vector<std::tuple<std::string, pcl::PointXYZRGB, pcl::PointXYZRGB, double, pcl::PointXYZRGB, unsigned int, bool>> all_crash_point_distance;
+     std::vector<std::tuple<std::string, pcl::PointXYZRGB, pcl::PointXYZRGB, double, pcl::PointXYZRGB, unsigned int, int>> all_crash_point_distance;
      std::set<int> redLine;
  #pragma omp parallel for
      for (int i = 0; i < lineClusters_.size(); ++i)
@@ -171,7 +172,7 @@ void DangerousDistanceCheck::TooNearCheck()
  
  
          // 得到此根线的最大相交范围点
-         std::vector<std::tuple<std::string, pcl::PointXYZRGB, pcl::PointXYZRGB, double, pcl::PointXYZRGB, unsigned int, bool>> crash_point_distance;
+         std::vector<std::tuple<std::string, pcl::PointXYZRGB, pcl::PointXYZRGB, double, pcl::PointXYZRGB, unsigned int, int>> crash_point_distance;
          pcl::PointCloud<pcl::PointXYZRGB>::Ptr crashPoint(new  pcl::PointCloud<pcl::PointXYZRGB>);
          for (int j = 0; j < serachLine->size(); ++j)
          {
@@ -256,7 +257,7 @@ void DangerousDistanceCheck::TooNearCheck()
                  int crash_type = 0;
                  int min_dis = std::numeric_limits<int>::max();
                  int max_dis = -std::numeric_limits<int>::max();
-				 bool nearst_is_ground_type = true;
+				 int nearst_limit_type = 0;
                  if (groundsqr_distances.size())
                  {
                      crash_type = crash_type | (int)CrashType::Ground  ;
@@ -264,7 +265,7 @@ void DangerousDistanceCheck::TooNearCheck()
                      max_dis = groundsqr_distances[(int)groundsqr_distances.size()-1];
                      crash_nearst_pt = ground->at(groundindices[0]);
                      crash_far_pt = ground->at(groundindices[(int)groundindices.size() - 1]);
-					 nearst_is_ground_type = true;
+					 nearst_limit_type = 0;
                  }
                  if (objectsqr_distances.size() )
                  {
@@ -273,7 +274,7 @@ void DangerousDistanceCheck::TooNearCheck()
                      {
                          min_dis = objectsqr_distances[0];
                          crash_nearst_pt = groundObject->at(objectindices[0]);
-						 nearst_is_ground_type = false;
+						 nearst_limit_type = 1;
                      }
                      if (objectsqr_distances[(int)objectsqr_distances.size() - 1] > max_dis)
                      {
@@ -282,7 +283,7 @@ void DangerousDistanceCheck::TooNearCheck()
                      }
                  }
                  crash_nearst_linept = serachLine->at(j);
-				 crash_point_distance.push_back(make_tuple(lineClusters_[i].getLineNo(), crash_nearst_linept, crash_nearst_pt, pct::Distance3d(crash_nearst_linept, crash_nearst_pt), crash_far_pt, crash_type, nearst_is_ground_type));
+				 crash_point_distance.push_back(make_tuple(lineClusters_[i].getLineNo(), crash_nearst_linept, crash_nearst_pt, pct::Distance3d(crash_nearst_linept, crash_nearst_pt), crash_far_pt, crash_type, nearst_limit_type));
 
                  // 保存碰撞点
                  crashPoint->push_back(crash_nearst_linept);
@@ -376,7 +377,7 @@ void DangerousDistanceCheck::TooNearCheck()
          float distance_float = -std::numeric_limits<int>::max();
 
          int nearst_index = -1;
-         std::tuple<std::string, pcl::PointXYZRGB, pcl::PointXYZRGB, double, pcl::PointXYZRGB, unsigned int, bool> traverse_tuple;
+         std::tuple<std::string, pcl::PointXYZRGB, pcl::PointXYZRGB, double, pcl::PointXYZRGB, unsigned int, int> traverse_tuple;
          for (int j = 0; j < cluster_indices[i].indices.size(); ++j)
          {
              traverse_tuple = all_crash_point_distance[cluster_indices[i].indices[j]];
@@ -399,33 +400,73 @@ void DangerousDistanceCheck::TooNearCheck()
          c.nearst.dis = std::get<3>(all_crash_point_distance[nearst_index]);
          c.nearst.subVec = vec(c.nearst.linept.x, c.nearst.linept.y, c.nearst.linept.z) - vec(c.nearst.otherpt.x, c.nearst.otherpt.y, c.nearst.otherpt.z);
          c.crashtype = std::get<5>(all_crash_point_distance[nearst_index]);
+		 c.nearst_limit_type = std::get<6>(all_crash_point_distance[nearst_index]);
 		 float hor_dis = pct::Distance2d(c.nearst.linept.x, c.nearst.linept.y, c.nearst.otherpt.x, c.nearst.otherpt.y);
 		 float vec_dis = std::abs(c.nearst.linept.z - c.nearst.otherpt.z);
 
 
 		 if ((c.crashtype & CrashType::Other) && (CrashType::Ground & c.crashtype))  // 如果是地面和地物同时碰撞
 		 {
-			 bool is_ground_near_type = std::get<6>(all_crash_point_distance[nearst_index]);
-			 if (is_ground_near_type == true)
+			 if (c.nearst_limit_type == 0)
 			 {
-				 c.overtoplimit = (std::max)((ground_horizontal_distance - hor_dis) / ground_horizontal_distance * 100,
-					 (ground_vertical_distance - vec_dis) / ground_vertical_distance * 100);
+				 float ground_hor_overlimit = ground_horizontal_distance == 0 ? 0 : ((ground_horizontal_distance - hor_dis) / ground_horizontal_distance * 100);
+				 float ground_vec_overlimit = ground_vertical_distance == 0 ? 0 : ((ground_vertical_distance - vec_dis) / ground_vertical_distance * 100);
+				 if (ground_hor_overlimit > ground_vec_overlimit)
+				 {
+					 c.nearst_limit_dir_type = "水平";
+					 c.overtoplimit = ground_hor_overlimit;
+				 }
+				 else
+				 {
+					 c.nearst_limit_dir_type = "垂直";
+					 c.overtoplimit = ground_vec_overlimit;
+				 }
 			 }
 			 else
 			 {
-				 c.overtoplimit = (std::max)((object_horizontal_distance - hor_dis) / object_horizontal_distance * 100,
-					 (object_vertical_distance - vec_dis) / object_vertical_distance * 100);
+				 float object_hor_overlimit = object_horizontal_distance == 0 ? 0 : ((object_horizontal_distance - hor_dis) / object_horizontal_distance * 100);
+				 float object_vec_overlimit = object_vertical_distance == 0 ? 0 : ((object_vertical_distance - vec_dis) / object_vertical_distance * 100);
+				 if (object_hor_overlimit > object_vec_overlimit)
+				 {
+					 c.nearst_limit_dir_type = "水平";
+					 c.overtoplimit = object_hor_overlimit;
+				 }
+				 else
+				 {
+					 c.nearst_limit_dir_type = "垂直";
+					 c.overtoplimit = object_vec_overlimit;
+				 }
 			 }			
 		 }
 		 else if (c.crashtype & CrashType::Other)
 		 {
-			 c.overtoplimit = (std::max)((object_horizontal_distance - hor_dis) / object_horizontal_distance * 100,
-				 (object_vertical_distance - vec_dis) / object_vertical_distance * 100);
+			 float object_hor_overlimit = object_horizontal_distance == 0 ? 0 : ((object_horizontal_distance - hor_dis) / object_horizontal_distance * 100);
+			 float object_vec_overlimit = object_vertical_distance == 0 ? 0 : ((object_vertical_distance - vec_dis) / object_vertical_distance * 100);
+			 if (object_hor_overlimit > object_vec_overlimit)
+			 {
+				 c.nearst_limit_dir_type = "水平";
+				 c.overtoplimit = object_hor_overlimit;
+			 }
+			 else
+			 {
+				 c.nearst_limit_dir_type = "垂直";
+				 c.overtoplimit = object_vec_overlimit;
+			 }
 		 }
 		 else if (CrashType::Ground & c.crashtype)  // 
 		 {
-			 c.overtoplimit = (std::max)((ground_horizontal_distance - hor_dis) / ground_horizontal_distance * 100,
-				 (ground_vertical_distance - vec_dis) / ground_vertical_distance * 100);
+			 float ground_hor_overlimit = ground_horizontal_distance == 0 ? 0 : ((ground_horizontal_distance - hor_dis) / ground_horizontal_distance * 100);
+			 float ground_vec_overlimit = ground_vertical_distance == 0 ? 0 : ((ground_vertical_distance - vec_dis) / ground_vertical_distance * 100);
+			 if (ground_hor_overlimit > ground_vec_overlimit)
+			 {
+				 c.nearst_limit_dir_type = "水平";
+				 c.overtoplimit = ground_hor_overlimit;
+			 }
+			 else
+			 {
+				 c.nearst_limit_dir_type = "垂直";
+				 c.overtoplimit = ground_vec_overlimit;
+			 }
 		 }
 
 
@@ -537,9 +578,22 @@ void DangerousDistanceCheck::showNearCheck()
     QString pic_dir = QString::fromLocal8Bit(setting.outputdir.c_str()) +  QStringLiteral("\\images");
 	if (QFileInfo(pic_dir).exists())
 	{
-		pct::DelDir(pic_dir);
+		auto start = std::chrono::system_clock::now();
+		while (!pct::DelDir(pic_dir))
+		{
+			std::cout << "pct::DelDir(pic_dir)" << std::endl;
+			if(std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - start).count() > 10)
+				break;
+		}
 	}
-    QDir().mkpath(pic_dir);
+	auto start = std::chrono::system_clock::now();
+	while (!QDir().mkpath(pic_dir))
+	{
+		std::cout << "QDir().mkpath(pic_dir)" << std::endl;
+		if (std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - start).count() > 10)
+			break;
+	}
+
     // 准备点云信息
     boost::shared_ptr<pcl::visualization::PCLVisualizer> view(new pcl::visualization::PCLVisualizer("test"));
 
@@ -697,7 +751,9 @@ void DangerousDistanceCheck::showNearCheck()
     pt.put("图例颜色.地面", setting.cls_strcolor(ground_str));
     pt.put("图例颜色.铁塔", setting.cls_strcolor(tower_str));
     pt.put("图例颜色.电力线", setting.cls_strcolor(power_line_str));
-    pt.put("图例颜色.植被", setting.cls_strcolor(veget_str));
+	pt.put("图例颜色.植被", setting.cls_strcolor(veget_str));
+	pt.put("图例颜色.危险电力线", setting.cls_strcolor(crash_line_str));
+	pt.put("图例颜色.危险植被或地面", setting.cls_strcolor(crash_other_str));
     pt.put("xy平面图路径", "images/总图.png");
 	pt.put("高程颜色俯视图路径", "images/高程颜色俯视图.png");
 	pt.put("高程颜色侧视图路径", "images/高程颜色侧视图.png");
@@ -742,6 +798,13 @@ void DangerousDistanceCheck::showNearCheck()
          errpt_child.put("垂直距离", sstr.str());
          streamCat<double>(sstr, balls_[i].ground_distance);
          errpt_child.put("对地距离", sstr.str());
+
+
+
+		 streamCat<std::string>(sstr, (balls_[i].nearst_limit_type == 0 ? "地面" : "植被" ));
+		 errpt_child.put("超限类型", sstr.str());
+		 streamCat<std::string>(sstr, balls_[i].nearst_limit_dir_type);
+		 errpt_child.put("超限方向", sstr.str());
          streamCat<double>(sstr, balls_[i].overtoplimit);
          errpt_child.put("超限率", sstr.str());
          streamCat<std::string>(sstr, std::string("images") + "/局部碰撞" + QString::number(i + 1).toLocal8Bit().data() + ".png");

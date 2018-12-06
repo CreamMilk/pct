@@ -17,7 +17,7 @@
 	"arrow":"255,0,0"
   },
   "dangerdistance":{
-	"ground":"0.5, 15",
+	"ground":"0, 15",
 	"veget":"10, 10",
 	"budding":"-, -"
   },
