@@ -9,6 +9,17 @@ class MainControl : public QMainWindow
 
 public:
 	MainControl(QWidget *parent = Q_NULLPTR);
+	
+public slots:
+void CloudGetCloudsDir();
+void CloudGetTowersDir();
+void CloudRun();
+void CloudOpenResultDir();
+void UpLoad();
+
+void BirdGetBirdDir();
+void BirdRun();
+void BirdOpenResultDir();
 
 private:
 	Ui::MainControlClass ui;
