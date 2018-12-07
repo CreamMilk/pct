@@ -11,6 +11,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PdfReport", "PdfReport\PdfR
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MergePointCloud", "MergePointCloud\MergePointCloud.vcxproj", "{40089B44-73E4-4982-A4C6-8B98DF237B8F}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MainControl", "MainControl\MainControl.vcxproj", "{6253243C-96A7-403C-8860-414428B9FC24}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -44,6 +46,12 @@ Global
 		{40089B44-73E4-4982-A4C6-8B98DF237B8F}.Release|Win32.ActiveCfg = Release|x64
 		{40089B44-73E4-4982-A4C6-8B98DF237B8F}.Release|x64.ActiveCfg = Release|x64
 		{40089B44-73E4-4982-A4C6-8B98DF237B8F}.Release|x64.Build.0 = Release|x64
+		{6253243C-96A7-403C-8860-414428B9FC24}.Debug|Win32.ActiveCfg = Debug|x64
+		{6253243C-96A7-403C-8860-414428B9FC24}.Debug|x64.ActiveCfg = Debug|x64
+		{6253243C-96A7-403C-8860-414428B9FC24}.Debug|x64.Build.0 = Debug|x64
+		{6253243C-96A7-403C-8860-414428B9FC24}.Release|Win32.ActiveCfg = Release|x64
+		{6253243C-96A7-403C-8860-414428B9FC24}.Release|x64.ActiveCfg = Release|x64
+		{6253243C-96A7-403C-8860-414428B9FC24}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

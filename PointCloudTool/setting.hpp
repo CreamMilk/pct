@@ -123,7 +123,8 @@ namespace pct
         std::string exceldir; // 纠偏塔数据目录 [std::string]
         bool overrideExcel;  // 是否覆盖源excel [bool]
         bool stampcorrectcell;  // 是否标记修改cell [bool]
-
+		QString tower_excle;
+		QString line_excel;
     };
   
 

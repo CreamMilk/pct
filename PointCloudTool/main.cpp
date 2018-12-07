@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
     vtkOpenGLRenderWindow::SetGlobalMaximumNumberOfMultiSamples(8); //1     
 
     srand((unsigned int)time(NULL));
-    const pct::Setting & setting = pct::Setting::ins();
+    pct::Setting & setting = pct::Setting::ins();
     bool priorityClassif = setting.pt.get_optional<bool>(pct::to_utf8(pct::String2WString("先分类后提取地面"))).value();
 
 
@@ -137,6 +137,8 @@ int main(int argc, char *argv[])
 
         pct::io::Load_las(src_cloud, setting.outputdir + "\\classif.las");
         ExtractLinesAndTower(src_cloud, cloud_indices, ground_indices, otheCluster, lineClusters, towerClusters, vegetClusters);
+		setting.tower_excle = QString::fromLocal8Bit((setting.outputdir + "\\" + pct::ExtractExeName(setting.inputfile) + "铁塔.xlsx").c_str());
+		setting.line_excel = QString::fromLocal8Bit((setting.outputdir + "\\" + pct::ExtractExeName(setting.inputfile) + "电力线.xlsx").c_str());
         SaveTowers(QString::fromLocal8Bit((setting.outputdir + "\\" + pct::ExtractExeName(setting.inputfile) + "铁塔.xlsx").c_str()), towerClusters);
         SaveLines(QString::fromLocal8Bit((setting.outputdir + "\\" + pct::ExtractExeName(setting.inputfile) + "电力线.xlsx").c_str()), lineClusters);
         std::cout << "ExtractLinesAndTower end：end end" << std::endl;
@@ -189,22 +191,43 @@ int main(int argc, char *argv[])
             ExtractLinesAndTower(src_cloud, cloud_indices, ground_indices, otheCluster, lineClusters, towerClusters, vegetClusters);
 
             QFileInfo inputfile_info(QString::fromLocal8Bit(setting.inputfile.c_str()));
-            QString tower_excle = QDir::toNativeSeparators(inputfile_info.absolutePath() + QStringLiteral("\\") + inputfile_info.baseName() + QStringLiteral("\\") + inputfile_info.baseName() + QStringLiteral("铁塔.xlsx"));
-            QString line_excel = QDir::toNativeSeparators(inputfile_info.absolutePath() + QStringLiteral("\\") + inputfile_info.baseName() + QStringLiteral("\\") + inputfile_info.baseName() + QStringLiteral("电力线.xlsx"));
+            setting.tower_excle = QDir::toNativeSeparators(inputfile_info.absolutePath() + QStringLiteral("\\") + inputfile_info.baseName() + QStringLiteral("\\") + inputfile_info.baseName() + QStringLiteral("铁塔.xlsx"));
+			setting.line_excel = QDir::toNativeSeparators(inputfile_info.absolutePath() + QStringLiteral("\\") + inputfile_info.baseName() + QStringLiteral("\\") + inputfile_info.baseName() + QStringLiteral("电力线.xlsx"));
 
-            std::cout << "tower_excle" << tower_excle.toLocal8Bit().data() << std::endl;
-            std::cout << "line_excel" << line_excel.toLocal8Bit().data() << std::endl;
+			std::cout << "tower_excle" << setting.tower_excle.toLocal8Bit().data() << std::endl;
+			std::cout << "line_excel" << setting.line_excel.toLocal8Bit().data() << std::endl;
 
-            SaveTowers(tower_excle, towerClusters);
-            SaveLines(line_excel, lineClusters);
+			SaveTowers(setting.tower_excle, towerClusters);
+			SaveLines(setting.line_excel, lineClusters);
 
-            PositionCorrection(tower_excle);
+
+
+			std::cout << "ExtractLinesAndTower end：end end" << std::endl;
+			checkLinesDistanceDangerous(src_cloud, ground_indices, vegetClusters, lineClusters, towerClusters);
+
+			// 导出pdf
+			std::string pdfexe_path = setting.appdir + "PdfReport\\PdfReport.exe";
+			std::string json_path = setting.outputdir + "\\" + pct::ExtractExeName(setting.inputfile) + "检测结果.json";
+			if (!boost::filesystem::exists(boost::filesystem::path(pdfexe_path)))
+			{
+				std::cout << "未能找到 " << pdfexe_path << "，导出pdf失败！";
+				return EXIT_FAILURE;
+			}
+			else
+			{
+				std::string cmd_str = pdfexe_path + " --jsonpath " + json_path;
+				//system(cmd_str.c_str());
+				WinExec(cmd_str.c_str(), SW_HIDE);
+				std::cout << cmd_str << "\n导出pdf成功！";
+			}
+
+			PositionCorrection(setting.tower_excle);
         }
         else
         {
             QFileInfo inputfile_info(QString::fromLocal8Bit(setting.inputfile.c_str()));
-            QString tower_excle = QDir::toNativeSeparators(inputfile_info.absolutePath() + QStringLiteral("\\") + inputfile_info.baseName() + QStringLiteral("铁塔.xlsx"));
-            PositionCorrection(tower_excle);
+			setting.tower_excle = QDir::toNativeSeparators(inputfile_info.absolutePath() + QStringLiteral("\\") + inputfile_info.baseName() + QStringLiteral("铁塔.xlsx"));
+			PositionCorrection(setting.tower_excle);
         }
     }
     else

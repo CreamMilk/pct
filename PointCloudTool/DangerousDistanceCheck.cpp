@@ -600,6 +600,7 @@ void DangerousDistanceCheck::showNearCheck()
     view->setBackgroundColor(background_r / 255.0, background_g / 255.0, background_b / 255.0);
     pcl::PointXYZRGB cloudmin, cloudmax;
     pcl::getMinMax3D(*src_cloud_, cloudmin, cloudmax);
+	pcl::PointXYZRGB latlon_cloudmid = pct::GetMiddlePoint(cloudmin, cloudmax);
     float aabb_subz = cloudmax.z - cloudmin.z;
     vec axis_vec[3];
     vec axis_r;
@@ -757,6 +758,21 @@ void DangerousDistanceCheck::showNearCheck()
     pt.put("xy平面图路径", "images/总图.png");
 	pt.put("高程颜色俯视图路径", "images/高程颜色俯视图.png");
 	pt.put("高程颜色侧视图路径", "images/高程颜色侧视图.png");
+
+	pct::UTMXY2LatLon(latlon_cloudmid.x, latlon_cloudmid.y);
+	streamCat<std::string>(sstr, QStringLiteral("%1,%2,%3").arg(latlon_cloudmid.x).arg(latlon_cloudmid.y).arg(latlon_cloudmid.z).toLocal8Bit().data());
+	pt.put("点云中心点", sstr.str());
+
+	std::vector <std::tuple<int, double, double, double>> towers;
+	pct::LoadTowers(setting.tower_excle, towers);
+	for (int i = 0; i < towers.size(); ++i)
+	{
+		std::string key = std::string("铁塔位置.") + QString::number(std::get<0>(towers[i])).toLocal8Bit().data();
+		std::string val = (QString::number(std::get<1>(towers[i])) + QStringLiteral(",") + QString::number(std::get<2>(towers[i])) 
+			+ QStringLiteral(",") + QString::number(std::get<3>(towers[i]))).toLocal8Bit().data();
+		pt.put(key, val);
+	}
+
     boost::property_tree::ptree errpt_array;
 
     std::cout << "遍历balls" << balls_.size() << std::endl;
@@ -790,6 +806,19 @@ void DangerousDistanceCheck::showNearCheck()
          else
              streamCat<std::string>(sstr, "");
          errpt_child.put("隐患类型", sstr.str());
+
+
+		 pcl::PointXYZRGB latlon_nearst_linept = balls_[i].nearst.linept;
+		 pcl::PointXYZRGB latlon_nearst_otherpt = balls_[i].nearst.otherpt;
+		 pct::UTMXY2LatLon(latlon_nearst_linept.x, latlon_nearst_linept.y);
+		 pct::UTMXY2LatLon(latlon_nearst_otherpt.x, latlon_nearst_otherpt.y);
+
+		 streamCat<std::string>(sstr, QStringLiteral("%1,%2,%3").arg(latlon_nearst_linept.x).arg(latlon_nearst_linept.y).arg(latlon_nearst_linept.z).toLocal8Bit().data());
+		 errpt_child.put("最近隐患.电力线点", sstr.str());
+		 streamCat<std::string>(sstr, QStringLiteral("%1,%2,%3").arg(latlon_nearst_otherpt.x).arg(latlon_nearst_otherpt.y).arg(latlon_nearst_otherpt.z).toLocal8Bit().data());
+		 errpt_child.put("最近隐患.其他点", sstr.str());
+
+
          streamCat<double>(sstr, balls_[i].nearst.dis);
          errpt_child.put("隐患距离", sstr.str());
          streamCat<double>(sstr, pct::Distance2d(balls_[i].nearst.linept, balls_[i].nearst.otherpt));
@@ -798,9 +827,6 @@ void DangerousDistanceCheck::showNearCheck()
          errpt_child.put("垂直距离", sstr.str());
          streamCat<double>(sstr, balls_[i].ground_distance);
          errpt_child.put("对地距离", sstr.str());
-
-
-
 		 streamCat<std::string>(sstr, (balls_[i].nearst_limit_type == 0 ? "地面" : "植被" ));
 		 errpt_child.put("超限类型", sstr.str());
 		 streamCat<std::string>(sstr, balls_[i].nearst_limit_dir_type);

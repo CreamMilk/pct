@@ -26,6 +26,8 @@
 #include "pctio.h"
 #include <QDir>
 #include <QFileInfo>
+#include <QAxObject>
+#include <QAxWidget>
 #include "CoorConv.hpp"
 
 
@@ -300,12 +302,21 @@ bool pct::combineTrainXmlFiles(std::vector<std::string> xmls, std::string dst_xm
 #endif
     return true;
 }
+
 void pct::UTMXY2LatLon(double &x, double &y, int zone, bool southhemi)
 {
     CoorConv::WGS84Corr latlon;
     CoorConv::UTMXYToLatLon(x, y, zone, southhemi, latlon);
     x = CoorConv::RadToDeg(latlon.log);
     y = CoorConv::RadToDeg(latlon.lat); 
+}
+
+void pct::UTMXY2LatLon(float &x, float &y, int zone, bool southhemi)
+{
+	CoorConv::WGS84Corr latlon;
+	CoorConv::UTMXYToLatLon(x, y, zone, southhemi, latlon);
+	x = CoorConv::RadToDeg(latlon.log);
+	y = CoorConv::RadToDeg(latlon.lat);
 }
 
 void pct::LatLon2UTMXY(double &x, double &y, int zone)
@@ -348,6 +359,15 @@ void pct::ExtractCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, pcl::PointI
     extract.setInputCloud(cloud);
     extract.setIndices(inices);
     extract.filter(*out_cloud);
+}
+
+pcl::PointXYZRGB pct::GetMiddlePoint(pcl::PointXYZRGB min, pcl::PointXYZRGB max)
+{
+	pcl::PointXYZRGB mid;
+	mid.x = min.x + max.x;
+	mid.y = min.y + max.y;
+	mid.z = min.z + max.z;
+	return mid;
 }
 
 void pct::simpleAndOutlierRemoval(std::string inputfile, std::string outputfile, float gridsize, int model)
@@ -939,6 +959,51 @@ pct::LineInfo pct::lineInfoFactory(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud,
     }
 
     return info;
+}
+
+void pct::LoadTowers(QString filepath, std::vector <std::tuple<int, double, double, double>> &towerClusters)
+{
+	std::cout << "LoadTowers()" << filepath.toLocal8Bit().data() << std::endl;
+	if (!QFile(filepath).exists())
+	{
+		std::cout << "void LoadTowers()  !QFile(filepath).exists()" << std::endl;
+		return;
+	}
+	HRESULT r = OleInitialize(0);
+	if (r != S_OK && r != S_FALSE) {
+		qWarning("Qt: Could not initialize OLE (error %x)", (unsigned int)r);
+	}
+	std::cout << "LoadTowers filepath" << filepath.toLocal8Bit().data() << std::endl;
+	QAxObject excel("Excel.Application");
+	excel.setProperty("DisplayAlerts", false);//不显示任何警告信息
+	excel.setProperty("Visible", false); //隐藏打开的excel文件界面
+	QAxObject *workbooks = excel.querySubObject("WorkBooks");
+	QAxObject *workbook = workbooks->querySubObject("Open(QString, QVariant)", filepath); //打开文件
+	QAxObject * worksheet = workbook->querySubObject("WorkSheets(int)", 1); //访问第一个工作表
+	QAxObject * usedrange = worksheet->querySubObject("UsedRange");
+	QAxObject * rows = usedrange->querySubObject("Rows");
+	int intRows = rows->property("Count").toInt(); //行数
+
+	QString Range = "A2:D" + QString::number(intRows);
+	QAxObject *allEnvData = worksheet->querySubObject("Range(QString)", Range); //读取范围
+	QVariant allEnvDataQVariant = allEnvData->property("Value");
+	QVariantList allEnvDataList = allEnvDataQVariant.toList();
+
+	std::cout << "LoadTowers intRows" << intRows << std::endl;
+	for (int i = 0; i < intRows - 1; i++)
+	{
+		QVariantList allEnvDataList_i = allEnvDataList[i].toList();
+
+		int serial = allEnvDataList_i[0].toString().toInt();
+		double log = allEnvDataList_i[1].toDouble();
+		double lat = allEnvDataList_i[2].toDouble();
+		double z = allEnvDataList_i[3].toDouble();
+		towerClusters.push_back(std::tuple<int, double, double, double>(serial, log, lat, z));
+	}
+
+	workbook->dynamicCall("Close (Boolean)", false);
+	excel.dynamicCall("Quit()");
+	OleUninitialize();
 }
 
 bool pct::LikePowerLine(pct::LineInfo &line, int min_length /*= 5*/, double error_probability /*= 0.1*/
