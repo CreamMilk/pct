@@ -29,12 +29,14 @@
       <SourceControlFiles>False</SourceControlFiles>
     </Filter>
     <Filter Include="Generated Files\Debug">
-      <UniqueIdentifier>{9a82e940-dc30-4ffa-99d2-3d2e7236eaae}</UniqueIdentifier>
+      <UniqueIdentifier>{7c2920fb-82e0-4d4e-bc13-17c16318112a}</UniqueIdentifier>
       <Extensions>cpp;moc</Extensions>
       <SourceControlFiles>False</SourceControlFiles>
     </Filter>
     <Filter Include="Generated Files\Release">
-      <UniqueIdentifier>{14f5bfd3-00a7-456b-b4c8-0105d7090410}</UniqueIdentifier>
+      <UniqueIdentifier>{66756839-d9a2-4fc5-a788-651d3cb29558}</UniqueIdentifier>
+      <Extensions>cpp;moc</Extensions>
+      <SourceControlFiles>False</SourceControlFiles>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -47,20 +49,33 @@
     <ClCompile Include="GeneratedFiles\Debug\moc_MainControl.cpp">
       <Filter>Generated Files\Debug</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <QtUic Include="MainControl.ui">
-      <Filter>Form Files</Filter>
-    </QtUic>
-  </ItemGroup>
-  <ItemGroup>
-    <QtRcc Include="MainControl.qrc">
-      <Filter>Resource Files</Filter>
-    </QtRcc>
+    <ClCompile Include="GeneratedFiles\Release\moc_MainControl.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\qrc_MainControl.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CommonFuns.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="MainControl.h">
       <Filter>Header Files</Filter>
     </CustomBuild>
+    <CustomBuild Include="MainControl.ui">
+      <Filter>Form Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="MainControl.qrc">
+      <Filter>Resource Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="GeneratedFiles\ui_MainControl.h">
+      <Filter>Generated Files</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="CommonFuns.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
