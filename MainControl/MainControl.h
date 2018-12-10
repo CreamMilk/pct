@@ -15,7 +15,7 @@ protected:
 	virtual void closeEvent(QCloseEvent *event) override;
 
 public slots:
-void onReadOutput(QPrivateSignal);
+void onReadOutput();
 
 
 void CloudGetCloudsDir();
