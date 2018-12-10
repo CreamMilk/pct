@@ -13,6 +13,7 @@
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/foreach.hpp>
 #include "CommonFuns.h"
+#include <QProcess>
 
 MainControl::MainControl(QWidget *parent)
 	: QMainWindow(parent)
@@ -20,6 +21,7 @@ MainControl::MainControl(QWidget *parent)
 	ui.setupUi(this);
 	LoadSetting();
 }
+
 
 void MainControl::SaveSetting()
 {
@@ -122,7 +124,21 @@ void MainControl::CloudGetTowersDir()
 
 void MainControl::CloudRun()
 {
+	QProcess _process;
 
+	connect(&_process, &QProcess::readyReadStandardOutput, this, &MainControl::onReadOutput);
+	connect(&_process, &QProcess::readyReadStandardError, this, &MainControl::onReadOutput);
+	//connect(&_process, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(onFinished(int, QProcess::ExitStatus)));
+
+	QString cmd = QString("ping localhost");
+	_process.start(cmd);
+}
+
+void MainControl::onReadOutput()
+{
+	static int i = 0;
+	i++;
+	setWindowTitle(QString::number(i));
 }
 
 void MainControl::CloudOpenResultDir()
