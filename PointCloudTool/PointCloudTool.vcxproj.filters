@@ -66,6 +66,9 @@
     <ClCompile Include="types\mytypes.cpp">
       <Filter>Types</Filter>
     </ClCompile>
+    <ClCompile Include="GeoCoordinateSystem.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="setting.hpp">
@@ -100,6 +103,9 @@
     </ClInclude>
     <ClInclude Include="CoorConv.hpp">
       <Filter>others</Filter>
+    </ClInclude>
+    <ClInclude Include="GeoCoordinateSystem.h">
+      <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

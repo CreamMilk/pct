@@ -89,6 +89,7 @@
   <ItemGroup>
     <ClCompile Include="Classification\Point_set_item_classification.cpp" />
     <ClCompile Include="DangerousDistanceCheck.cpp" />
+    <ClCompile Include="GeoCoordinateSystem.cpp" />
     <ClCompile Include="kdtree.cpp" />
     <ClCompile Include="pctio.cpp" />
     <ClCompile Include="main.cpp" />
@@ -112,6 +113,7 @@
     <ClInclude Include="CoorConv.hpp" />
     <ClInclude Include="DangerousDistanceCheck.h" />
     <ClInclude Include="dbscan.h" />
+    <ClInclude Include="GeoCoordinateSystem.h" />
     <ClInclude Include="kdtree.h" />
     <ClInclude Include="mydef.h" />
     <ClInclude Include="commonfunctions.h" />

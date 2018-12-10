@@ -29,6 +29,7 @@
 #include <QAxObject>
 #include <QAxWidget>
 #include "CoorConv.hpp"
+#include "GeoCoordinateSystem.h"
 
 
 struct ClusterInfo{
@@ -302,6 +303,72 @@ bool pct::combineTrainXmlFiles(std::vector<std::string> xmls, std::string dst_xm
 #endif
     return true;
 }
+
+// 经纬高
+//   void pct::LBHtoXYZ(float &xx, float &yy, float &zz)
+//   {
+//  	 double x = xx;
+//  	 double y = yy;
+//  	 double z = zz;
+//  	 CGeoCoordinateSystem::LonLat2ECI(xx, yy, zz, x, y, z);
+//  	 xx = x;
+//  	 yy = y;
+//  	 zz = z;
+//   }
+
+// 经纬高
+void pct::LBHtoXYZ(float &xx, float &yy, float &zz)
+{
+	int l1, l2, b1, b2;
+	double l3, b3, L, B, H, X, Y, Z, N;
+
+	double PI = 3.1415926;//圆周率
+	double a = 6378137;//长半径
+	double f = 1 / 298.257222101;//扁率
+	double b = a - f * a;//短半径
+	double e2 = (a*a - b * b) / (a*a);//e为第一偏心率
+
+	H = zz;
+	L = xx;
+	B = yy;
+	N = a / sqrt(1 - e2 * sin(B)*sin(B));
+	X = (N + H)*cos(B)*cos(L);
+	Y = (N + H)*cos(B)*sin(L);
+	Z = (N*(1 - e2) + H)*sin(B);
+
+	xx = X;
+	yy = Y;
+	zz = Z;
+}
+
+// void pct::LBHtoXYZ(float &xx, float &yy, float &zz)
+// {
+// 	double PI = 3.14159265;//圆周率
+// 	double longitude = xx;
+// 	double latitude = yy;
+// 	double altitude = zz;
+// 
+// 	const double EquatorRadius = 6378137.0;//赤道半径;
+// 	const double PolarRadius = 6356752.3142;//极半径;
+// 	const double Eccentricity = (EquatorRadius - PolarRadius) / EquatorRadius;//偏心率;
+// 	const double EccentricitySquared = 2 * Eccentricity - Eccentricity*Eccentricity;//偏心率的平方;
+// 
+// 	const double LongRadius = 149600000000.0;
+// 	const double ShortRadius = 149580000000.0;
+// 	const double LSPro = LongRadius / ShortRadius;
+// 	const double Modulus = 1.0 - LSPro * LSPro;
+// 
+// 	
+// 	double sin_lat = sin(latitude / 180 * PI);
+// 	double cos_lat = cos(latitude / 180 * PI);
+// 
+// 	double radius = EquatorRadius / sqrt(1.0 - EccentricitySquared * sin_lat*sin_lat);
+// 
+// 	xx = (radius * (1 - EccentricitySquared) + altitude)*sin_lat;
+// 	yy = (radius + altitude) * cos_lat * cos(longitude / 180 * PI);
+// 	zz = (radius + altitude) * cos_lat * sin(longitude / 180 * PI);
+// }
+
 
 void pct::UTMXY2LatLon(double &x, double &y, int zone, bool southhemi)
 {

@@ -32,7 +32,7 @@ namespace pct
     QString GetFileDir(std::string file_path);
     std::string ExtractExeName(const std::string &input);
     bool combineTrainXmlFiles(std::vector<std::string> xmls, std::string dst_xml);
-    void simpleAndOutlierRemoval(std::string inputfile, std::string outputfile, float gridsize, int model = 0);
+	void simpleAndOutlierRemoval(std::string inputfile, std::string outputfile, float gridsize, int model = 0);
 
 	void OutlierRemoval(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, int liqunK = 10, double avgDistance = 10, pcl::PointIndicesPtr cloud_indices = nullptr);
     void colorClusters(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, std::vector <pcl::PointIndices>& jlClusters);
@@ -68,6 +68,7 @@ namespace pct
 	pcl::PointXYZRGB GetMiddlePoint(pcl::PointXYZRGB min, pcl::PointXYZRGB max);
 	void ScreenshotHeightColor(pcl::PointCloud<pcl::PointXYZRGB>::Ptr  src_cloud, QString pic_dir, math::vec *axis_vec);
 	void LoadTowers(QString filepath, std::vector <std::tuple<int, double, double, double>> &towerClusters);
+	void LBHtoXYZ(float &xx, float &yy, float &zz);
 }
 
 

@@ -53,6 +53,7 @@ void SaveTowers(QString filepath, std::vector <pct::TowerInfo> &towerClusters);
 void SaveLines(QString filepath, std::vector <pct::LineInfo> &towerClusters);
 void PositionCorrection(QString tower_excel);
 void LoadTowers(QString filepath, std::vector <std::tuple<double, double>> &towerClusters);
+void SaveGeoLas(std::string inputname, std::string outputname);
 
 int main(int argc, char *argv[])
 {
@@ -88,7 +89,7 @@ int main(int argc, char *argv[])
 
         // ³éÏ¡  
         pct::simpleAndOutlierRemoval(setting.inputfile, setting.outputdir + "\\simple.las", setting.gridsize, setting.value<int>("simplify"));
-
+		SaveGeoLas(setting.outputdir + "\\simple.las", setting.outputdir + "\\geoCoordinate.las");
         if (priorityClassif)
         {
             classif();
@@ -121,6 +122,7 @@ int main(int argc, char *argv[])
 
         // ³éÏ¡  
         pct::simpleAndOutlierRemoval(setting.inputfile, setting.outputdir + "\\simple.las", setting.gridsize, setting.value<int>("simplify"));
+		SaveGeoLas(setting.outputdir + "\\simple.las", setting.outputdir + "\\geoCoordinate.las");
 
         if (priorityClassif)
         {
@@ -173,6 +175,7 @@ int main(int argc, char *argv[])
             pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
             // ³éÏ¡  
             pct::simpleAndOutlierRemoval(setting.inputfile, setting.outputdir + "\\simple.las", setting.gridsize, setting.value<int>("simplify"));
+			SaveGeoLas(setting.outputdir + "\\simple.las", setting.outputdir + "\\geoCoordinate.las");
 
             if (priorityClassif)
             {
@@ -391,6 +394,20 @@ void LoadTowers(QString filepath, std::vector <std::tuple<double, double>> &towe
     workbook->dynamicCall("Close (Boolean)", false);
     excel.dynamicCall("Quit()");
     OleUninitialize();
+}
+
+void SaveGeoLas(std::string inputname, std::string outputname)
+{
+	pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
+	pct::io::Load_las(cloud, inputname);
+	pcl::PointXYZRGB * tmp_pt;
+	for (int i = 0; i < cloud->size(); ++i)
+	{
+		tmp_pt = &cloud->at(i);
+		pct::UTMXY2LatLon(tmp_pt->x, tmp_pt->y);
+		pct::LBHtoXYZ(tmp_pt->x, tmp_pt->y, tmp_pt->z);
+	}
+	pct::io::save_las(cloud, outputname);
 }
 
 void SaveTowers(QString filepath, std::vector <pct::TowerInfo> &towerClusters)
