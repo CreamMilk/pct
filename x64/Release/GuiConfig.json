@@ -1,11 +1,12 @@
 {
     "线路名称": "1",
     "分段区间": "1",
-    "电压等级": "松岛枫啊 a",
-    "采集日期": "",
+    "电压等级": "2",
+    "采集日期": "2",
     "点云": {
-        "点云目录": "",
-        "铁塔数据目录": "",
-        "结果目录": ""
+        "点云路径": "F:\/project\/powerline\/solution\/pct\/x64\/Release\/testdata\/00.las",
+        "铁塔数据目录": "F:\/project\/powerline\/solution\/pct\/x64\/Release\/testdata\/铁塔纠偏数据",
+        "结果目录": "F:\/project\/powerline\/solution\/pct\/x64\/Release\/testdata\/00",
+        "样本目录": "F:\/project\/powerline\/solution\/pct\/x64\/Release\/classdir"
     }
 }

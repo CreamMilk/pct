@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>715</width>
-    <height>410</height>
+    <height>492</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -162,12 +162,12 @@
              </size>
             </property>
             <property name="text">
-             <string>点云目录：</string>
+             <string>点云路径：</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QLineEdit" name="lineEdit_Cloud_CloudDir">
+           <widget class="QLineEdit" name="lineEdit_Cloud_CloudPath">
             <property name="readOnly">
              <bool>true</bool>
             </property>
@@ -226,6 +226,49 @@
          </layout>
         </item>
         <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_12">
+          <item>
+           <widget class="QLabel" name="label_14">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>84</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>84</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>样本目录：</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="lineEdit_Cloud_ClassDir">
+            <property name="readOnly">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButton_11">
+            <property name="text">
+             <string>选择路径</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
          <layout class="QHBoxLayout" name="horizontalLayout_6">
           <item>
            <widget class="QLabel" name="label_4">
@@ -262,7 +305,24 @@
          </layout>
         </item>
         <item>
-         <widget class="QListWidget" name="listWidget"/>
+         <widget class="QLabel" name="label">
+          <property name="text">
+           <string>日志：</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QTextEdit" name="textEdit_CloudLog">
+          <property name="verticalScrollBarPolicy">
+           <enum>Qt::ScrollBarAlwaysOn</enum>
+          </property>
+          <property name="readOnly">
+           <bool>true</bool>
+          </property>
+          <property name="overwriteMode">
+           <bool>false</bool>
+          </property>
+         </widget>
         </item>
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_3">
@@ -280,7 +340,7 @@
            </spacer>
           </item>
           <item>
-           <widget class="QPushButton" name="pushButton_3">
+           <widget class="QPushButton" name="pushButton_cloud_run">
             <property name="text">
              <string>开始分析</string>
             </property>
@@ -377,7 +437,24 @@
          </layout>
         </item>
         <item>
-         <widget class="QListWidget" name="listWidget_2"/>
+         <widget class="QLabel" name="label_3">
+          <property name="text">
+           <string>日志：</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QTextEdit" name="textEdit_BridLog">
+          <property name="verticalScrollBarPolicy">
+           <enum>Qt::ScrollBarAlwaysOn</enum>
+          </property>
+          <property name="readOnly">
+           <bool>true</bool>
+          </property>
+          <property name="overwriteMode">
+           <bool>false</bool>
+          </property>
+         </widget>
         </item>
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_8">
@@ -395,7 +472,7 @@
            </spacer>
           </item>
           <item>
-           <widget class="QPushButton" name="pushButton_8">
+           <widget class="QPushButton" name="pushButton_brid_run">
             <property name="text">
              <string>开始分析</string>
             </property>
@@ -444,19 +521,6 @@
      </widget>
     </item>
     <item>
-     <spacer name="verticalSpacer">
-      <property name="orientation">
-       <enum>Qt::Vertical</enum>
-      </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>20</width>
-        <height>40</height>
-       </size>
-      </property>
-     </spacer>
-    </item>
-    <item>
      <widget class="QPushButton" name="pushButton">
       <property name="enabled">
        <bool>false</bool>
@@ -497,14 +561,14 @@
    <sender>pushButton_2</sender>
    <signal>clicked()</signal>
    <receiver>MainControlClass</receiver>
-   <slot>CloudGetCloudsDir()</slot>
+   <slot>CloudGetCloudsPath()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>752</x>
-     <y>121</y>
+     <x>691</x>
+     <y>136</y>
     </hint>
     <hint type="destinationlabel">
-     <x>915</x>
+     <x>714</x>
      <y>127</y>
     </hint>
    </hints>
@@ -516,27 +580,27 @@
    <slot>CloudGetTowersDir()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>777</x>
-     <y>151</y>
+     <x>691</x>
+     <y>167</y>
     </hint>
     <hint type="destinationlabel">
-     <x>881</x>
+     <x>714</x>
      <y>157</y>
     </hint>
    </hints>
   </connection>
   <connection>
-   <sender>pushButton_3</sender>
+   <sender>pushButton_cloud_run</sender>
    <signal>clicked()</signal>
    <receiver>MainControlClass</receiver>
    <slot>CloudRun()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>354</x>
-     <y>342</y>
+     <x>327</x>
+     <y>252</y>
     </hint>
     <hint type="destinationlabel">
-     <x>-50</x>
+     <x>0</x>
      <y>337</y>
     </hint>
    </hints>
@@ -548,11 +612,11 @@
    <slot>CloudOpenResultDir()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>489</x>
-     <y>347</y>
+     <x>459</x>
+     <y>252</y>
     </hint>
     <hint type="destinationlabel">
-     <x>881</x>
+     <x>714</x>
      <y>342</y>
     </hint>
    </hints>
@@ -564,11 +628,11 @@
    <slot>UpLoad()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>451</x>
-     <y>387</y>
+     <x>469</x>
+     <y>295</y>
     </hint>
     <hint type="destinationlabel">
-     <x>896</x>
+     <x>714</x>
      <y>393</y>
     </hint>
    </hints>
@@ -580,27 +644,27 @@
    <slot>BirdGetBirdDir()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>772</x>
-     <y>118</y>
+     <x>691</x>
+     <y>145</y>
     </hint>
     <hint type="destinationlabel">
-     <x>882</x>
+     <x>714</x>
      <y>118</y>
     </hint>
    </hints>
   </connection>
   <connection>
-   <sender>pushButton_8</sender>
+   <sender>pushButton_brid_run</sender>
    <signal>clicked()</signal>
    <receiver>MainControlClass</receiver>
    <slot>BirdRun()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>359</x>
-     <y>340</y>
+     <x>327</x>
+     <y>243</y>
     </hint>
     <hint type="destinationlabel">
-     <x>-27</x>
+     <x>0</x>
      <y>341</y>
     </hint>
    </hints>
@@ -612,18 +676,34 @@
    <slot>BirdOpenResultDir()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>486</x>
-     <y>344</y>
+     <x>459</x>
+     <y>243</y>
     </hint>
     <hint type="destinationlabel">
-     <x>878</x>
+     <x>714</x>
      <y>333</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pushButton_11</sender>
+   <signal>clicked()</signal>
+   <receiver>MainControlClass</receiver>
+   <slot>CloudGetClassDir()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>648</x>
+     <y>184</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>751</x>
+     <y>188</y>
     </hint>
    </hints>
   </connection>
  </connections>
  <slots>
-  <slot>CloudGetCloudsDir()</slot>
+  <slot>CloudGetCloudsPath()</slot>
   <slot>CloudGetTowersDir()</slot>
   <slot>CloudRun()</slot>
   <slot>CloudOpenResultDir()</slot>
@@ -631,5 +711,6 @@
   <slot>BirdGetBirdDir()</slot>
   <slot>BirdRun()</slot>
   <slot>BirdOpenResultDir()</slot>
+  <slot>CloudGetClassDir()</slot>
  </slots>
 </ui>

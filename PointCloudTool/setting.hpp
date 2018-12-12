@@ -126,8 +126,6 @@ namespace pct
 		QString tower_excle;
 		QString line_excel;
     };
-  
-
 
 
 }

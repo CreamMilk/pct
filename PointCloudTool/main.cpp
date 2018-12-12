@@ -36,6 +36,7 @@
 #include <QVTKOpenGLWidget.h>
 #include <vtkOpenGLRenderWindow.h>
 #include <QSurfaceFormat>
+#include "Las2Pnts.h"
 
 //#pragma comment( linker, "/subsystem:\"windows\" /entry:\"mainCRTStartup\"" )  // 隐藏程序
 bool ParserCmdline(int argc, char *argv[]);
@@ -53,8 +54,6 @@ void SaveTowers(QString filepath, std::vector <pct::TowerInfo> &towerClusters);
 void SaveLines(QString filepath, std::vector <pct::LineInfo> &towerClusters);
 void PositionCorrection(QString tower_excel);
 void LoadTowers(QString filepath, std::vector <std::tuple<double, double>> &towerClusters);
-void SaveGeoLas(std::string inputname, std::string outputname);
-
 int main(int argc, char *argv[])
 {
     QSurfaceFormat::setDefaultFormat(QVTKOpenGLWidget::defaultFormat());
@@ -89,7 +88,6 @@ int main(int argc, char *argv[])
 
         // 抽稀  
         pct::simpleAndOutlierRemoval(setting.inputfile, setting.outputdir + "\\simple.las", setting.gridsize, setting.value<int>("simplify"));
-		SaveGeoLas(setting.outputdir + "\\simple.las", setting.outputdir + "\\geoCoordinate.las");
         if (priorityClassif)
         {
             classif();
@@ -107,8 +105,8 @@ int main(int argc, char *argv[])
         pct::io::Load_las(src_cloud, setting.outputdir + "\\classif.las");
         ExtractLinesAndTower(src_cloud, cloud_indices, ground_indices, otheCluster, lineClusters, towerClusters, vegetClusters);
 
-        SaveTowers(QString::fromLocal8Bit((setting.outputdir + "\\" + pct::ExtractExeName(setting.inputfile) + "铁塔.xlsx").c_str()) , towerClusters);
-        SaveLines(QString::fromLocal8Bit((setting.outputdir + "\\" + pct::ExtractExeName(setting.inputfile) + "电力线.xlsx").c_str()), lineClusters);
+        SaveTowers(QString::fromLocal8Bit((setting.outputdir + "\\铁塔.xlsx").c_str()) , towerClusters);
+        SaveLines(QString::fromLocal8Bit((setting.outputdir + "\\电力线.xlsx").c_str()), lineClusters);
     }
     else if (setting.cmdtype == "distancecheck")
     {
@@ -122,7 +120,6 @@ int main(int argc, char *argv[])
 
         // 抽稀  
         pct::simpleAndOutlierRemoval(setting.inputfile, setting.outputdir + "\\simple.las", setting.gridsize, setting.value<int>("simplify"));
-		SaveGeoLas(setting.outputdir + "\\simple.las", setting.outputdir + "\\geoCoordinate.las");
 
         if (priorityClassif)
         {
@@ -139,16 +136,16 @@ int main(int argc, char *argv[])
 
         pct::io::Load_las(src_cloud, setting.outputdir + "\\classif.las");
         ExtractLinesAndTower(src_cloud, cloud_indices, ground_indices, otheCluster, lineClusters, towerClusters, vegetClusters);
-		setting.tower_excle = QString::fromLocal8Bit((setting.outputdir + "\\" + pct::ExtractExeName(setting.inputfile) + "铁塔.xlsx").c_str());
-		setting.line_excel = QString::fromLocal8Bit((setting.outputdir + "\\" + pct::ExtractExeName(setting.inputfile) + "电力线.xlsx").c_str());
-        SaveTowers(QString::fromLocal8Bit((setting.outputdir + "\\" + pct::ExtractExeName(setting.inputfile) + "铁塔.xlsx").c_str()), towerClusters);
-        SaveLines(QString::fromLocal8Bit((setting.outputdir + "\\" + pct::ExtractExeName(setting.inputfile) + "电力线.xlsx").c_str()), lineClusters);
+		setting.tower_excle = QString::fromLocal8Bit((setting.outputdir + "\\铁塔.xlsx").c_str());
+		setting.line_excel = QString::fromLocal8Bit((setting.outputdir + "\\电力线.xlsx").c_str());
+        SaveTowers(QString::fromLocal8Bit((setting.outputdir + "\\铁塔.xlsx").c_str()), towerClusters);
+        SaveLines(QString::fromLocal8Bit((setting.outputdir + "\\电力线.xlsx").c_str()), lineClusters);
         std::cout << "ExtractLinesAndTower end：end end" << std::endl;
         checkLinesDistanceDangerous(src_cloud, ground_indices, vegetClusters, lineClusters, towerClusters);
 
         // 导出pdf
         std::string pdfexe_path = setting.appdir + "PdfReport\\PdfReport.exe";
-        std::string json_path = setting.outputdir + "\\" + pct::ExtractExeName(setting.inputfile) + "检测结果.json";
+        std::string json_path = setting.outputdir + "\\检测结果.json";
         if (!boost::filesystem::exists(boost::filesystem::path(pdfexe_path)))
         {
             std::cout << "未能找到 " << pdfexe_path << "，导出pdf失败！";
@@ -175,7 +172,6 @@ int main(int argc, char *argv[])
             pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
             // 抽稀  
             pct::simpleAndOutlierRemoval(setting.inputfile, setting.outputdir + "\\simple.las", setting.gridsize, setting.value<int>("simplify"));
-			SaveGeoLas(setting.outputdir + "\\simple.las", setting.outputdir + "\\geoCoordinate.las");
 
             if (priorityClassif)
             {
@@ -194,8 +190,8 @@ int main(int argc, char *argv[])
             ExtractLinesAndTower(src_cloud, cloud_indices, ground_indices, otheCluster, lineClusters, towerClusters, vegetClusters);
 
             QFileInfo inputfile_info(QString::fromLocal8Bit(setting.inputfile.c_str()));
-            setting.tower_excle = QDir::toNativeSeparators(inputfile_info.absolutePath() + QStringLiteral("\\") + inputfile_info.baseName() + QStringLiteral("\\") + inputfile_info.baseName() + QStringLiteral("铁塔.xlsx"));
-			setting.line_excel = QDir::toNativeSeparators(inputfile_info.absolutePath() + QStringLiteral("\\") + inputfile_info.baseName() + QStringLiteral("\\") + inputfile_info.baseName() + QStringLiteral("电力线.xlsx"));
+            setting.tower_excle = QDir::toNativeSeparators(inputfile_info.absolutePath() + QStringLiteral("\\") + inputfile_info.baseName() + QStringLiteral("\\铁塔.xlsx"));
+			setting.line_excel = QDir::toNativeSeparators(inputfile_info.absolutePath() + QStringLiteral("\\") + inputfile_info.baseName() + QStringLiteral("\\电力线.xlsx"));
 
 			std::cout << "tower_excle" << setting.tower_excle.toLocal8Bit().data() << std::endl;
 			std::cout << "line_excel" << setting.line_excel.toLocal8Bit().data() << std::endl;
@@ -210,7 +206,7 @@ int main(int argc, char *argv[])
 
 			// 导出pdf
 			std::string pdfexe_path = setting.appdir + "PdfReport\\PdfReport.exe";
-			std::string json_path = setting.outputdir + "\\" + pct::ExtractExeName(setting.inputfile) + "检测结果.json";
+			std::string json_path = setting.outputdir + "\\检测结果.json";
 			if (!boost::filesystem::exists(boost::filesystem::path(pdfexe_path)))
 			{
 				std::cout << "未能找到 " << pdfexe_path << "，导出pdf失败！";
@@ -229,7 +225,7 @@ int main(int argc, char *argv[])
         else
         {
             QFileInfo inputfile_info(QString::fromLocal8Bit(setting.inputfile.c_str()));
-			setting.tower_excle = QDir::toNativeSeparators(inputfile_info.absolutePath() + QStringLiteral("\\") + inputfile_info.baseName() + QStringLiteral("铁塔.xlsx"));
+			setting.tower_excle = QDir::toNativeSeparators(inputfile_info.absolutePath() + QStringLiteral("\\") + inputfile_info.baseName() + QStringLiteral("\\铁塔.xlsx"));
 			PositionCorrection(setting.tower_excle);
         }
     }
@@ -394,20 +390,6 @@ void LoadTowers(QString filepath, std::vector <std::tuple<double, double>> &towe
     workbook->dynamicCall("Close (Boolean)", false);
     excel.dynamicCall("Quit()");
     OleUninitialize();
-}
-
-void SaveGeoLas(std::string inputname, std::string outputname)
-{
-	pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
-	pct::io::Load_las(cloud, inputname);
-	pcl::PointXYZRGB * tmp_pt;
-	for (int i = 0; i < cloud->size(); ++i)
-	{
-		tmp_pt = &cloud->at(i);
-		pct::UTMXY2LatLon(tmp_pt->x, tmp_pt->y);
-		pct::LBHtoXYZ(tmp_pt->x, tmp_pt->y, tmp_pt->z);
-	}
-	pct::io::save_las(cloud, outputname);
 }
 
 void SaveTowers(QString filepath, std::vector <pct::TowerInfo> &towerClusters)
@@ -1286,6 +1268,7 @@ void ExtractLinesAndTower(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud,
     }
     pct::io::save_las(lines_cloud, setting.outputdir + "\\lines.las");
     lines_cloud.reset();
+	pct::ConvGeopnts(setting.outputdir + "\\lines.las");
 
     // 保存铁塔 .las
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr tower_cloud(new pcl::PointCloud<pcl::PointXYZRGB>());
@@ -1300,7 +1283,7 @@ void ExtractLinesAndTower(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud,
     }
     pct::io::save_las(tower_cloud, setting.outputdir + "\\towers.las");
     tower_cloud.reset();
-
+	pct::ConvGeopnts(setting.outputdir + "\\towers.las");
 
 
     // 保存vegets .las
@@ -1316,6 +1299,7 @@ void ExtractLinesAndTower(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud,
     }
     pct::io::save_las(vegets_cloud, setting.outputdir + "\\vegets.las");
     vegets_cloud.reset();
+	pct::ConvGeopnts(setting.outputdir + "\\vegets.las");
 
     // 保存others .las
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr others_cloud(new pcl::PointCloud<pcl::PointXYZRGB>());
@@ -1330,6 +1314,7 @@ void ExtractLinesAndTower(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud,
     }
     pct::io::save_las(others_cloud, setting.outputdir + "\\others.las");
     others_cloud.reset();
+	pct::ConvGeopnts(setting.outputdir + "\\others.las");
 
     // 保存ground .las
     ground->clear();
@@ -1340,6 +1325,8 @@ void ExtractLinesAndTower(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud,
     extract.filter(*ground_cloud);
     pct::io::save_las(ground_cloud, setting.outputdir + "\\ground.las");
     ground_cloud.reset();
+	pct::ConvGeopnts(setting.outputdir + "\\ground.las");
+
     std::cout << "ExtractLinesAndTower end：end" << std::endl;
 }
 

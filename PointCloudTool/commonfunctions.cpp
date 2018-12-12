@@ -26,10 +26,13 @@
 #include "pctio.h"
 #include <QDir>
 #include <QFileInfo>
+#include <QFile>
 #include <QAxObject>
 #include <QAxWidget>
+#include <chrono>
 #include "CoorConv.hpp"
 #include "GeoCoordinateSystem.h"
+#include "Las2Pnts.h"
 
 
 struct ClusterInfo{
@@ -730,12 +733,14 @@ void pct::ScreenshotHeightColor(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud
 	
 
 	// 水平观看方向
+	
 	view->setCameraPosition(horizontal_seevec.x, horizontal_seevec.y, horizontal_seevec.z, cen.x, cen.y, cen.z, /*axis_vec[2].x, axis_vec[2].y, axis_vec[2].z*/0,0,1);
 	view->saveScreenshot(hor_pic);
 
 	// 垂直观看方向
 	view->setCameraPosition(vertical_seevec.x, vertical_seevec.y, vertical_seevec.z, cen.x, cen.y, cen.z, axis_vec[1].x, axis_vec[1].y,/* axis_vec[1].z*/0);
 	view->saveScreenshot(vec_pic);
+	view->close();
 }
 
 void pct::colorClusters(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, std::vector <pcl::PointIndices>& jlClusters)
@@ -1985,4 +1990,57 @@ void pct::mergeBalls(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr allCrashPoint,
         else
             ++it;
     }
+}
+
+void pct::ConvGeopnts(std::string inputname)
+{
+	QString basename = QFileInfo(inputname.c_str()).baseName();
+	std::string outputdir = (QFileInfo(inputname.c_str()).absoluteDir().absolutePath() + QStringLiteral("/") + basename).toLocal8Bit().data();
+	std::string outputname = outputdir + "_geo.las";
+	pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
+	pct::io::Load_las(cloud, inputname);
+	pcl::PointXYZRGB * tmp_pt;
+
+	std::cout << basename.toLocal8Bit().data() << std::endl;
+	for (int i = 0; i < cloud->size(); ++i)
+	{
+		tmp_pt = &cloud->at(i);
+		pct::UTMXY2LatLon(tmp_pt->x, tmp_pt->y);
+		if (0 == i)
+		{
+			std::cout << (QString::number(tmp_pt->x, 'f', 8) + QStringLiteral(",") + QString::number(tmp_pt->y, 'f', 8)
+				+ QStringLiteral(",") + QString::number(tmp_pt->z, 'f', 1)).toLocal8Bit().data() << std::endl;
+		}
+		pct::LBHtoXYZ(tmp_pt->x, tmp_pt->y, tmp_pt->z);
+		if (0 == i)
+		{
+			std::cout << (QString::number(tmp_pt->x, 'f', 8) + QStringLiteral(",") + QString::number(tmp_pt->y, 'f', 8)
+				+ QStringLiteral(",") + QString::number(tmp_pt->z, 'f', 1)).toLocal8Bit().data() << std::endl;
+		}
+
+	}
+	pct::io::save_las(cloud, outputname);
+
+	std::cout << outputname << std::endl;
+	Las2Pnts l;
+	l.run(outputname, outputdir.c_str());
+	std::cout << outputdir << std::endl;
+	auto start = std::chrono::system_clock::now();
+	while (!QFile::remove(outputname.c_str()))
+	{
+		if (std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - start).count() > 10)
+			break;
+	}
+
+	QString errpath = QString(outputdir.c_str()) + basename + QStringLiteral("_geo_pnts");
+	std::cout << errpath.toLocal8Bit().data() << std::endl;
+	start = std::chrono::system_clock::now();
+	while (!QFile::rename(errpath, QString::fromLocal8Bit(outputdir.c_str())))
+	{
+		if (std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - start).count() > 10)
+		{
+			
+			break;
+		}
+	}
 }

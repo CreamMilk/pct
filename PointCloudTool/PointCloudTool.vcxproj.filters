@@ -107,5 +107,8 @@
     <ClInclude Include="GeoCoordinateSystem.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="Las2Pnts.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

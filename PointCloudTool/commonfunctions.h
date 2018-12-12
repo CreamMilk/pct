@@ -34,6 +34,7 @@ namespace pct
     bool combineTrainXmlFiles(std::vector<std::string> xmls, std::string dst_xml);
 	void simpleAndOutlierRemoval(std::string inputfile, std::string outputfile, float gridsize, int model = 0);
 
+	void ConvGeopnts(std::string inputname);
 	void OutlierRemoval(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, int liqunK = 10, double avgDistance = 10, pcl::PointIndicesPtr cloud_indices = nullptr);
     void colorClusters(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, std::vector <pcl::PointIndices>& jlClusters);
     void colorClusters(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, const pcl::PointIndices& inputindices, std::vector <pcl::PointIndices>& jlClusters);

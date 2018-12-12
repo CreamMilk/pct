@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QtWidgets/QMainWindow>
+#include <QProcess>
 #include "ui_MainControl.h"
 
 class MainControl : public QMainWindow
@@ -9,25 +10,40 @@ class MainControl : public QMainWindow
 
 public:
 	MainControl(QWidget *parent = Q_NULLPTR);
+	~MainControl();
 	void SaveSetting();
 	void LoadSetting();
 protected:
 	virtual void closeEvent(QCloseEvent *event) override;
 
 public slots:
-void onReadOutput();
+void CloudReadyReadStandardOutput();
+void BridReadyReadStandardOutput();
+void CloudFinished(int exitcode, QProcess::ExitStatus status);
+void BridFinished(int exitcode, QProcess::ExitStatus status);
 
 
-void CloudGetCloudsDir();
+void CloudGetCloudsPath();
 void CloudGetTowersDir();
+void CloudGetClassDir();
 void CloudRun();
- void CloudOpenResultDir();
+void CloudOpenResultDir();
 // void UpLoad();
 // 
 // void BirdGetBirdDir();
-// void BirdRun();
+ void BirdRun();
 // void BirdOpenResultDir();
 
 private:
+	QProcess *cloud_process_;
+	int cloud_rescode_;
+	QProcess::ExitStatus cloud_exitstatus_;
+
+
+	QProcess *brid_process_;
+	int brid_rescode_;
+	QProcess::ExitStatus brid_exitstatus_;
+
+
 	Ui::MainControlClass ui;
 };

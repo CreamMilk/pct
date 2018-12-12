@@ -1,4 +1,5 @@
 <RCC>
-    <qresource prefix="MainControl">
+    <qresource prefix="/">
+        <file>MainControl.qss</file>
     </qresource>
 </RCC>

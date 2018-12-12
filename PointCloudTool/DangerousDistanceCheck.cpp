@@ -727,6 +727,7 @@ void DangerousDistanceCheck::showNearCheck()
     view->updateCamera();
     // 截图
     view->saveScreenshot(std::string(pic_dir.toLocal8Bit().data()) + "\\总图.png");
+	view->close();
     std::cout << "截图完成" << std::endl;
 	pct::ScreenshotHeightColor(src_cloud_, pic_dir, axis_vec);
     //// 调试观看
@@ -760,7 +761,9 @@ void DangerousDistanceCheck::showNearCheck()
 	pt.put("高程颜色侧视图路径", "images/高程颜色侧视图.png");
 
 	pct::UTMXY2LatLon(latlon_cloudmid.x, latlon_cloudmid.y);
-	streamCat<std::string>(sstr, QStringLiteral("%1,%2,%3").arg(latlon_cloudmid.x).arg(latlon_cloudmid.y).arg(latlon_cloudmid.z).toLocal8Bit().data());
+	sstr.clear();
+	sstr.str("");
+	sstr << std::fixed << setprecision(8) << latlon_cloudmid.x << "," << latlon_cloudmid.y << "," << std::fixed << setprecision(1) << latlon_cloudmid.z;
 	pt.put("点云中心点", sstr.str());
 
 	std::vector <std::tuple<int, double, double, double>> towers;
@@ -768,8 +771,8 @@ void DangerousDistanceCheck::showNearCheck()
 	for (int i = 0; i < towers.size(); ++i)
 	{
 		std::string key = std::string("铁塔位置.") + QString::number(std::get<0>(towers[i])).toLocal8Bit().data();
-		std::string val = (QString::number(std::get<1>(towers[i])) + QStringLiteral(",") + QString::number(std::get<2>(towers[i])) 
-			+ QStringLiteral(",") + QString::number(std::get<3>(towers[i]))).toLocal8Bit().data();
+		std::string val = (QString::number(std::get<1>(towers[i]), 'f', 8) + QStringLiteral(",") + QString::number(std::get<2>(towers[i]), 'f', 8)
+			+ QStringLiteral(",") + QString::number(std::get<3>(towers[i]), 'f', 1)).toLocal8Bit().data();
 		pt.put(key, val);
 	}
 
@@ -813,10 +816,11 @@ void DangerousDistanceCheck::showNearCheck()
 		 pct::UTMXY2LatLon(latlon_nearst_linept.x, latlon_nearst_linept.y);
 		 pct::UTMXY2LatLon(latlon_nearst_otherpt.x, latlon_nearst_otherpt.y);
 
-		 streamCat<std::string>(sstr, QStringLiteral("%1,%2,%3").arg(latlon_nearst_linept.x).arg(latlon_nearst_linept.y).arg(latlon_nearst_linept.z).toLocal8Bit().data());
-		 errpt_child.put("最近隐患.电力线点", sstr.str());
-		 streamCat<std::string>(sstr, QStringLiteral("%1,%2,%3").arg(latlon_nearst_otherpt.x).arg(latlon_nearst_otherpt.y).arg(latlon_nearst_otherpt.z).toLocal8Bit().data());
-		 errpt_child.put("最近隐患.其他点", sstr.str());
+
+		 errpt_child.put("最近隐患.电力线点", (QString::number(latlon_nearst_linept.x, 'f', 8) + QStringLiteral(",") + QString::number(latlon_nearst_linept.y, 'f', 8)
+			 + QStringLiteral(",") + QString::number(latlon_nearst_linept.z, 'f', 1)).toLocal8Bit().data());
+		 errpt_child.put("最近隐患.其他点", (QString::number(latlon_nearst_otherpt.x, 'f', 8) + QStringLiteral(",") + QString::number(latlon_nearst_otherpt.y, 'f', 8)
+			 + QStringLiteral(",") + QString::number(latlon_nearst_otherpt.z, 'f', 1)).toLocal8Bit().data());
 
 
          streamCat<double>(sstr, balls_[i].nearst.dis);
@@ -840,7 +844,10 @@ void DangerousDistanceCheck::showNearCheck()
          errpt_array.push_back(std::make_pair("", errpt_child));
      }
      pt.put_child("隐患列表", errpt_array);
-     std::string json_path = setting.outputdir + "\\" + pct::ExtractExeName(setting.inputfile) + "检测结果.json";
+
+	 std::cout << "setting.outputdir" << setting.outputdir << std::endl;
+	 std::string json_path = setting.outputdir + "\\检测结果.json";
+	 std::cout << "json_path" << json_path << std::endl;
      std::ofstream ofs(json_path, fstream::out);
      boost::property_tree::write_json(ofs, pt);
      ofs.close();
