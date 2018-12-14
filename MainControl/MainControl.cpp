@@ -13,6 +13,7 @@
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/foreach.hpp>
 #include "CommonFuns.h"
+#include "ServerFunc.h"
 
 MainControl::MainControl(QWidget *parent)
 	: QMainWindow(parent)
@@ -20,7 +21,7 @@ MainControl::MainControl(QWidget *parent)
 	ui.setupUi(this);
 	LoadSetting();
 
-
+	QString a = ServerFunc::GetProjectCode();
 	cloud_process_ = new QProcess(this);
 	connect(cloud_process_, &QProcess::readyReadStandardOutput, this, &MainControl::CloudReadyReadStandardOutput);
 	connect(cloud_process_, &QProcess::readyReadStandardError, this, &MainControl::CloudReadyReadStandardOutput);

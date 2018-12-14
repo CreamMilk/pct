@@ -58,6 +58,9 @@
     <ClCompile Include="CommonFuns.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ServerFunc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="MainControl.h">
@@ -75,6 +78,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CommonFuns.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ServerFunc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

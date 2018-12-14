@@ -84,6 +84,7 @@
     </ClCompile>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MainControl.cpp" />
+    <ClCompile Include="ServerFunc.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="MainControl.h">
@@ -141,6 +142,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CommonFuns.h" />
+    <ClInclude Include="ServerFunc.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
