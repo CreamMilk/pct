@@ -864,6 +864,41 @@ void GetPointsInfo(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, pcl::PointIndic
     centor = (max + min) / 2;
 }
 
+
+void GetPointsInfo(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, pcl::PointIndices& indices, Vector3 &min, Vector3& max, Vector3& centor, pct::VegetInfo::Asix &max_axis)
+{
+	min.x = std::numeric_limits<float>::max();
+	min.y = std::numeric_limits<float>::max();
+	min.z = std::numeric_limits<float>::max();
+	max.x = -std::numeric_limits<float>::max();
+	max.y = -std::numeric_limits<float>::max();
+	max.z = -std::numeric_limits<float>::max();
+
+	pcl::PointXYZRGB *pt;
+	for (int i = 0; i < indices.indices.size(); ++i)
+	{
+		pt = &cloud->at(indices.indices[i]);
+		if (pt->x < min.x)
+			min.x = pt->x;
+		if (pt->x > max.x)
+			max.x = pt->x;
+		if (pt->y < min.y)
+			min.y = pt->y;
+		if (pt->y > max.y)
+			max.y = pt->y;
+		if (pt->z < min.z)
+			min.z = pt->z;
+		if (pt->z > max.z)
+			max.z = pt->z;
+	}
+	float subx = max.x - min.x;
+	float suby = max.y - min.y;
+
+	max_axis = subx > suby ? pct::VegetInfo::X : pct::VegetInfo::Y;
+
+	centor = (max + min) / 2;
+}
+
 bool compX(const Vector3 &v1, const Vector3 &v2)
 {
     return v1.x < v2.x;
@@ -881,6 +916,15 @@ Vector3 GetMaxAxisVec(const pct::LineInfo &info)
     //sub.z = 0;
     sub = sub.normalize();
     return sub;
+}
+
+Vector3 GetMaxAxisVec(const pct::VegetInfo &info)
+{
+	Vector3 sub;
+	sub = info.end - info.sta;
+	//sub.z = 0;
+	sub = sub.normalize();
+	return sub;
 }
 
 double pct::Distance3d(Vector3 &pt1, Vector3 &pt2)
@@ -1002,6 +1046,95 @@ pct::LineInfo pct::lineInfoFactory(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud,
     }
 
     return info;
+}
+
+pct::VegetInfo pct::vegetInfoFactory(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, pcl::PointIndices& indices)
+{
+	VegetInfo info(cloud, indices);
+	info.indices = indices;
+	// 装载所有点
+	info.pts.clear();
+	double block = 1;
+
+	int cloudSize = indices.indices.size();
+	info.pts.resize(cloudSize);
+	for (int i = 0; i < cloudSize; ++i)
+	{
+		pcl::PointXYZRGB &pt = cloud->at(indices.indices[i]);
+		info.pts[i].x = pt.x;
+		info.pts[i].y = pt.y;
+		info.pts[i].z = pt.z;
+	}
+
+	Vector3 min;
+	Vector3 max;
+	GetPointsInfo(cloud, indices, min, max, info.center, info.maxAsix);
+
+	std::vector<Vector3> pts = info.pts;
+	for (int i = 0; i < cloudSize; ++i)
+	{
+		pts[i] -= info.center;
+	}
+
+	// 初始化拟合变量
+	std::vector<float> xDim(cloudSize), yDim(cloudSize), zDim(cloudSize);
+	float tmpX = 0, tmpY = 0, tmpZ = 0;
+
+	if (LineInfo::X == info.maxAsix)//x轴跨度大
+	{
+		std::sort(pts.begin(), pts.end(), compX);
+
+		for (int i = 0; i < cloudSize; ++i)
+		{
+			xDim[i] = pts[i].x;
+			yDim[i] = pts[i].y;
+			zDim[i] = pts[i].z;
+		}
+
+		info.fit.linearFit(xDim, yDim);
+
+		info.fit_z.polyfit(xDim, zDim, 2);
+
+		info.sta.x = xDim[0];
+		info.sta.y = info.fit.getY(xDim[0]);
+		info.sta.z = info.fit_z.getY(xDim[0]);
+
+		info.end.x = xDim[cloudSize - 1];
+		info.end.y = info.fit.getY(xDim[cloudSize - 1]);
+		info.end.z = info.fit_z.getY(xDim[cloudSize - 1]);
+
+		info.v = GetMaxAxisVec(info);
+		info.sta += info.center;
+		info.end += info.center;
+	}
+	else//y轴跨度大
+	{
+		std::sort(pts.begin(), pts.end(), compY);
+
+		for (int i = 0; i < cloudSize; ++i)
+		{
+			xDim[i] = pts[i].x;
+			yDim[i] = pts[i].y;
+			zDim[i] = pts[i].z;
+		}
+
+		info.fit.linearFit(yDim, xDim);
+		info.fit_z.polyfit(yDim, zDim, 2);
+
+		info.sta.x = info.fit.getY(yDim[0]);
+		info.sta.y = yDim[0];
+		info.sta.z = info.fit_z.getY(yDim[0]);
+
+		info.end.x = info.fit.getY(yDim[cloudSize - 1]);
+		info.end.y = yDim[cloudSize - 1];
+		info.end.z = info.fit_z.getY(yDim[cloudSize - 1]);
+
+		info.v = GetMaxAxisVec(info);
+		info.sta += info.center;
+		info.end += info.center;
+	}
+
+	return info;
 }
 
 void pct::LoadTowers(QString filepath, std::vector <std::tuple<std::string, double, double, double>> &towerClusters)
@@ -1170,6 +1303,75 @@ bool pct::LikePowerLine1(pcl::PointCloud<pcl::PointXYZRGB>::Ptr ground_cloud, pc
     }
 
     return true;
+}
+
+
+bool pct::LikeVeget(pcl::PointCloud<pcl::PointXYZRGB>::Ptr ground_cloud, pct::VegetInfo &line, double error_probability /*= 0.1*/
+	, float yerrOffset /*= 1.0f*/, float zerrOffset /*= 0.5f*/)
+{
+	// 小于20个，过滤掉
+	if (line.indices.indices.size() < 30)
+		return false;
+	float distance = Distance2d(line.sta.x, line.sta.y, line.end.x, line.end.y);
+	pct::VegetInfo::Asix maxAxis = line.maxAsix;
+
+	pcl::PointXYZRGB minZ;
+	minZ.z = std::numeric_limits<float>::max();
+	for (int i = 0; i < line.pts.size(); ++i)
+	{
+		if (line.pts[i].z < minZ.z)
+		{
+			minZ.x = line.pts[i].x;
+			minZ.y = line.pts[i].y;
+			minZ.z = line.pts[i].z;
+		}
+	}
+
+	pcl::KdTreeFLANN<pcl::PointXYZRGB> ground_kdtree;
+	ground_kdtree.setInputCloud(ground_cloud);
+	std::vector<int> indices;
+	std::vector<float> sqr_distances;
+
+	// 最低与离地高度>10，则认为不是植物！
+	if (ground_kdtree.radiusSearch(minZ, 10, indices, sqr_distances) <= 0)
+	{
+		std::cout << "最低与离地高度>10，则认为不是植物！" << std::endl;
+		return false;
+	}
+
+
+	// 如果大于10米，则判断他偏离率,是否是电力线
+	if (distance > 10)
+	{
+		int ptSize = line.pts.size();
+		int errpt = 0;
+		Vector3 pt;
+		for (int i = 0; i < ptSize; ++i)
+		{
+			pt = line.pts[i] - line.center;
+			if (pct::LineInfo::X == maxAxis)
+			{
+				if (abs(line.fit.getY(pt.x) - pt.y) > yerrOffset || abs(line.fit_z.getY(pt.x) - pt.z) > zerrOffset)
+				{
+					++errpt;
+				}
+			}
+			else
+			{
+				if (abs(line.fit.getY(pt.y) - pt.x) > yerrOffset || abs(line.fit_z.getY(pt.y) - pt.z) > zerrOffset)
+				{
+					++errpt;
+				}
+			}
+		}
+
+		if (errpt / (double)ptSize < error_probability)
+		{
+			return false;
+		}
+	}
+
+	return true;
 }
 
 void pct::getMinMax3D(const pcl::PointCloud<pcl::PointXYZRGB> &cloud, 

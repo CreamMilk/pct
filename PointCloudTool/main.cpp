@@ -1286,9 +1286,9 @@ void ExtractLinesAndTower(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud,
         sqr_distances.clear();
         for (auto it = jlClusters.begin(); it != jlClusters.end();)
         {
-            pct::VegetInfo veg(src_cloud, *it);
+			pct::VegetInfo veg = pct::vegetInfoFactory(src_cloud, *it);
             // 最低点与离地高度<10并且大于30个点，有可能是植物！
-            if (it->indices.size() > 30 && ground_kdtree.radiusSearch(veg.minzPt, 10, indices, sqr_distances) > 0)
+			if (LikeVeget(ground, veg, 0.3, 0.5, 0.5))
             {
                 vegetClusters.push_back(veg);
                 it = jlClusters.erase(it);
@@ -1405,18 +1405,18 @@ void ExtractLinesAndTower(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud,
         extract.setInputCloud(src_cloud);
         extract.setIndices(boost::make_shared<std::vector<int>>(it->indices.indices));
         extract.filter(*temp_cloud);
-        pcl::PointXYZRGB *temp_pt;
-        unsigned char r = rand() % 256;
-        unsigned char g = rand() % 256;
-        unsigned char b = rand() % 256;
-
-        for (int j = 0; j < temp_cloud->size(); ++j)
-        {
-            temp_pt = &temp_cloud->at(j);
-            temp_pt->r = r;
-            temp_pt->g = g;
-            temp_pt->b = b;
-        }
+		//pcl::PointXYZRGB *temp_pt;
+		//unsigned char r = rand() % 256;
+		//unsigned char g = rand() % 256;
+		//unsigned char b = rand() % 256;
+		//
+		//for (int j = 0; j < temp_cloud->size(); ++j)
+		//{
+		//    temp_pt = &temp_cloud->at(j);
+		//    temp_pt->r = r;
+		//    temp_pt->g = g;
+		//    temp_pt->b = b;
+		//}
 
         *lines_cloud += *temp_cloud;
     }
@@ -1435,9 +1435,13 @@ void ExtractLinesAndTower(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud,
         extract.filter(*temp_cloud);
         *tower_cloud += *temp_cloud;
     }
-    pct::io::save_las(tower_cloud, setting.outputdir + "\\towers.las");
-    tower_cloud.reset();
-	pct::ConvGeopnts(setting.outputdir + "\\towers.las");
+	if (tower_cloud->size())
+	{
+		pct::io::save_las(tower_cloud, setting.outputdir + "\\towers.las");
+		tower_cloud.reset();
+		pct::ConvGeopnts(setting.outputdir + "\\towers.las");
+	}
+
 
 
     // 保存vegets .las
@@ -1451,9 +1455,12 @@ void ExtractLinesAndTower(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud,
         extract.filter(*temp_cloud);
         *vegets_cloud += *temp_cloud;
     }
-    pct::io::save_las(vegets_cloud, setting.outputdir + "\\vegets.las");
-    vegets_cloud.reset();
-	pct::ConvGeopnts(setting.outputdir + "\\vegets.las");
+	if (vegets_cloud->size())
+	{
+		pct::io::save_las(vegets_cloud, setting.outputdir + "\\vegets.las");
+		vegets_cloud.reset();
+		pct::ConvGeopnts(setting.outputdir + "\\vegets.las");
+	}
 
     // 保存others .las
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr others_cloud(new pcl::PointCloud<pcl::PointXYZRGB>());
@@ -1466,9 +1473,13 @@ void ExtractLinesAndTower(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud,
         extract.filter(*temp_cloud);
         *others_cloud += *temp_cloud;
     }
-    pct::io::save_las(others_cloud, setting.outputdir + "\\others.las");
-    others_cloud.reset();
-	pct::ConvGeopnts(setting.outputdir + "\\others.las");
+	if (others_cloud->size())
+	{
+		pct::io::save_las(others_cloud, setting.outputdir + "\\others.las");
+		others_cloud.reset();
+		pct::ConvGeopnts(setting.outputdir + "\\others.las");
+	}
+
 
     // 保存ground .las
     ground->clear();
@@ -1477,9 +1488,13 @@ void ExtractLinesAndTower(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud,
     extract.setInputCloud(src_cloud);
     extract.setIndices(boost::make_shared<std::vector<int>>(ground_indices->indices));
     extract.filter(*ground_cloud);
-    pct::io::save_las(ground_cloud, setting.outputdir + "\\ground.las");
-    ground_cloud.reset();
-	pct::ConvGeopnts(setting.outputdir + "\\ground.las");
+	if (ground_cloud->size())
+	{
+		pct::io::save_las(ground_cloud, setting.outputdir + "\\ground.las");
+		ground_cloud.reset();
+		pct::ConvGeopnts(setting.outputdir + "\\ground.las");
+	}
+
 
     std::cout << "ExtractLinesAndTower end：end" << std::endl;
 }

@@ -13,6 +13,7 @@ namespace pct
 {
     typedef struct vegetinfo__
     {
+		enum Asix{ X = 0, Y = 1, Z = 2 };
         vegetinfo__() :veget_no(0){};
         vegetinfo__(pcl::PointIndices &in_indices)
             :veget_no(++g_next_no)
@@ -48,11 +49,19 @@ namespace pct
 				}
 			}
         }
+		Vector3 center;
+		Vector3 sta;
+		Vector3 end;
+		Vector3 v;
+		Asix maxAsix;
         pcl::PointIndices indices;
         pcl::PointXYZRGB cen;
         pcl::PointXYZRGB  min;
         pcl::PointXYZRGB  max;
 		pcl::PointXYZRGB  minzPt;
+		std::vector<Vector3> pts;
+		Fit fit;
+		Fit fit_z;
 
 
         static unsigned int g_next_no;
@@ -80,7 +89,6 @@ namespace pct
         Vector3 v;
         Asix maxAsix;
         std::vector<Vector3> pts;
-        //std::vector<Vector3> fit_pts;
         pcl::PointIndices indices;
         Fit fit;
         Fit fit_z;
@@ -88,23 +96,6 @@ namespace pct
 		std::string end_tower_no;
         std::string getLineNo()
         {
-			/*
-			std::string res;
-			if (begin_tower_no != -1)
-			{
-				std::stringstream ss;
-				ss << begin_tower_no;
-				res += ss.str();
-			}
-			res += "-";
-			if (end_tower_no != -1)
-			{
-				std::stringstream ss;
-				ss << end_tower_no;
-				res += ss.str();
-			}
-			*/
-
 			return begin_tower_no + "-" + end_tower_no;
         }
 
@@ -127,15 +118,6 @@ namespace pct
 
         std::string getNo()
         {
-			/*
-			std::string res;
-            std::stringstream ss;
-            ss << tower_no;
-            res += ss.str();
-           
-            res += "#";
-            return res;
-			*/
 			return tower_no + "#";
         }
     } TowerInfo;
