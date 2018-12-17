@@ -72,7 +72,7 @@ namespace pct
     
     typedef struct lineinfo__
     {
-        lineinfo__():begin_tower_no(-1), end_tower_no(-1){};
+        lineinfo__(){};
         enum Asix{ X = 0, Y = 1, Z = 2 };
         Vector3 center;
         Vector3 sta;
@@ -84,25 +84,28 @@ namespace pct
         pcl::PointIndices indices;
         Fit fit;
         Fit fit_z;
-        int begin_tower_no;
-        int end_tower_no;
+        std::string begin_tower_no;
+		std::string end_tower_no;
         std::string getLineNo()
         {
-            std::string res;
-            if (begin_tower_no != -1)
-            {
-                std::stringstream ss;
-                ss << begin_tower_no;
-                res += ss.str();
-            }
-            res += "-";
-            if (end_tower_no != -1)
-            {
-                std::stringstream ss;
-                ss << end_tower_no;
-                res += ss.str();
-            }
-            return res;
+			/*
+			std::string res;
+			if (begin_tower_no != -1)
+			{
+				std::stringstream ss;
+				ss << begin_tower_no;
+				res += ss.str();
+			}
+			res += "-";
+			if (end_tower_no != -1)
+			{
+				std::stringstream ss;
+				ss << end_tower_no;
+				res += ss.str();
+			}
+			*/
+
+			return begin_tower_no + "-" + end_tower_no;
         }
 
     } LineInfo;
@@ -110,9 +113,8 @@ namespace pct
 
     typedef struct towerinfo__
     {
-        towerinfo__() :tower_no(-1){};
+        towerinfo__() {};
         towerinfo__(pcl::PointIndices &in_indices) 
-            :tower_no(-1)
         {
             indices = in_indices;
         }
@@ -121,17 +123,20 @@ namespace pct
         pcl::PointXYZRGB  min;
         pcl::PointXYZRGB  max;
 
-        int tower_no;
+        std::string tower_no;
 
         std::string getNo()
         {
-            std::string res;
+			/*
+			std::string res;
             std::stringstream ss;
             ss << tower_no;
             res += ss.str();
            
             res += "#";
             return res;
+			*/
+			return tower_no + "#";
         }
     } TowerInfo;
 }

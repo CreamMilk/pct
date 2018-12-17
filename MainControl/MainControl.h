@@ -13,6 +13,12 @@ public:
 	~MainControl();
 	void SaveSetting();
 	void LoadSetting();
+
+	
+
+	void LoadAirRouteInfo();
+	void SaveAirRouteInfo();
+
 protected:
 	virtual void closeEvent(QCloseEvent *event) override;
 
@@ -26,14 +32,17 @@ void BridFinished(int exitcode, QProcess::ExitStatus status);
 void CloudGetCloudsPath();
 void CloudGetTowersDir();
 void CloudGetClassDir();
+
 void CloudRun();
 void CloudOpenResultDir();
-// void UpLoad();
+
 // 
 // void BirdGetBirdDir();
  void BirdRun();
 // void BirdOpenResultDir();
 
+void RefreshProj();
+void UpLoadProj();
 private:
 	QProcess *cloud_process_;
 	int cloud_rescode_;
@@ -43,7 +52,6 @@ private:
 	QProcess *brid_process_;
 	int brid_rescode_;
 	QProcess::ExitStatus brid_exitstatus_;
-
 
 	Ui::MainControlClass ui;
 };

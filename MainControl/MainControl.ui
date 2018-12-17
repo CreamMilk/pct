@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>715</width>
-    <height>492</height>
+    <width>566</width>
+    <height>494</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -15,6 +15,54 @@
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <item>
+       <widget class="QLabel" name="label_5">
+        <property name="text">
+         <string>项目路径：</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="lineEdit_projpath">
+        <property name="text">
+         <string>//192.168.6.27</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="label_16">
+        <property name="text">
+         <string>当前项目：</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="lineEdit_projname">
+        <property name="text">
+         <string/>
+        </property>
+        <property name="dragEnabled">
+         <bool>false</bool>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="pushButton_5">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="text">
+         <string>刷新</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
     <item>
      <spacer name="verticalSpacer_2">
       <property name="orientation">
@@ -523,7 +571,7 @@
     <item>
      <widget class="QPushButton" name="pushButton">
       <property name="enabled">
-       <bool>false</bool>
+       <bool>true</bool>
       </property>
       <property name="text">
        <string>上传到项目</string>
@@ -537,7 +585,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>715</width>
+     <width>566</width>
      <height>23</height>
     </rect>
    </property>
@@ -564,11 +612,11 @@
    <slot>CloudGetCloudsPath()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>691</x>
-     <y>136</y>
+     <x>542</x>
+     <y>167</y>
     </hint>
     <hint type="destinationlabel">
-     <x>714</x>
+     <x>565</x>
      <y>127</y>
     </hint>
    </hints>
@@ -580,11 +628,11 @@
    <slot>CloudGetTowersDir()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>691</x>
-     <y>167</y>
+     <x>542</x>
+     <y>198</y>
     </hint>
     <hint type="destinationlabel">
-     <x>714</x>
+     <x>565</x>
      <y>157</y>
     </hint>
    </hints>
@@ -596,8 +644,8 @@
    <slot>CloudRun()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>327</x>
-     <y>252</y>
+     <x>253</x>
+     <y>419</y>
     </hint>
     <hint type="destinationlabel">
      <x>0</x>
@@ -612,11 +660,11 @@
    <slot>CloudOpenResultDir()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>459</x>
-     <y>252</y>
+     <x>385</x>
+     <y>419</y>
     </hint>
     <hint type="destinationlabel">
-     <x>714</x>
+     <x>565</x>
      <y>342</y>
     </hint>
    </hints>
@@ -625,14 +673,14 @@
    <sender>pushButton</sender>
    <signal>clicked()</signal>
    <receiver>MainControlClass</receiver>
-   <slot>UpLoad()</slot>
+   <slot>UpLoadProj()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>469</x>
-     <y>295</y>
+     <x>478</x>
+     <y>460</y>
     </hint>
     <hint type="destinationlabel">
-     <x>714</x>
+     <x>565</x>
      <y>393</y>
     </hint>
    </hints>
@@ -644,11 +692,11 @@
    <slot>BirdGetBirdDir()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>691</x>
-     <y>145</y>
+     <x>542</x>
+     <y>167</y>
     </hint>
     <hint type="destinationlabel">
-     <x>714</x>
+     <x>565</x>
      <y>118</y>
     </hint>
    </hints>
@@ -660,8 +708,8 @@
    <slot>BirdRun()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>327</x>
-     <y>243</y>
+     <x>253</x>
+     <y>419</y>
     </hint>
     <hint type="destinationlabel">
      <x>0</x>
@@ -676,11 +724,11 @@
    <slot>BirdOpenResultDir()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>459</x>
-     <y>243</y>
+     <x>385</x>
+     <y>419</y>
     </hint>
     <hint type="destinationlabel">
-     <x>714</x>
+     <x>565</x>
      <y>333</y>
     </hint>
    </hints>
@@ -692,12 +740,28 @@
    <slot>CloudGetClassDir()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>648</x>
-     <y>184</y>
+     <x>542</x>
+     <y>229</y>
     </hint>
     <hint type="destinationlabel">
-     <x>751</x>
+     <x>565</x>
      <y>188</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pushButton_5</sender>
+   <signal>clicked()</signal>
+   <receiver>MainControlClass</receiver>
+   <slot>RefreshProj()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>524</x>
+     <y>57</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>653</x>
+     <y>59</y>
     </hint>
    </hints>
   </connection>
@@ -707,10 +771,11 @@
   <slot>CloudGetTowersDir()</slot>
   <slot>CloudRun()</slot>
   <slot>CloudOpenResultDir()</slot>
-  <slot>UpLoad()</slot>
+  <slot>UpLoadProj()</slot>
   <slot>BirdGetBirdDir()</slot>
   <slot>BirdRun()</slot>
   <slot>BirdOpenResultDir()</slot>
   <slot>CloudGetClassDir()</slot>
+  <slot>RefreshProj()</slot>
  </slots>
 </ui>

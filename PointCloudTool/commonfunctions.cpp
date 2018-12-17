@@ -1004,7 +1004,7 @@ pct::LineInfo pct::lineInfoFactory(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud,
     return info;
 }
 
-void pct::LoadTowers(QString filepath, std::vector <std::tuple<int, double, double, double>> &towerClusters)
+void pct::LoadTowers(QString filepath, std::vector <std::tuple<std::string, double, double, double>> &towerClusters)
 {
 	std::cout << "LoadTowers()" << filepath.toLocal8Bit().data() << std::endl;
 	if (!QFile(filepath).exists())
@@ -1037,11 +1037,11 @@ void pct::LoadTowers(QString filepath, std::vector <std::tuple<int, double, doub
 	{
 		QVariantList allEnvDataList_i = allEnvDataList[i].toList();
 
-		int serial = allEnvDataList_i[0].toString().toInt();
+		std::string serial = allEnvDataList_i[0].toString().toLocal8Bit().data();
 		double log = allEnvDataList_i[1].toDouble();
 		double lat = allEnvDataList_i[2].toDouble();
 		double z = allEnvDataList_i[3].toDouble();
-		towerClusters.push_back(std::tuple<int, double, double, double>(serial, log, lat, z));
+		towerClusters.push_back(std::tuple<std::string, double, double, double>(serial, log, lat, z));
 	}
 
 	workbook->dynamicCall("Close (Boolean)", false);
@@ -1123,7 +1123,7 @@ bool pct::LikePowerLine1(pcl::PointCloud<pcl::PointXYZRGB>::Ptr ground_cloud, pc
     std::vector<float> sqr_distances;
 
     // 最高点与离地高度<10，则认为不是电力线！
-    if (ground_kdtree.radiusSearch(maxZ, 15, indices, sqr_distances) > 0)
+    if (ground_kdtree.radiusSearch(maxZ, 10, indices, sqr_distances) > 0)
     {
         std::cout << "最高点与离地高度<10，则认为不是电力线！" << std::endl;
         return false;

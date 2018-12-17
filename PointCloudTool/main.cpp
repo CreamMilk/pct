@@ -53,7 +53,9 @@ void checkLinesDistanceDangerous(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_clou
 void SaveTowers(QString filepath, std::vector <pct::TowerInfo> &towerClusters);
 void SaveLines(QString filepath, std::vector <pct::LineInfo> &towerClusters);
 void PositionCorrection(QString tower_excel);
+void PositionCorrection(std::vector <pct::TowerInfo>& towerClusters);
 void LoadTowers(QString filepath, std::vector <std::tuple<double, double>> &towerClusters);
+
 int main(int argc, char *argv[])
 {
     QSurfaceFormat::setDefaultFormat(QVTKOpenGLWidget::defaultFormat());
@@ -71,6 +73,7 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
     std::cout << "ParserCmdline" << std::endl;
+
 
     if (setting.cmdtype == "train")
     {
@@ -220,13 +223,13 @@ int main(int argc, char *argv[])
 				std::cout << cmd_str << "\n导出pdf成功！";
 			}
 
-			PositionCorrection(setting.tower_excle);
+			//PositionCorrection(setting.tower_excle);
         }
         else
         {
-            QFileInfo inputfile_info(QString::fromLocal8Bit(setting.inputfile.c_str()));
-			setting.tower_excle = QDir::toNativeSeparators(inputfile_info.absolutePath() + QStringLiteral("\\") + inputfile_info.baseName() + QStringLiteral("\\铁塔.xlsx"));
-			PositionCorrection(setting.tower_excle);
+            //QFileInfo inputfile_info(QString::fromLocal8Bit(setting.inputfile.c_str()));
+			//setting.tower_excle = QDir::toNativeSeparators(inputfile_info.absolutePath() + QStringLiteral("\\") + inputfile_info.baseName() + QStringLiteral("\\铁塔.xlsx"));
+			//PositionCorrection(setting.tower_excle);
         }
     }
     else
@@ -349,6 +352,123 @@ void PositionCorrection(QString tower_excel)
     }
 }
 
+void PositionCorrection(std::vector <pct::TowerInfo>& towerClusters)
+{
+	pct::Setting &setting = pct::Setting::ins();
+	bool overrideExcel = setting.overrideExcel;         // 覆盖excel
+	bool stampcorrectcell = setting.stampcorrectcell;   // 提示修改
+	QString src_tower_dir = QString::fromLocal8Bit(setting.exceldir.c_str());
+
+	QDir dir(src_tower_dir);
+	if (!dir.exists())
+	{
+		std::cout << "excel目录不存在!" << std::endl;
+		return;
+	}
+
+	QStringList filters;
+	filters << QString("*.xlsx");
+	dir.setFilter(QDir::Files | QDir::NoSymLinks); //设置类型过滤器，只为文件格式
+	dir.setNameFilters(filters);
+	QFileInfoList list = dir.entryInfoList();
+	int file_count = list.count();
+	if (file_count <= 0)
+	{
+		std::cout << "excel文件数目小于0!" << std::endl;
+		return;
+	}
+	std::cout << "list" << std::endl;
+	QStringList string_list;
+	for (int i = 0; i < list.count(); i++)
+	{
+		QFileInfo file_info = list.at(i);
+		QString suffix = file_info.suffix();
+		if (QString::compare(suffix, QString("xlsx"), Qt::CaseInsensitive) == 0 && !file_info.fileName().count(QStringLiteral("纠偏")))
+		{
+			QString absolute_file_path = file_info.absoluteFilePath();
+			string_list.append(absolute_file_path);
+		}
+	}
+
+	std::cout << "string_list" << string_list.size() << std::endl;
+	// 遍历原始excels
+	for (int i = 0; i < string_list.size(); ++i)
+	{
+		HRESULT r = OleInitialize(0);
+		if (r != S_OK && r != S_FALSE) {
+			qWarning("Qt: Could not initialize OLE (error %x)", (unsigned int)r);
+		}
+		QAxObject excel("Excel.Application");
+		excel.setProperty("Visible", false); //隐藏打开的excel文件界面
+		excel.setProperty("DisplayAlerts", false);//不显示任何警告信息
+		QAxObject *workbooks = excel.querySubObject("WorkBooks");
+		QAxObject *workbook = workbooks->querySubObject("Open(QString, QVariant)", string_list[i]); //打开文件
+		QAxObject * worksheet = workbook->querySubObject("WorkSheets(int)", 1); //访问第一个工作表
+		QAxObject * usedrange = worksheet->querySubObject("UsedRange");
+		QAxObject * rows = usedrange->querySubObject("Rows");
+		int intRows = rows->property("Count").toInt(); //行数
+
+		QString Range = "A2:I" + QString::number(intRows);
+		QAxObject *allEnvData = worksheet->querySubObject("Range(QString)", Range); //读取范围
+		QVariant allEnvDataQVariant = allEnvData->property("Value");
+		QVariantList allEnvDataList = allEnvDataQVariant.toList();
+
+		// 遍历单个原始excel每行
+		std::cout << "intRows" << intRows << string_list[i].toLocal8Bit().data() << std::endl;
+		for (int j = 0; j < intRows - 1; j++)
+		{
+			QVariantList allEnvDataList_j = allEnvDataList[j].toList();
+			double j_log = allEnvDataList_j[7].toDouble();
+			double j_lat = allEnvDataList_j[8].toDouble();
+
+			// 遍历识别铁塔
+			for (int k = 0; k < towerClusters.size(); ++k)
+			{
+				double tower_k_log = towerClusters[k].cen.x;
+				double tower_k_lat = towerClusters[k].cen.y;
+				pct::UTMXY2LatLon(tower_k_log, tower_k_lat);
+				double offset = pct::getLonDistance(j_log, j_lat, tower_k_log, tower_k_lat);
+
+
+				if (offset < 30 && offset > 0.2)    //  30米内误差大于20厘米
+				{
+					
+					towerClusters[k].tower_no = worksheet->querySubObject("Cells(int,int)", j + 2, 4)->dynamicCall("Value()").toString().toLocal8Bit().data();
+					if (stampcorrectcell)
+					{
+						std::cout << "stampcorrectcell" << std::endl;
+						worksheet->querySubObject("Cells(int,int)", j + 2, 8)->querySubObject("Interior")->setProperty("Color", QColor(0, 255, 0));
+						worksheet->querySubObject("Cells(int,int)", j + 2, 9)->querySubObject("Interior")->setProperty("Color", QColor(0, 255, 0));
+					}
+					worksheet->querySubObject("Cells(int,int)", j + 2, 8)->dynamicCall("SetValue(const QVariant&)", tower_k_log);
+					worksheet->querySubObject("Cells(int,int)", j + 2, 9)->dynamicCall("SetValue(const QVariant&)", tower_k_lat);
+
+
+					std::cout << std::fixed << setprecision(7)
+						<< towerClusters[k].tower_no << j_log << " " << j_lat << "    "
+						<< tower_k_log << " " << tower_k_lat << " " << offset << std::endl;
+				}
+			}
+		}
+		// 回写入原数据
+		//allEnvData->dynamicCall("SetValue(const QVariant&)", QVariant(allEnvDataList));//存储所有数据到 excel 中,批量操作,速度极快
+		QString write_path = QDir::toNativeSeparators(QFileInfo(string_list[i]).absoluteFilePath());
+
+		if (!overrideExcel)
+			write_path = QFileInfo(string_list[i]).absolutePath() + "\\" + QFileInfo(string_list[i]).baseName() + QStringLiteral("纠偏.xlsx");
+		else
+			write_path = QFileInfo(string_list[i]).absoluteFilePath();
+		if (QFile::exists(write_path))
+			QFile::remove(write_path);
+
+		workbook->dynamicCall("SaveAs(const QString&)", QDir::toNativeSeparators(write_path));//保存至filepath，注意一定要用QDir::toNativeSeparators将路径中的"/"转换为"\"，不然一定保存不了。
+
+		workbook->dynamicCall("Close (Boolean)", false);
+		excel.dynamicCall("Quit()");
+		OleUninitialize();
+	}
+}
+
 void LoadTowers(QString filepath, std::vector <std::tuple<double, double>> &towerClusters)
 {
     std::cout << "LoadTowers()" << filepath.toLocal8Bit().data() << std::endl;
@@ -432,7 +552,7 @@ void SaveTowers(QString filepath, std::vector <pct::TowerInfo> &towerClusters)
             QList<QVariant> aRowData;//保存一行数据
             pct::UTMXY2LatLon(x, y);
 
-            aRowData.append(QVariant(QString::fromLocal8Bit(tower_iter->getNo().c_str()).remove('#')));
+            aRowData.append(QVariant(QString::fromLocal8Bit(tower_iter->tower_no.c_str())));
             aRowData.append(QVariant(x));
             aRowData.append(QVariant(y));
             aRowData.append(QVariant(tower_iter->max.z));
@@ -581,6 +701,15 @@ bool ReadyClassifOpts(pct::Setting& setting, boost::program_options::variables_m
 
     setsettingitem(outputdir, std::string, false, path_dir.string() + "\\" + path_file.stem().string());
     boost::filesystem::path out_dir = boost::filesystem::path(outputdir);
+
+	auto start = std::chrono::system_clock::now();
+	while (!pct::DelDir(QString::fromLocal8Bit(outputdir.c_str())))
+	{
+		if (std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - start).count() > 10)
+		{
+			break;
+		}
+	}
     if (!boost::filesystem::exists(out_dir))
     {
         boost::filesystem::create_directories(out_dir);
@@ -653,6 +782,15 @@ bool ReadPoscorrectOpts(pct::Setting& setting, boost::program_options::variables
     {
         setsettingitem(outputdir, std::string, false, path_dir.string() + "\\" + path_file.stem().string());
         boost::filesystem::path out_dir = boost::filesystem::path(outputdir);
+
+		auto start = std::chrono::system_clock::now();
+		while (!pct::DelDir(QString::fromLocal8Bit(outputdir.c_str())))
+		{
+			if (std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - start).count() > 10)
+			{
+				break;
+			}
+		}
         if (!boost::filesystem::exists(out_dir))
         {
             boost::filesystem::create_directories(out_dir);
@@ -1076,6 +1214,8 @@ void ExtractLinesAndTower(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud,
         towerClusters[i].cen = midpt;
     }
     std::cout << "计算铁塔中心点完成" << std::endl;
+
+	/*
     pcl::PointXYZRGB temppt;
     pct::TowerInfo tempcluster;
     for (int i = 0; i < (int)towerClusters.size() - 1; i++)
@@ -1099,13 +1239,27 @@ void ExtractLinesAndTower(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud,
             }
             std::cout << "移动铁塔j完成" << i << " " << j << std::endl;
         }
-        towerClusters[i].tower_no = i + 1;
+        //towerClusters[i].tower_no = i + 1;
         std::cout << "铁塔排序完成" << i << std::endl;
     }
-    std::cout << "铁塔编号完成" << std::endl;
-    if (towerClusters.size())
-        towerClusters[(int)towerClusters.size() - 1].tower_no = towerClusters.size();
+	*/
+    std::cout << "铁塔编号开始" << std::endl;
 
+	if (towerClusters.size())
+		PositionCorrection(towerClusters);
+
+	int vec_tower_series = 1;
+	for (std::vector<pct::TowerInfo>::iterator vec_tower_it = towerClusters.begin(); vec_tower_it != towerClusters.end(); ++vec_tower_it)
+	{
+		if (vec_tower_it->tower_no == "")
+		{
+			vec_tower_it->tower_no = std::string("A") + QString::number(vec_tower_series).toLocal8Bit().data() ;
+			vec_tower_series++;
+		}
+	}
+
+        /*towerClusters[(int)towerClusters.size() - 1].tower_no = towerClusters.size();*/
+	std::cout << "铁塔编号完成" << std::endl;
     for (int i = 0; i < lineClusters.size(); ++i)
     {
         pct::LineInfo &line = lineClusters[i];

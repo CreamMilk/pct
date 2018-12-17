@@ -12,6 +12,7 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/foreach.hpp>
+#include <QFileInfo>
 #include "CommonFuns.h"
 #include "ServerFunc.h"
 
@@ -21,7 +22,6 @@ MainControl::MainControl(QWidget *parent)
 	ui.setupUi(this);
 	LoadSetting();
 
-	QString a = ServerFunc::GetProjectCode();
 	cloud_process_ = new QProcess(this);
 	connect(cloud_process_, &QProcess::readyReadStandardOutput, this, &MainControl::CloudReadyReadStandardOutput);
 	connect(cloud_process_, &QProcess::readyReadStandardError, this, &MainControl::CloudReadyReadStandardOutput);
@@ -157,6 +157,75 @@ void MainControl::CloudGetClassDir()
 	ui.lineEdit_Cloud_ClassDir->setText(path);
 }
 
+void MainControl::LoadAirRouteInfo()
+{
+	QString filename = ui.label_Cloud_ResultDir->text() + QStringLiteral("/线路信息.txt");
+
+	QFile file(filename);
+	// Trying to open in WriteOnly and Text mode
+	if (!file.open(QFile::ReadOnly | QFile::Text))
+	{
+		return;
+	}
+
+	QString Circuit_Name, Circuit_Range, Kv, Date;
+	QTextStream out(&file);
+	out >> /*QStringLiteral("线路名称=") >>*/ Circuit_Name;
+	out >> /*QStringLiteral("分段区间=") >>*/ Circuit_Range ;
+	out >> /*QStringLiteral("电压等级=") >>*/ Kv ;
+	out >> /*QStringLiteral("采集日期=") >>*/ Date ;
+
+	Circuit_Name = Circuit_Name.right(Circuit_Name.length() - Circuit_Name.indexOf(QStringLiteral("=")) -1);
+	Circuit_Range = Circuit_Range.right(Circuit_Range.length() - Circuit_Range.indexOf(QStringLiteral("=")) - 1);
+	Kv = Kv.right(Kv.length() - Kv.indexOf(QStringLiteral("="))- 1);
+	Date = Date.right(Date.length() - Date.indexOf(QStringLiteral("=")) - 1);
+
+	file.close();
+}
+
+void MainControl::SaveAirRouteInfo()
+{
+	QString filename = ui.label_Cloud_ResultDir->text() + QStringLiteral("/线路信息.txt");
+
+	QFile file(filename);
+	// Trying to open in WriteOnly and Text mode
+	if (!file.open(QFile::WriteOnly | QFile::Text))
+	{
+		return;
+	}
+
+	QTextStream out(&file);
+	out << QStringLiteral("线路名称=") << ui.lineEdit_Circuit_Name->text() << QStringLiteral("\n");
+	out << QStringLiteral("分段区间=") << ui.lineEdit_Circuit_Range->text() << QStringLiteral("\n");
+	out << QStringLiteral("电压等级=") << ui.lineEdit_Kv->text() << QStringLiteral("\n");
+	out << QStringLiteral("采集日期=") << ui.lineEdit_Date->text() << QStringLiteral("\n");
+	file.flush();
+	file.close();
+}
+
+void MainControl::RefreshProj()
+{
+	QString projname = ServerFunc::GetProjectName();
+	if (projname.isEmpty())
+	{
+		QMessageBox::information(this, QStringLiteral("鸿业提示"), QStringLiteral("请登录鸿程后切换当前项目。"));
+	}
+	ui.lineEdit_projname->setText(projname);
+}
+
+void MainControl::UpLoadProj()
+{
+	QString output_dir = ui.lineEdit_Cloud_ClassDir->text();
+	if (/*分析是否具备上传条件*/1)
+		;
+
+	if (!QDir(QStringLiteral("//192.168.6.27")).exists())
+	{
+		QMessageBox::information(this, QStringLiteral("鸿业提示"), QStringLiteral("目录不存在或者没有访问权限。"));
+	}
+
+}
+
 void MainControl::CloudRun()
 {
 	ui.textEdit_CloudLog->clear();
@@ -183,24 +252,8 @@ void MainControl::CloudRun()
 		return;
 	}
 
+	
 	statusBar()->showMessage(QFileInfo(las_path).baseName() + QStringLiteral(".las分析中..."), 0);
-// 	QString mycmd = QStringLiteral("%1 --cmdtype %2 --inputfile %3 --classdir %4 --method %5 --exceldir %6 --overrideExcel %7")
-// 		.arg(app_dir + QStringLiteral("/PointCloudTool.exe"))
-// 		.arg(QStringLiteral("poscorrect"))
-// 		.arg(las_path)
-// 		.arg(ui.lineEdit_Cloud_ClassDir->text())
-// 		.arg(2)
-// 		.arg(tower_dir)
-// 		.arg(false)
-// 		.arg(true);
-// 		
-// 
-// 
-// 	args << "/c" << mycmd;
-// 	ui.pushButton_cloud_run->setEnabled(false);
-// 
-// 	cloud_process_->start("cmd.exe", args);
-// 	cloud_process_->waitForStarted();
 
 
 	QStringList mycmd;
@@ -219,7 +272,6 @@ void MainControl::CloudRun()
 	{
 		QApplication::processEvents();
 	}
-
 
 	statusBar()->showMessage(QFileInfo(las_path).baseName() + QStringLiteral(".las分析完成。 返回值=") + QString::number(cloud_rescode_) + QStringLiteral("，是否异常退出=") + QString::number(cloud_exitstatus_), 0);
 }

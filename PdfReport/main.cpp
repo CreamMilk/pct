@@ -322,7 +322,7 @@ void GenerateHtml(QString json_path, QString html_path)
     QString last;
 
     // utf8格式的
-    QFile inputFile(QStringLiteral(":/PdfReport/Resources/template.html"));
+    QFile inputFile(QApplication::applicationDirPath() + QStringLiteral("/../../../PdfReport/Resources/template.html"));
     QString json_dir = GetfilePath(json_path);
 
     int read_step = 0;
@@ -360,7 +360,6 @@ void GenerateHtml(QString json_path, QString html_path)
     }
     
     // 读取配置文件  utf8格式的
-    
     std::ifstream is;
     is.open(json_path.toLocal8Bit().data(), std::ios::in);
     if (is.is_open())

@@ -766,11 +766,11 @@ void DangerousDistanceCheck::showNearCheck()
 	sstr << std::fixed << setprecision(8) << latlon_cloudmid.x << "," << latlon_cloudmid.y << "," << std::fixed << setprecision(1) << latlon_cloudmid.z;
 	pt.put("点云中心点", sstr.str());
 
-	std::vector <std::tuple<int, double, double, double>> towers;
+	std::vector <std::tuple<std::string, double, double, double>> towers;
 	pct::LoadTowers(setting.tower_excle, towers);
 	for (int i = 0; i < towers.size(); ++i)
 	{
-		std::string key = std::string("铁塔位置.") + QString::number(std::get<0>(towers[i])).toLocal8Bit().data();
+		std::string key = std::string("铁塔位置.") + std::get<0>(towers[i]);
 		std::string val = (QString::number(std::get<1>(towers[i]), 'f', 8) + QStringLiteral(",") + QString::number(std::get<2>(towers[i]), 'f', 8)
 			+ QStringLiteral(",") + QString::number(std::get<3>(towers[i]), 'f', 1)).toLocal8Bit().data();
 		pt.put(key, val);

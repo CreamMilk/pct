@@ -63,12 +63,12 @@ namespace pct
     bool DelDir(const QString &path);
 	void UTMXY2LatLon(double &x, double &y, int zone = 50, bool southhemi = false);
 	void UTMXY2LatLon(float &x, float &y, int zone = 50, bool southhemi = false);
-	void LatLon2UTMXY(double &x, double &y, int zone = 0);
+	void LatLon2UTMXY(double &x, double &y, int zone = 50);
     double getLonDistance(float fLati1, float fLong1, float fLati2, float fLong2);
     void ExtractCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, pcl::PointIndicesPtr inices, pcl::PointCloud<pcl::PointXYZRGB>::Ptr out_cloud);
 	pcl::PointXYZRGB GetMiddlePoint(pcl::PointXYZRGB min, pcl::PointXYZRGB max);
 	void ScreenshotHeightColor(pcl::PointCloud<pcl::PointXYZRGB>::Ptr  src_cloud, QString pic_dir, math::vec *axis_vec);
-	void LoadTowers(QString filepath, std::vector <std::tuple<int, double, double, double>> &towerClusters);
+	void LoadTowers(QString filepath, std::vector <std::tuple<std::string, double, double, double>> &towerClusters);
 	void LBHtoXYZ(float &xx, float &yy, float &zz);
 }
 
