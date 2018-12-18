@@ -134,8 +134,13 @@
     <ClCompile Include="qrendview.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <QtMoc Include="qcolortool.h">
-    </QtMoc>
+    <CustomBuild Include="qcolortool.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(SolutionDir)..\Dependence\5.10\5.10.1\msvc2013_64\bin\moc.exe"  "%(FullPath)" -o ".\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp"  -DUNICODE -D_UNICODE -DWIN32 -DWIN64 -DQT_DLL -DQT_NO_DEBUG -DNDEBUG -DQT_CORE_LIB -DQT_GUI_LIB -DQT_WIDGETS_LIB "-I.\GeneratedFiles" "-I." "-IF:\project\powerline\solution\Dependence\5.10\5.10.1\msvc2013_64\include" "-I.\GeneratedFiles\$(ConfigurationName)\." "-IF:\project\powerline\solution\Dependence\5.10\5.10.1\msvc2013_64\include\QtCore" "-IF:\project\powerline\solution\Dependence\5.10\5.10.1\msvc2013_64\include\QtGui" "-IF:\project\powerline\solution\Dependence\5.10\5.10.1\msvc2013_64\include\QtWidgets"</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)..\Dependence\5.10\5.10.1\msvc2013_64\bin\moc.exe;%(FullPath)</AdditionalInputs>
+    </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="qcolortool.ui">
@@ -150,8 +155,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GeneratedFiles\ui_qcolortool.h" />
-    <QtMoc Include="qrendview.h">
-    </QtMoc>
+    <CustomBuild Include="qrendview.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(SolutionDir)..\Dependence\5.10\5.10.1\msvc2013_64\bin\moc.exe"  "%(FullPath)" -o ".\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp"  -DUNICODE -D_UNICODE -DWIN32 -DWIN64 -DQT_DLL -DQT_NO_DEBUG -DNDEBUG -DQT_CORE_LIB -DQT_GUI_LIB -DQT_WIDGETS_LIB "-I.\GeneratedFiles" "-I." "-IF:\project\powerline\solution\Dependence\5.10\5.10.1\msvc2013_64\include" "-I.\GeneratedFiles\$(ConfigurationName)\." "-IF:\project\powerline\solution\Dependence\5.10\5.10.1\msvc2013_64\include\QtCore" "-IF:\project\powerline\solution\Dependence\5.10\5.10.1\msvc2013_64\include\QtGui" "-IF:\project\powerline\solution\Dependence\5.10\5.10.1\msvc2013_64\include\QtWidgets"</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)..\Dependence\5.10\5.10.1\msvc2013_64\bin\moc.exe;%(FullPath)</AdditionalInputs>
+    </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="qcolortool.qrc">
