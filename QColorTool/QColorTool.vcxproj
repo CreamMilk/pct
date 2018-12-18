@@ -127,6 +127,8 @@
     </QtUic>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="GeneratedFiles\Release\moc_qcolortool.cpp" />
+    <ClCompile Include="GeneratedFiles\Release\moc_qrendview.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="qcolortool.cpp" />
     <ClCompile Include="qrendview.cpp" />
@@ -136,8 +138,15 @@
     </QtMoc>
   </ItemGroup>
   <ItemGroup>
-    <QtUic Include="qcolortool.ui">
-    </QtUic>
+    <CustomBuild Include="qcolortool.ui">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </ExcludedFromBuild>
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(SolutionDir)..\Dependence\5.10\5.10.1\msvc2013_64\bin\uic.exe" -o ".\GeneratedFiles\ui_%(Filename).h" "%(FullPath)"</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Uic%27ing %(Identity)...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\GeneratedFiles\ui_%(Filename).h;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)..\Dependence\5.10\5.10.1\msvc2013_64\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
+    </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GeneratedFiles\ui_qcolortool.h" />
@@ -145,8 +154,13 @@
     </QtMoc>
   </ItemGroup>
   <ItemGroup>
-    <QtRcc Include="qcolortool.qrc">
-    </QtRcc>
+    <CustomBuild Include="qcolortool.qrc">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(SolutionDir)..\Dependence\5.10\5.10.1\msvc2013_64\bin\rcc.exe" -name "%(Filename)" -no-compress "%(FullPath)" -o .\GeneratedFiles\qrc_%(Filename).cpp</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Rcc%27ing %(Identity)...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\GeneratedFiles\qrc_%(Filename).cpp;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(FullPath);%(AdditionalInputs)</AdditionalInputs>
+    </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">

@@ -39,7 +39,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <PreprocessorDefinitions>UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.\GeneratedFiles;.;F:\project\powerline\solution\Dependence\5.10\5.10.1\msvc2013_64\include;.\GeneratedFiles\$(ConfigurationName);F:\project\powerline\solution\Dependence\5.10\5.10.1\msvc2013_64\include\QtCore;F:\project\powerline\solution\Dependence\5.10\5.10.1\msvc2013_64\include\QtGui;F:\project\powerline\solution\Dependence\5.10\5.10.1\msvc2013_64\include\QtWidgets;$(SolutionDir)\..\Dependence\boost_1_67_0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\GeneratedFiles;.;$(SolutionDir)..\Dependence\5.10\5.10.1\msvc2013_64\include;.\GeneratedFiles\$(ConfigurationName);$(SolutionDir)..\Dependence\5.10\5.10.1\msvc2013_64\include\QtCore;$(SolutionDir)..\Dependence\5.10\5.10.1\msvc2013_64\include\QtGui;$(SolutionDir)..\Dependence\5.10\5.10.1\msvc2013_64\include\QtWidgets;$(SolutionDir)\..\Dependence\boost_1_67_0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Disabled</Optimization>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -51,13 +51,13 @@
       <OutputFile>$(OutDir)\$(ProjectName).exe</OutputFile>
       <AdditionalLibraryDirectories>F:\project\powerline\solution\Dependence\5.10\5.10.1\msvc2013_64\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>F:\project\powerline\solution\Dependence\5.10\5.10.1\msvc2013_64\lib\qtmain.lib;F:\project\powerline\solution\Dependence\5.10\5.10.1\msvc2013_64\lib\Qt5Core.lib;F:\project\powerline\solution\Dependence\5.10\5.10.1\msvc2013_64\lib\Qt5Gui.lib;F:\project\powerline\solution\Dependence\5.10\5.10.1\msvc2013_64\lib\Qt5Widgets.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(SolutionDir)..\\Dependence\5.10\5.10.1\msvc2013_64\lib\qtmain.lib;$(SolutionDir)..\\Dependence\5.10\5.10.1\msvc2013_64\lib\Qt5Core.lib;$(SolutionDir)..\\Dependence\5.10\5.10.1\msvc2013_64\lib\Qt5Gui.lib;$(SolutionDir)..\\Dependence\5.10\5.10.1\msvc2013_64\lib\Qt5Widgets.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <PreprocessorDefinitions>UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.\GeneratedFiles;.;F:\project\powerline\solution\Dependence\5.10\5.10.1\msvc2013_64\include;.\GeneratedFiles\$(ConfigurationName);F:\project\powerline\solution\Dependence\5.10\5.10.1\msvc2013_64\include\QtCore;F:\project\powerline\solution\Dependence\5.10\5.10.1\msvc2013_64\include\QtGui;F:\project\powerline\solution\Dependence\5.10\5.10.1\msvc2013_64\include\QtWidgets;$(SolutionDir)\..\Dependence\boost_1_67_0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\GeneratedFiles;.;$(SolutionDir)..\Dependence\5.10\5.10.1\msvc2013_64\include;.\GeneratedFiles\$(ConfigurationName);$(SolutionDir)..\Dependence\5.10\5.10.1\msvc2013_64\include\QtCore;$(SolutionDir)..\Dependence\5.10\5.10.1\msvc2013_64\include\QtGui;$(SolutionDir)..\Dependence\5.10\5.10.1\msvc2013_64\include\QtWidgets;$(SolutionDir)\..\Dependence\boost_1_67_0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
@@ -65,9 +65,9 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <OutputFile>$(OutDir)\$(ProjectName).exe</OutputFile>
-      <AdditionalLibraryDirectories>F:\project\powerline\solution\Dependence\5.10\5.10.1\msvc2013_64\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)..\Dependence\5.10\5.10.1\msvc2013_64\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>F:\project\powerline\solution\Dependence\5.10\5.10.1\msvc2013_64\lib\qtmain.lib;F:\project\powerline\solution\Dependence\5.10\5.10.1\msvc2013_64\lib\Qt5Core.lib;F:\project\powerline\solution\Dependence\5.10\5.10.1\msvc2013_64\lib\Qt5Gui.lib;F:\project\powerline\solution\Dependence\5.10\5.10.1\msvc2013_64\lib\Qt5Widgets.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(SolutionDir)..\Dependence\5.10\5.10.1\msvc2013_64\lib\qtmain.lib;$(SolutionDir)..\Dependence\5.10\5.10.1\msvc2013_64\lib\Qt5Core.lib;$(SolutionDir)..\Dependence\5.10\5.10.1\msvc2013_64\lib\Qt5Gui.lib;$(SolutionDir)..\Dependence\5.10\5.10.1\msvc2013_64\lib\Qt5Widgets.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -94,10 +94,10 @@
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Moc%27ing MainControl.h...</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"F:\project\powerline\solution\Dependence\5.10\5.10.1\msvc2013_64\bin\moc.exe"  "%(FullPath)" -o ".\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp"  -DUNICODE -D_UNICODE -DWIN32 -DWIN64 -DQT_DLL -DQT_CORE_LIB -DQT_GUI_LIB -DQT_WIDGETS_LIB "-I.\GeneratedFiles" "-I." "-IF:\project\powerline\solution\Dependence\5.10\5.10.1\msvc2013_64\include" "-I.\GeneratedFiles\$(ConfigurationName)\." "-IF:\project\powerline\solution\Dependence\5.10\5.10.1\msvc2013_64\include\QtCore" "-IF:\project\powerline\solution\Dependence\5.10\5.10.1\msvc2013_64\include\QtGui" "-IF:\project\powerline\solution\Dependence\5.10\5.10.1\msvc2013_64\include\QtWidgets"</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">F:\project\powerline\solution\Dependence\5.10\5.10.1\msvc2013_64\bin\moc.exe;%(FullPath)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)..\Dependence\5.10\5.10.1\msvc2013_64\bin\moc.exe;%(FullPath)</AdditionalInputs>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing MainControl.h...</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"F:\project\powerline\solution\Dependence\5.10\5.10.1\msvc2013_64\bin\moc.exe"  "%(FullPath)" -o ".\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp"  -DUNICODE -D_UNICODE -DWIN32 -DWIN64 -DQT_DLL -DQT_NO_DEBUG -DNDEBUG -DQT_CORE_LIB -DQT_GUI_LIB -DQT_WIDGETS_LIB "-I.\GeneratedFiles" "-I." "-IF:\project\powerline\solution\Dependence\5.10\5.10.1\msvc2013_64\include" "-I.\GeneratedFiles\$(ConfigurationName)\." "-IF:\project\powerline\solution\Dependence\5.10\5.10.1\msvc2013_64\include\QtCore" "-IF:\project\powerline\solution\Dependence\5.10\5.10.1\msvc2013_64\include\QtGui" "-IF:\project\powerline\solution\Dependence\5.10\5.10.1\msvc2013_64\include\QtWidgets"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(SolutionDir)..\Dependence\5.10\5.10.1\msvc2013_64\bin\moc.exe"  "%(FullPath)" -o ".\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp"  -DUNICODE -D_UNICODE -DWIN32 -DWIN64 -DQT_DLL -DQT_NO_DEBUG -DNDEBUG -DQT_CORE_LIB -DQT_GUI_LIB -DQT_WIDGETS_LIB "-I.\GeneratedFiles" "-I." "-IF:\project\powerline\solution\Dependence\5.10\5.10.1\msvc2013_64\include" "-I.\GeneratedFiles\$(ConfigurationName)\." "-IF:\project\powerline\solution\Dependence\5.10\5.10.1\msvc2013_64\include\QtCore" "-IF:\project\powerline\solution\Dependence\5.10\5.10.1\msvc2013_64\include\QtGui" "-IF:\project\powerline\solution\Dependence\5.10\5.10.1\msvc2013_64\include\QtWidgets"</Command>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
@@ -106,10 +106,10 @@
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Uic%27ing %(Identity)...</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles\ui_%(Filename).h;%(Outputs)</Outputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"F:\project\powerline\solution\Dependence\5.10\5.10.1\msvc2013_64\bin\uic.exe" -o ".\GeneratedFiles\ui_%(Filename).h" "%(FullPath)"</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">F:\project\powerline\solution\Dependence\5.10\5.10.1\msvc2013_64\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)..\Dependence\5.10\5.10.1\msvc2013_64\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Uic%27ing %(Identity)...</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\GeneratedFiles\ui_%(Filename).h;%(Outputs)</Outputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"F:\project\powerline\solution\Dependence\5.10\5.10.1\msvc2013_64\bin\uic.exe" -o ".\GeneratedFiles\ui_%(Filename).h" "%(FullPath)"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(SolutionDir)..\Dependence\5.10\5.10.1\msvc2013_64\bin\uic.exe" -o ".\GeneratedFiles\ui_%(Filename).h" "%(FullPath)"</Command>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
@@ -139,7 +139,7 @@
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(FullPath);%(AdditionalInputs)</AdditionalInputs>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Rcc%27ing %(Identity)...</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\GeneratedFiles\qrc_%(Filename).cpp;%(Outputs)</Outputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"F:\project\powerline\solution\Dependence\5.10\5.10.1\msvc2013_64\bin\rcc.exe" -name "%(Filename)" -no-compress "%(FullPath)" -o .\GeneratedFiles\qrc_%(Filename).cpp</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(SolutionDir)..\Dependence\5.10\5.10.1\msvc2013_64\bin\rcc.exe" -name "%(Filename)" -no-compress "%(FullPath)" -o .\GeneratedFiles\qrc_%(Filename).cpp</Command>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
