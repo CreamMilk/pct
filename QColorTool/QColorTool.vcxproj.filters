@@ -57,14 +57,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <QtMoc Include="qcolortool.h">
-      <Filter>Header Files</Filter>
-    </QtMoc>
-    <QtMoc Include="qrendview.h">
-      <Filter>Header Files</Filter>
-    </QtMoc>
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="GeneratedFiles\ui_qcolortool.h">
       <Filter>Generated Files</Filter>
     </ClInclude>
@@ -75,6 +67,12 @@
     </CustomBuild>
     <CustomBuild Include="qcolortool.qrc">
       <Filter>Resource Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="qcolortool.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="qrendview.h">
+      <Filter>Header Files</Filter>
     </CustomBuild>
   </ItemGroup>
 </Project>
