@@ -206,24 +206,56 @@ void MainControl::SaveAirRouteInfo()
 void MainControl::RefreshProj()
 {
 	QString projname = ServerFunc::GetProjectName();
-	if (projname.isEmpty())
+	QString projcode = ServerFunc::GetProjectCode();
+	if (projcode.isEmpty())
 	{
 		QMessageBox::information(this, QStringLiteral("鸿业提示"), QStringLiteral("请登录鸿程后切换当前项目。"));
+		return;
 	}
-	ui.lineEdit_projname->setText(projname);
+	ui.label_projname->setText(projname);
+	ui.label_projcode->setText(projcode);
 }
 
-void MainControl::UpLoadProj()
+void MainControl::CloudUpLoadProj()
 {
-	QString output_dir = ui.lineEdit_Cloud_ClassDir->text();
-	if (/*分析是否具备上传条件*/1)
-		;
+	QString projpath = ui.lineEdit_projpath->text();
+	QString projdir = projpath + QStringLiteral("/") + ServerFunc::GetProjectCode() +  QStringLiteral("/mds");
+	QString output_dir = ui.label_Cloud_ResultDir->text();
 
-	if (!QDir(QStringLiteral("//192.168.6.27")).exists())
+	
+	if (!QDir(projpath).exists())
 	{
-		QMessageBox::information(this, QStringLiteral("鸿业提示"), QStringLiteral("目录不存在或者没有访问权限。"));
+		QMessageBox::information(this, QStringLiteral("鸿业提示"), QStringLiteral("项目路径不存在或者没有访问权限。"));
+		return;
+	}
+	if (!QDir(output_dir + QStringLiteral("/ground")).exists())
+	{
+		QMessageBox::information(this, QStringLiteral("鸿业提示"), QStringLiteral("请先分析点云。"));
+		return;
+	}
+	if (!QFile::exists(output_dir + QStringLiteral("/检测结果.pdf")))
+	{
+		
+		return;
 	}
 
+	if (!QDir(projdir).exists())
+	{
+		QDir().mkpath(projdir);
+		if (!QDir(projdir).exists())
+		{
+			QMessageBox::information(this, QStringLiteral("鸿业提示"), QStringLiteral("项目目录创建失败，请手动创建。"));
+			return;
+		}
+	}
+
+	FileUtil::CopyDirectory(output_dir + QStringLiteral("/ground"), projdir + QStringLiteral("/ground"));
+	FileUtil::CopyDirectory(output_dir + QStringLiteral("/lines"), projdir + QStringLiteral("/lines"));
+	FileUtil::CopyDirectory(output_dir + QStringLiteral("/others"), projdir + QStringLiteral("/others"));
+	FileUtil::CopyDirectory(output_dir + QStringLiteral("/towers"), projdir + QStringLiteral("/towers"));
+	FileUtil::CopyDirectory(output_dir + QStringLiteral("/vegets"), projdir + QStringLiteral("/vegets"));
+	QFile::copy(output_dir + QStringLiteral("/检测结果.pdf"), projdir + QStringLiteral("/检测结果.pdf"));
+	QFile::copy(output_dir + QStringLiteral("/检测结果.json"), projdir + QStringLiteral("/检测结果.json"));
 }
 
 void MainControl::CloudRun()

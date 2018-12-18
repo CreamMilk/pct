@@ -25,4 +25,5 @@ class FileUtil
 public:
 	bool static DelDir(const QString &path);
 	void static ReMakeDir(QString dir);
+	bool static CopyDirectory(const QString &fromDir, const QString &toDir);
 };

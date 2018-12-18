@@ -42,7 +42,7 @@ void CloudOpenResultDir();
 // void BirdOpenResultDir();
 
 void RefreshProj();
-void UpLoadProj();
+void CloudUpLoadProj();
 private:
 	QProcess *cloud_process_;
 	int cloud_rescode_;

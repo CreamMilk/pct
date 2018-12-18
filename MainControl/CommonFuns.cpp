@@ -116,3 +116,38 @@ void FileUtil::ReMakeDir(QString dir)
 		QDir().mkpath(dir);
 	}
 }
+
+bool FileUtil::CopyDirectory(const QString &fromDir, const QString &toDir)
+{
+	QDir sourceDir(fromDir);
+	QDir targetDir(toDir);
+	if (!targetDir.exists()){    /**< 如果目标目录不存在，则进行创建 */
+		if (!targetDir.mkdir(targetDir.absolutePath()))
+			return false;
+	}
+
+	QFileInfoList fileInfoList = sourceDir.entryInfoList();
+	foreach(QFileInfo fileInfo, fileInfoList){
+		if (fileInfo.fileName() == "." || fileInfo.fileName() == "..")
+			continue;
+
+		if (fileInfo.isDir()){    /**< 当为目录时，递归的进行copy */
+			if (!CopyDirectory(fileInfo.filePath(),
+				targetDir.filePath(fileInfo.fileName())
+				))
+				return false;
+		}
+		else{            /**< 将旧文件进行删除操作 */
+			if (targetDir.exists(fileInfo.fileName())){
+				targetDir.remove(fileInfo.fileName());
+			}
+
+			/// 进行文件copy
+			if (!QFile::copy(fileInfo.filePath(),
+				targetDir.filePath(fileInfo.fileName()))){
+				return false;
+			}
+		}
+	}
+	return true;
+}
