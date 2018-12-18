@@ -255,6 +255,9 @@ void MainControl::CloudRun()
 	
 	statusBar()->showMessage(QFileInfo(las_path).baseName() + QStringLiteral(".las·ÖÎöÖÐ..."), 0);
 
+	FileUtil::ReMakeDir(ui.label_Cloud_ResultDir->text());
+	SaveAirRouteInfo();
+
 
 	QStringList mycmd;
 	mycmd << QStringLiteral("--cmdtype") << QStringLiteral("poscorrect") << QStringLiteral("--inputfile") << las_path << QStringLiteral("--classdir") << ui.lineEdit_Cloud_ClassDir->text() <<

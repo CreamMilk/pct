@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <QString>
 
 class ChartSetConv
 {
@@ -17,4 +18,11 @@ class StringUtil
 {
 public:
 	void static StringReplace(std::string &strBase, std::string strSrc, std::string strDes);
+};
+
+class FileUtil
+{
+public:
+	bool static DelDir(const QString &path);
+	void static ReMakeDir(QString dir);
 };

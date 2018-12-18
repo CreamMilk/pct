@@ -68,6 +68,7 @@ bool ParserCmdline(int argc, char *argv[]);
 std::string GetExePath();
 bool ExportPdf(QString html_path, QString pdf_path);
 void ExportImage(QString html_path, QString img_path);
+void LoadAirRouteInfo(QString filename, QString &Circuit_Name, QString &Circuit_Range, QString &Kv, QString &Date);
 std::string GetExeName();
 
 /* Print out loading progress information */
@@ -113,6 +114,7 @@ void warning(wkhtmltoimage_converter * c, const char * msg) {
 	fprintf(stderr, "Warning: %s\n", msg);
 }
 
+/*
 typedef std::vector<std::string> vecString;
 void ReadTxtFile(std::string file, vecString& vecStr)
 {
@@ -127,6 +129,8 @@ void ReadTxtFile(std::string file, vecString& vecStr)
 	}
 	infile.close();             //关闭文件输入流 
 }
+*/
+
 
 /* Main method convert pdf */
 int main(int argc, char *argv[])
@@ -348,7 +352,28 @@ std::string U2A(std::string src)
 	return std::string(mid.toLocal8Bit().data());
 }
 
+void LoadAirRouteInfo(QString filename, QString &Circuit_Name, QString &Circuit_Range, QString &Kv, QString &Date)
+{
+	QFile file(filename);
+	// Trying to open in WriteOnly and Text mode
+	if (!file.open(QFile::ReadOnly | QFile::Text))
+	{
+		return;
+	}
 
+	QTextStream out(&file);
+	out >> /*QStringLiteral("线路名称=") >>*/ Circuit_Name;
+	out >> /*QStringLiteral("分段区间=") >>*/ Circuit_Range;
+	out >> /*QStringLiteral("电压等级=") >>*/ Kv;
+	out >> /*QStringLiteral("采集日期=") >>*/ Date;
+
+	Circuit_Name = Circuit_Name.right(Circuit_Name.length() - Circuit_Name.indexOf(QStringLiteral("=")) - 1);
+	Circuit_Range = Circuit_Range.right(Circuit_Range.length() - Circuit_Range.indexOf(QStringLiteral("=")) - 1);
+	Kv = Kv.right(Kv.length() - Kv.indexOf(QStringLiteral("=")) - 1);
+	Date = Date.right(Date.length() - Date.indexOf(QStringLiteral("=")) - 1);
+
+	file.close();
+}
 
 void GenerateHtml(QString json_path, QString html_path)
 {
@@ -448,7 +473,16 @@ void GenerateHtml(QString json_path, QString html_path)
 	QString html;
 	html += xianluxinxi_front;
 
-	// 读取txt文件值
+
+	// 读取线路信息
+	QString Circuit_Name, Circuit_Range, Kv, Date;
+	QString ceshitu = QString::fromUtf8(pt.get<std::string>(to_utf8(String2WString("高程颜色侧视图路径"))).c_str());
+	QString fushitu = QString::fromUtf8(pt.get<std::string>(to_utf8(String2WString("高程颜色俯视图路径"))).c_str());
+	LoadAirRouteInfo(QFileInfo(json_path).absoluteDir().absolutePath() + QStringLiteral("/线路信息.txt")
+		, Circuit_Name, Circuit_Range, Kv, Date);
+	html += xianluxinxi_template.arg(Circuit_Name).arg(Circuit_Range).arg(Kv).arg(Date).arg(ceshitu).arg(fushitu);
+
+	/*
 	QString txt_dir = QFileInfo(json_path).absoluteDir().absolutePath();
 	txt_dir += QStringLiteral("/线路信息.txt");
 	std::string strTxt = txt_dir.toLocal8Bit().data();
@@ -467,6 +501,7 @@ void GenerateHtml(QString json_path, QString html_path)
 	QString fushitu = QString::fromUtf8(pt.get<std::string>(to_utf8(String2WString("高程颜色俯视图路径"))).c_str());
 
 	html += xianluxinxi_template.arg(strQNum1).arg(strQNum2).arg(strQNum3).arg(strQNum4).arg(ceshitu).arg(fushitu);
+	*/
 
 	// 将读取的.json数值赋给.html对应的内容
 	QString zongtu = QString::fromUtf8(pt.get<std::string>(to_utf8(String2WString("xy平面图路径"))).c_str());

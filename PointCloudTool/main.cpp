@@ -783,14 +783,7 @@ bool ReadPoscorrectOpts(pct::Setting& setting, boost::program_options::variables
         setsettingitem(outputdir, std::string, false, path_dir.string() + "\\" + path_file.stem().string());
         boost::filesystem::path out_dir = boost::filesystem::path(outputdir);
 
-		auto start = std::chrono::system_clock::now();
-		while (!pct::DelDir(QString::fromLocal8Bit(outputdir.c_str())))
-		{
-			if (std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - start).count() > 10)
-			{
-				break;
-			}
-		}
+		
         if (!boost::filesystem::exists(out_dir))
         {
             boost::filesystem::create_directories(out_dir);

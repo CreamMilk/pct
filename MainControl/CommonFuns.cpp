@@ -1,5 +1,8 @@
 #include "CommonFuns.h"
 #include <windows.h>
+#include <QDir>
+#include <QFile>
+#include <QFileInfo>
 
 
 std::string ChartSetConv::to_utf8(const wchar_t* buffer, int len)
@@ -79,5 +82,37 @@ void StringUtil::StringReplace(std::string &strBase, std::string strSrc, std::st
 	{
 		strBase.replace(pos, srcLen, strDes);
 		pos = strBase.find(strSrc, (pos + desLen));
+	}
+}
+
+bool FileUtil::DelDir(const QString &path)
+{
+	if (path.isEmpty()){
+		return false;
+	}
+	QDir dir(path);
+	if (!dir.exists()){
+		return true;
+	}
+	dir.setFilter(QDir::AllEntries | QDir::NoDotAndDotDot); //设置过滤
+	QFileInfoList fileList = dir.entryInfoList(); // 获取所有的文件信息
+	foreach(QFileInfo file, fileList){ //遍历文件信息
+		if (file.isFile()){ // 是文件，删除
+			file.dir().remove(file.fileName());
+		}
+		else{ // 递归删除
+			DelDir(file.absoluteFilePath());
+		}
+	}
+	return dir.rmpath(dir.absolutePath()); // 删除文件夹
+}
+
+void FileUtil::ReMakeDir(QString dir)
+{
+	FileUtil::DelDir(dir);
+
+	if (!QDir().exists(dir))
+	{
+		QDir().mkpath(dir);
 	}
 }
