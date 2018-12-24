@@ -17,8 +17,8 @@
 	"arrow":"255,0,0"
   },
   "dangerdistance":{
-	"ground":"0, 15",
-	"veget":"10, 10",
+	"ground":"0, 20",
+	"veget":"10, 20",
 	"budding":"-, -"
   },
   "提取地面":{

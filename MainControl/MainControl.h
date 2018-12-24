@@ -19,6 +19,8 @@ public:
 	void LoadAirRouteInfo();
 	void SaveAirRouteInfo();
 
+	void SubmitCloudWarningReport();
+
 protected:
 	virtual void closeEvent(QCloseEvent *event) override;
 
@@ -42,6 +44,7 @@ void CloudOpenResultDir();
 // void BirdOpenResultDir();
 
 void RefreshProj();
+
 void CloudUpLoadProj();
 private:
 	QProcess *cloud_process_;

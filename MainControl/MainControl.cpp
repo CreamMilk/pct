@@ -13,6 +13,11 @@
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/foreach.hpp>
 #include <QFileInfo>
+#include <QHttpMultiPart>
+#include <QNetworkRequest>
+#include <QNetworkReply>
+#include <QEventLoop>
+#include <QNetworkAccessManager>
 #include "CommonFuns.h"
 #include "ServerFunc.h"
 
@@ -216,6 +221,51 @@ void MainControl::RefreshProj()
 	ui.label_projcode->setText(projcode);
 }
 
+void MainControl::SubmitCloudWarningReport()
+{
+	QString output_dir = ui.label_Cloud_ResultDir->text();
+	//QTextCodec* codec = QTextCodec::codecForName("UTF-8");
+
+	std::shared_ptr<QNetworkAccessManager> proc_manager = std::make_shared<QNetworkAccessManager>();
+	std::shared_ptr<QHttpMultiPart> multiPart = std::make_shared<QHttpMultiPart>(QHttpMultiPart::FormDataType);
+	
+	
+	QHttpPart ProjectCode;
+	ProjectCode.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant(QStringLiteral("form-data; name=\"ProjectCode\"")));
+	ProjectCode.setBody(ServerFunc::GetProjectCode().toUtf8());
+
+	QHttpPart pdfFile;
+	pdfFile.setHeader(QNetworkRequest::ContentTypeHeader, QVariant(QStringLiteral("application/pdf")));
+	pdfFile.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant(QStringLiteral("form-data; name=\"File\"")));
+	QFile file(output_dir + QStringLiteral("/检测结果.pdf"));
+	file.open(QIODevice::ReadOnly);
+	pdfFile.setBodyDevice(&file);
+
+	QHttpPart FlyCode;
+	FlyCode.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant(QStringLiteral("form-data; name=\"FlyCode\"")));
+	FlyCode.setBody(QDir(output_dir).dirName().toUtf8());
+
+	QHttpPart DisplyFileName;
+	DisplyFileName.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant(QStringLiteral("form-data; name=\"DisplyFileName\"")));
+	DisplyFileName.setBody(QDir(output_dir).dirName().toUtf8());
+
+
+	multiPart->append(ProjectCode);
+	multiPart->append(pdfFile);
+	multiPart->append(FlyCode);
+	multiPart->append(DisplyFileName);
+
+
+	QNetworkReply *reply = proc_manager->post(QNetworkRequest(QUrl(ui.lineEdit_server_ip->text())), multiPart.get());
+	QByteArray responseData;
+	QEventLoop eventLoop;
+	connect(proc_manager.get(), SIGNAL(finished(QNetworkReply*)), &eventLoop, SLOT(quit()));
+	eventLoop.exec();
+	responseData = reply->readAll();
+	QString response_str = QString::fromUtf8(responseData.data());
+	file.close();
+}
+
 void MainControl::CloudUpLoadProj()
 {
 	QString projpath = ui.lineEdit_projpath->text();
@@ -254,8 +304,10 @@ void MainControl::CloudUpLoadProj()
 	FileUtil::CopyDirectory(output_dir + QStringLiteral("/others"), projdir + QStringLiteral("/others"));
 	FileUtil::CopyDirectory(output_dir + QStringLiteral("/towers"), projdir + QStringLiteral("/towers"));
 	FileUtil::CopyDirectory(output_dir + QStringLiteral("/vegets"), projdir + QStringLiteral("/vegets"));
-	QFile::copy(output_dir + QStringLiteral("/检测结果.pdf"), projdir + QStringLiteral("/检测结果.pdf"));
 	QFile::copy(output_dir + QStringLiteral("/检测结果.json"), projdir + QStringLiteral("/检测结果.json"));
+
+	SubmitCloudWarningReport();
+	
 }
 
 void MainControl::CloudRun()
