@@ -20,7 +20,6 @@
 #include <fstream>
 #include <cassert>
 #include <string>
-using namespace std;
 
 #include <QApplication>
 #include <QTextStream>
@@ -130,7 +129,7 @@ void warning(wkhtmltoimage_converter * c, const char * msg) {
 typedef std::vector<std::string> vecString;
 void ReadTxtFile(std::string file, vecString& vecStr)
 {
-	ifstream infile;
+	std::ifstream infile;
 	infile.open(file.data());   //将文件流对象与文件连接起来 
 	assert(infile.is_open());   //若失败,则输出错误消息,并终止程序运行 
 
@@ -398,7 +397,7 @@ void GenerateCloudHtml(QString json_path, QString html_path)
     QString last_Section;
 
     // utf8格式的
-	QFile inputFile(QCoreApplication::applicationDirPath() + QStringLiteral("/../../../PdfReport/Resources/Cloudtemplate.html"));
+	QFile inputFile(QStringLiteral(":/PdfReport/Resources/Birdtemplate.html"));
     QString json_dir = GetfilePath(json_path);
 
 	// 读取.html模板全部内容
@@ -476,10 +475,10 @@ void GenerateCloudHtml(QString json_path, QString html_path)
 	std::string strTxt = txt_dir.toLocal8Bit().data();
 	vecString vecStr;
 	ReadTxtFile(strTxt, vecStr);
-	string strNum1 = vecStr.at(0).substr(vecStr.at(0).find("=") + 1, vecStr.at(0).length() - vecStr.at(0).find("="));
-	string strNum2 = vecStr.at(1).substr(vecStr.at(1).find("=") + 1, vecStr.at(1).length() - vecStr.at(1).find("="));
-	string strNum3 = vecStr.at(2).substr(vecStr.at(2).find("=") + 1, vecStr.at(2).length() - vecStr.at(2).find("="));
-	string strNum4 = vecStr.at(3).substr(vecStr.at(3).find("=") + 1, vecStr.at(3).length() - vecStr.at(3).find("="));;
+	std::string strNum1 = vecStr.at(0).substr(vecStr.at(0).find("=") + 1, vecStr.at(0).length() - vecStr.at(0).find("="));
+	std::string strNum2 = vecStr.at(1).substr(vecStr.at(1).find("=") + 1, vecStr.at(1).length() - vecStr.at(1).find("="));
+	std::string strNum3 = vecStr.at(2).substr(vecStr.at(2).find("=") + 1, vecStr.at(2).length() - vecStr.at(2).find("="));
+	std::string strNum4 = vecStr.at(3).substr(vecStr.at(3).find("=") + 1, vecStr.at(3).length() - vecStr.at(3).find("="));;
 	QString strQNum1 = QString::fromLocal8Bit(strNum1.c_str());
 	QString	strQNum2 = QString::fromLocal8Bit(strNum2.c_str());
 	QString strQNum3 = QString::fromLocal8Bit(strNum3.c_str());
@@ -609,7 +608,7 @@ void GenerateBirdHtml(QString json_path, QString html_path)
 	QString last_Section;
 
 	// utf8格式的
-	QFile inputFile(QCoreApplication::applicationDirPath() + QStringLiteral("/../../../PdfReport/Resources/Birdtemplate.html"));
+	QFile inputFile(QStringLiteral(":/PdfReport/Resources/Birdtemplate.html"));
 	QString json_dir = GetfilePath(json_path);
 
 	// 读取.html模板全部内容
@@ -675,10 +674,10 @@ void GenerateBirdHtml(QString json_path, QString html_path)
 	std::string strTxt = txt_dir.toLocal8Bit().data();
 	vecString vecStr;
 	ReadTxtFile(strTxt, vecStr);
-	string strNum1 = vecStr.at(0).substr(vecStr.at(0).find("=") + 1, vecStr.at(0).length() - vecStr.at(0).find("="));
-	string strNum2 = vecStr.at(1).substr(vecStr.at(1).find("=") + 1, vecStr.at(1).length() - vecStr.at(1).find("="));
-	string strNum3 = vecStr.at(2).substr(vecStr.at(2).find("=") + 1, vecStr.at(2).length() - vecStr.at(2).find("="));
-	string strNum4 = vecStr.at(3).substr(vecStr.at(3).find("=") + 1, vecStr.at(3).length() - vecStr.at(3).find("="));;
+	std::string strNum1 = vecStr.at(0).substr(vecStr.at(0).find("=") + 1, vecStr.at(0).length() - vecStr.at(0).find("="));
+	std::string strNum2 = vecStr.at(1).substr(vecStr.at(1).find("=") + 1, vecStr.at(1).length() - vecStr.at(1).find("="));
+	std::string strNum3 = vecStr.at(2).substr(vecStr.at(2).find("=") + 1, vecStr.at(2).length() - vecStr.at(2).find("="));
+	std::string strNum4 = vecStr.at(3).substr(vecStr.at(3).find("=") + 1, vecStr.at(3).length() - vecStr.at(3).find("="));;
 	QString strQNum1 = QString::fromLocal8Bit(strNum1.c_str());
 	QString	strQNum2 = QString::fromLocal8Bit(strNum2.c_str());
 	QString strQNum3 = QString::fromLocal8Bit(strNum3.c_str());

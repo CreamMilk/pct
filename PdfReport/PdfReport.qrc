@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/PdfReport">
-        <file>Resources/template.html</file>
+        <file>Resources/Birdtemplate.html</file>
+        <file>Resources/Cloudtemplate.html</file>
     </qresource>
 </RCC>
