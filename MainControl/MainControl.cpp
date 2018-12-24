@@ -48,6 +48,7 @@ void MainControl::SaveSetting()
  	QString filename = QApplication::applicationDirPath() + QStringLiteral("/GuiConfig.json");
 	boost::property_tree::ptree pt;
 	pt.put(("线路名称"), ui.lineEdit_Circuit_Name->text().toLocal8Bit().data());
+	pt.put(("航行路径"), ui.lineEdit_FlightInfomation->text().toLocal8Bit().data());
 	pt.put(("分段区间"), ui.lineEdit_Circuit_Range->text().toLocal8Bit().data());
 	pt.put(("电压等级"), ui.lineEdit_Kv->text().toLocal8Bit().data());
 	pt.put(("采集日期"), ui.lineEdit_Date->text().toLocal8Bit().data());
@@ -107,6 +108,7 @@ void MainControl::LoadSetting()
 	
 	try {
 		ui.lineEdit_Circuit_Name->setText(QString::fromUtf8(pt.get_optional<std::string>(ChartSetConv::C2W("线路名称")).value().c_str()));
+		ui.lineEdit_FlightInfomation->setText(QString::fromUtf8(pt.get_optional<std::string>(ChartSetConv::C2W("航行路径")).value().c_str()));
 		ui.lineEdit_Circuit_Range->setText(QString::fromUtf8(pt.get_optional<std::string>(ChartSetConv::C2W("分段区间")).value().c_str()));
 		ui.lineEdit_Kv->setText(QString::fromUtf8(pt.get_optional<std::string>(ChartSetConv::C2W("电压等级")).value().c_str()));
 		ui.lineEdit_Date->setText(QString::fromUtf8(pt.get_optional<std::string>(ChartSetConv::C2W("采集日期")).value().c_str()));
@@ -120,6 +122,107 @@ void MainControl::LoadSetting()
 	catch (...) {
 		return;
 	}
+}
+
+std::vector<std::vector<QString>> MainControl::LoadImageDescription()
+{
+	QString imagedes = ui.label_Bird_ResDir->text() + QStringLiteral("/图像信息.json");
+	std::vector<std::vector<QString>> res;
+
+
+	boost::property_tree::ptree pt;
+	// 读取.json配置文件  utf8格式的
+
+	std::ifstream is;
+	is.open(imagedes.toLocal8Bit().data(), std::ios::in);
+	if (is.is_open())
+	{
+		try {
+			read_json(is, pt);          //parse json
+			is.close();
+		}
+		catch (...) {
+			QMessageBox::information(this, QStringLiteral("鸿业提示"), QStringLiteral("航行路径.json读取失败！"), 0);
+			return res;
+		}
+		is.close();
+	}
+	else
+	{
+		QMessageBox::information(this, QStringLiteral("鸿业提示"), QStringLiteral("图像信息打开失败！"), 0);
+		return res;
+	}
+
+	try
+	{
+		BOOST_FOREACH(boost::property_tree::ptree::value_type &cvt, pt)
+		{
+			std::vector<QString> img;
+			img.push_back(QString::fromUtf8(cvt.second.get<std::string>(ChartSetConv::C2W("name")).c_str()));
+			img.push_back(QString::fromUtf8(cvt.second.get<std::string>(ChartSetConv::C2W("偏航角")).c_str()));
+			img.push_back(QString::fromUtf8(cvt.second.get<std::string>(ChartSetConv::C2W("俯仰角")).c_str()));
+			img.push_back(QString::fromUtf8(cvt.second.get<std::string>(ChartSetConv::C2W("经度")).c_str()));
+			img.push_back(QString::fromUtf8(cvt.second.get<std::string>(ChartSetConv::C2W("纬度")).c_str()));
+			img.push_back(QString::fromUtf8(cvt.second.get<std::string>(ChartSetConv::C2W("高度")).c_str()));
+			img.push_back(QString::fromUtf8(cvt.second.get<std::string>(ChartSetConv::C2W("时间")).c_str()));
+			res.push_back(img);
+		}
+	}
+	catch (...)
+	{
+		QMessageBox::information(this, QStringLiteral("鸿业提示"), QStringLiteral("图像信息读取失败！"), 0);
+		return res;
+	}
+
+
+	return res;
+}
+
+std::vector<std::tuple<QString, QString>> MainControl::LoadFlightInfomation()
+{
+	QString filename = ui.lineEdit_FlightInfomation->text();
+	std::vector<std::tuple<QString, QString>> res;
+
+
+	boost::property_tree::ptree pt;
+	// 读取.json配置文件  utf8格式的
+
+	std::ifstream is;
+	is.open(filename.toLocal8Bit().data(), std::ios::in);
+	if (is.is_open())
+	{
+		try {
+			read_json(is, pt);          //parse json
+			is.close();
+		}
+		catch (...) {
+			QMessageBox::information(this, "鸿业提示", "航行路径读取失败！", 0);
+			return res;
+		}
+		is.close();
+	}
+	else
+	{
+		QMessageBox::information(this, "鸿业提示", "航行路径打开失败！", 0);
+		return res;
+	}
+
+	try
+	{
+		BOOST_FOREACH(boost::property_tree::ptree::value_type &cvt, pt)
+		{
+			QString position = QString::fromUtf8(cvt.second.get<std::string>(ChartSetConv::C2W("position")).c_str());
+			QString pointTime = QString::fromUtf8(cvt.second.get<std::string>(ChartSetConv::C2W("pointTime")).c_str());
+			res.push_back(std::make_tuple(position, pointTime));
+		}
+	}
+	catch (...)
+	{
+		QMessageBox::information(this, "鸿业提示", "航行路径读取失败！", 0);
+		return res;
+	}
+
+	return res;
 }
 
 void MainControl::closeEvent(QCloseEvent *event)
@@ -312,6 +415,7 @@ void MainControl::CloudUpLoadProj()
 
 void MainControl::CloudRun()
 {
+	LoadImageDescription();
 	ui.textEdit_CloudLog->clear();
 	
 	QStringList args;
@@ -361,6 +465,16 @@ void MainControl::CloudRun()
 	}
 
 	statusBar()->showMessage(QFileInfo(las_path).baseName() + QStringLiteral(".las分析完成。 返回值=") + QString::number(cloud_rescode_) + QStringLiteral("，是否异常退出=") + QString::number(cloud_exitstatus_), 0);
+}
+
+void MainControl::GetFlightInfomationPath()
+{
+	QString path = QFileDialog::getOpenFileName(this, QStringLiteral("请选择航行路径文件..."), QFileInfo(ui.lineEdit_FlightInfomation->text()).absoluteDir().path(), QStringLiteral("Flight Infomation(*.json)"));
+	if (path.length() == 0) {
+		return;
+	}
+
+	ui.lineEdit_FlightInfomation->setText(path);
 }
 
 void MainControl::CloudReadyReadStandardOutput()

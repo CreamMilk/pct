@@ -15,6 +15,8 @@ public:
 	void LoadSetting();
 
 	
+	std::vector<std::vector<QString>> LoadImageDescription();
+	std::vector<std::tuple<QString, QString>>  LoadFlightInfomation();	// 经纬高，时间戳
 
 	void LoadAirRouteInfo();
 	void SaveAirRouteInfo();
@@ -25,6 +27,8 @@ protected:
 	virtual void closeEvent(QCloseEvent *event) override;
 
 public slots:
+void GetFlightInfomationPath();
+
 void CloudReadyReadStandardOutput();
 void BridReadyReadStandardOutput();
 void CloudFinished(int exitcode, QProcess::ExitStatus status);

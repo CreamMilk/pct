@@ -462,7 +462,7 @@ void GenerateCloudHtml(QString json_path, QString html_path)
     }
     else
     {
-        QMessageBox::information(nullptr, "json_path", "open fail！", 0);
+        QMessageBox::information(nullptr, "鸿业提示", "导出结果.json打卡失败！", 0);
         return;
     }
     

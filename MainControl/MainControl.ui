@@ -293,6 +293,27 @@
         </layout>
        </item>
        <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_15">
+         <item>
+          <widget class="QLabel" name="label_15">
+           <property name="text">
+            <string>航行路径：</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="lineEdit_FlightInfomation"/>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pushButton_FlightInfomation">
+           <property name="text">
+            <string>选择路径</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
         <widget class="QTabWidget" name="tabWidget">
          <property name="tabPosition">
           <enum>QTabWidget::North</enum>
@@ -758,8 +779,8 @@
    <slot>CloudGetCloudsPath()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>552</x>
-     <y>280</y>
+     <x>492</x>
+     <y>339</y>
     </hint>
     <hint type="destinationlabel">
      <x>565</x>
@@ -774,8 +795,8 @@
    <slot>CloudGetTowersDir()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>552</x>
-     <y>311</y>
+     <x>492</x>
+     <y>370</y>
     </hint>
     <hint type="destinationlabel">
      <x>565</x>
@@ -790,8 +811,8 @@
    <slot>CloudRun()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>263</x>
-     <y>526</y>
+     <x>233</x>
+     <y>525</y>
     </hint>
     <hint type="destinationlabel">
      <x>0</x>
@@ -806,8 +827,8 @@
    <slot>CloudOpenResultDir()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>395</x>
-     <y>526</y>
+     <x>365</x>
+     <y>525</y>
     </hint>
     <hint type="destinationlabel">
      <x>565</x>
@@ -822,8 +843,8 @@
    <slot>CloudUpLoadProj()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>508</x>
-     <y>556</y>
+     <x>493</x>
+     <y>555</y>
     </hint>
     <hint type="destinationlabel">
      <x>565</x>
@@ -838,8 +859,8 @@
    <slot>BirdGetBirdDir()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>552</x>
-     <y>280</y>
+     <x>492</x>
+     <y>339</y>
     </hint>
     <hint type="destinationlabel">
      <x>565</x>
@@ -854,8 +875,8 @@
    <slot>BirdRun()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>263</x>
-     <y>526</y>
+     <x>233</x>
+     <y>525</y>
     </hint>
     <hint type="destinationlabel">
      <x>0</x>
@@ -870,8 +891,8 @@
    <slot>BirdOpenResultDir()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>395</x>
-     <y>526</y>
+     <x>365</x>
+     <y>525</y>
     </hint>
     <hint type="destinationlabel">
      <x>565</x>
@@ -886,8 +907,8 @@
    <slot>CloudGetClassDir()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>552</x>
-     <y>342</y>
+     <x>492</x>
+     <y>401</y>
     </hint>
     <hint type="destinationlabel">
      <x>565</x>
@@ -902,8 +923,8 @@
    <slot>RefreshProj()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>565</x>
-     <y>118</y>
+     <x>505</x>
+     <y>146</y>
     </hint>
     <hint type="destinationlabel">
      <x>585</x>
@@ -927,6 +948,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>pushButton_FlightInfomation</sender>
+   <signal>clicked()</signal>
+   <receiver>MainControlClass</receiver>
+   <slot>GetFlightInfomationPath()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>452</x>
+     <y>266</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>543</x>
+     <y>267</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>CloudGetCloudsPath()</slot>
@@ -940,5 +977,6 @@
   <slot>CloudGetClassDir()</slot>
   <slot>RefreshProj()</slot>
   <slot>BirdUpLoadProj()</slot>
+  <slot>GetFlightInfomationPath()</slot>
  </slots>
 </ui>
