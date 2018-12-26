@@ -13,6 +13,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{58CDD847-DE3B-439A-8D48-D2B4F3EDD692}</ProjectGuid>
     <Keyword>Qt4VSv1.0</Keyword>
+    <ProjectName>电力巡检v1.0</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
@@ -35,6 +36,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <TargetName>$(ProjectName)</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -57,7 +59,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <PreprocessorDefinitions>UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.\GeneratedFiles;.;$(SolutionDir)..\Dependence\5.10\5.10.1\msvc2013_64\include;.\GeneratedFiles\$(ConfigurationName);$(SolutionDir)..\Dependence\5.10\5.10.1\msvc2013_64\include\QtCore;$(SolutionDir)..\Dependence\5.10\5.10.1\msvc2013_64\include\QtGui;$(SolutionDir)..\Dependence\5.10\5.10.1\msvc2013_64\include\QtWidgets;$(SolutionDir)\..\Dependence\boost_1_67_0;$(SolutionDir)..\Dependence\5.10\5.10.1\msvc2013_64\include\QtNetwork;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\GeneratedFiles;.;$(SolutionDir)..\Dependence\5.10\5.10.1\msvc2013_64\include;.\GeneratedFiles\$(ConfigurationName);$(SolutionDir)..\Dependence\5.10\5.10.1\msvc2013_64\include\QtCore;$(SolutionDir)..\Dependence\5.10\5.10.1\msvc2013_64\include\QtGui;$(SolutionDir)..\Dependence\5.10\5.10.1\msvc2013_64\include\QtWidgets;$(SolutionDir)\..\Dependence\boost_1_67_0;$(SolutionDir)..\Dependence\5.10\5.10.1\msvc2013_64\include\QtNetwork;$(SolutionDir)\..\Dependence\5.10\5.10.1\msvc2013_64\include\ActiveQt;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
@@ -67,7 +69,7 @@
       <OutputFile>$(OutDir)\$(ProjectName).exe</OutputFile>
       <AdditionalLibraryDirectories>$(SolutionDir)..\Dependence\5.10\5.10.1\msvc2013_64\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>$(SolutionDir)..\Dependence\5.10\5.10.1\msvc2013_64\lib\qtmain.lib;$(SolutionDir)..\Dependence\5.10\5.10.1\msvc2013_64\lib\Qt5Core.lib;$(SolutionDir)..\Dependence\5.10\5.10.1\msvc2013_64\lib\Qt5Gui.lib;$(SolutionDir)..\Dependence\5.10\5.10.1\msvc2013_64\lib\Qt5Widgets.lib;$(SolutionDir)..\Dependence\5.10\5.10.1\msvc2013_64\lib\Qt5Network.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(SolutionDir)..\Dependence\5.10\5.10.1\msvc2013_64\lib\qtmain.lib;$(SolutionDir)..\Dependence\5.10\5.10.1\msvc2013_64\lib\Qt5Core.lib;$(SolutionDir)..\Dependence\5.10\5.10.1\msvc2013_64\lib\Qt5Gui.lib;$(SolutionDir)..\Dependence\5.10\5.10.1\msvc2013_64\lib\Qt5Widgets.lib;$(SolutionDir)..\Dependence\5.10\5.10.1\msvc2013_64\lib\Qt5Network.lib;$(SolutionDir)\..\Dependence\5.10\5.10.1\msvc2013_64\lib\Qt5AxContainer.lib;$(SolutionDir)\..\Dependence\5.10\5.10.1\msvc2013_64\lib\Qt5AxBase.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -87,6 +89,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MainControl.cpp" />
     <ClCompile Include="ServerFunc.cpp" />
+    <ClCompile Include="zip.c" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="MainControl.h">
@@ -144,7 +147,16 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CommonFuns.h" />
+    <ClInclude Include="miniz.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="ServerFunc.h" />
+    <ClInclude Include="zip.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="MainControl.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="HCity.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

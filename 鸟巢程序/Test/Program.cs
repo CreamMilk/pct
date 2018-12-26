@@ -42,7 +42,7 @@ namespace Test
         {
            int i = Loading(100);
            Console.Out.WriteLine(i);
-           Image image = Image.FromFile(/*"E:\\project\\无人机opencv识别绝缘子\\无人机项目数据\\无人机\\9月22日\\安兴二030#二线绝缘子-2.JPG"*/args[0]);
+           Image image = Image.FromFile("F:/project/powerline/solution/pct/鸟巢程序/Test/bin/Debug/00284.JPG"/*args[0]*/);
 
             ImageFormat format = image.RawFormat;
             using (MemoryStream ms = new MemoryStream())

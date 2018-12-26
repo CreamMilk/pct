@@ -728,7 +728,7 @@ void pct::ScreenshotHeightColor(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud
 	math::vec horizontal_seevec = axis_vec[1];  // 全局水平观看方向
 	horizontal_seevec.z = 0;
 	horizontal_seevec = horizontal_seevec*cameralen + cen;
-	math::vec vertical_seevec = axis_vec[2];  // 全局垂直观看方向
+	math::vec vertical_seevec = axis_vec[2].z * cameralen > 0 ? axis_vec[2] : axis_vec[2]*(-1);  // 全局垂直观看方向
 	vertical_seevec = vertical_seevec*cameralen + cen;
 	
 

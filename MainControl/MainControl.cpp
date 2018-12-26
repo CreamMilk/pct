@@ -18,13 +18,19 @@
 #include <QNetworkReply>
 #include <QEventLoop>
 #include <QNetworkAccessManager>
+#include <QFile>
+#include <QAxObject>
+#include <QAxWidget>
+#include <windows.h>
 #include "CommonFuns.h"
 #include "ServerFunc.h"
+#include "zip.h"
 
 MainControl::MainControl(QWidget *parent)
 	: QMainWindow(parent)
 {
 	ui.setupUi(this);
+	setWindowIcon(QIcon(QStringLiteral(":/HCity.ico")));
 	LoadSetting();
 
 	cloud_process_ = new QProcess(this);
@@ -124,7 +130,121 @@ void MainControl::LoadSetting()
 	}
 }
 
-std::vector<std::vector<QString>> MainControl::LoadImageDescription()
+std::vector<std::map<QString, QString>> MainControl::LoadImageDescription()
+{
+	std::vector<std::map<QString, QString>> res;
+	QString filepath = ui.lineEdit_FlightInfomation->text();
+	if (!QFile(filepath).exists())
+	{
+		std::cout << "void LoadTowers()  !QFile(filepath).exists()" << std::endl;
+		return res;
+	}
+
+	HRESULT r = OleInitialize(0);
+	if (r != S_OK && r != S_FALSE) {
+		std::cout << "Qt: Could not initialize OLE(error" << r << ")" << std::endl;
+		return res;
+	}
+	std::cout << "LoadTowers filepath" << filepath.toLocal8Bit().data() << std::endl;
+	QAxObject excel("Excel.Application");
+	excel.setProperty("DisplayAlerts", false);//不显示任何警告信息
+	excel.setProperty("Visible", false); //隐藏打开的excel文件界面
+	QAxObject *workbooks = excel.querySubObject("WorkBooks");
+	QAxObject *workbook = workbooks->querySubObject("Open(QString, QVariant)", filepath); //打开文件
+	QAxObject * worksheet = workbook->querySubObject("WorkSheets(int)", 1); //访问第一个工作表
+	QAxObject * usedrange = worksheet->querySubObject("UsedRange");
+	QAxObject * rows = usedrange->querySubObject("Rows");
+	int intRows = rows->property("Count").toInt() * 2; //行数
+
+	QString Range = "A1:H" + QString::number(intRows);
+	QAxObject *allEnvData = worksheet->querySubObject("Range(QString)", Range); //读取范围
+	QVariant allEnvDataQVariant = allEnvData->property("Value");
+	QVariantList allEnvDataList = allEnvDataQVariant.toList();
+
+
+	QStringList heads = allEnvDataList[0].toStringList();
+
+	for (int i = 2; i < intRows - 2; i+=2)
+	{
+		std::map<QString, QString> point_info;
+		QStringList allEnvDataList_i = allEnvDataList[i].toStringList();
+		for (int j = 0; j < allEnvDataList_i.size(); ++j)
+		{
+			point_info[heads[j]] = allEnvDataList_i[j];
+			//ui.textEdit_CloudLog->insertPlainText(heads[j] + QStringLiteral("：") + allEnvDataList_i[j] + QStringLiteral("\t"));
+		}
+		//ui.textEdit_CloudLog->insertPlainText(QStringLiteral("\n"));
+		if (!point_info[QStringLiteral("经度")].isEmpty())
+		{
+			res.push_back(point_info);
+		}
+		
+	}
+
+	workbook->dynamicCall("Close (Boolean)", false);
+	excel.dynamicCall("Quit()");
+	OleUninitialize();
+
+	return res;
+}
+
+std::map<QString, QString> MainControl::LoadFlightInfomation()
+{
+	std::map<QString, QString> res;
+	QString filepath = ui.lineEdit_FlightInfomation->text();
+	if (!QFile(filepath).exists())
+	{
+		std::cout << "void LoadTowers()  !QFile(filepath).exists()" << std::endl;
+		return res;
+	}
+
+	HRESULT r = OleInitialize(0);
+	if (r != S_OK && r != S_FALSE) {
+		std::cout << "Qt: Could not initialize OLE(error" << r << ")" << std::endl;
+		return res;
+	}
+	std::cout << "LoadTowers filepath" << filepath.toLocal8Bit().data() << std::endl;
+	QAxObject excel("Excel.Application");
+	excel.setProperty("DisplayAlerts", false);//不显示任何警告信息
+	excel.setProperty("Visible", false); //隐藏打开的excel文件界面
+	QAxObject *workbooks = excel.querySubObject("WorkBooks");
+	QAxObject *workbook = workbooks->querySubObject("Open(QString, QVariant)", filepath); //打开文件
+	QAxObject * worksheet = workbook->querySubObject("WorkSheets(int)", 1); //访问第一个工作表
+	QAxObject * usedrange = worksheet->querySubObject("UsedRange");
+	QAxObject * rows = usedrange->querySubObject("Rows");
+	int intRows = rows->property("Count").toInt() * 2; //行数
+
+	QString Range = "A1:H" + QString::number(intRows);
+	QAxObject *allEnvData = worksheet->querySubObject("Range(QString)", Range); //读取范围
+	QVariant allEnvDataQVariant = allEnvData->property("Value");
+	QVariantList allEnvDataList = allEnvDataQVariant.toList();
+
+
+	QStringList heads = allEnvDataList[0].toStringList();
+	int log_index = heads.indexOf(QStringLiteral("经度"));
+	int lat_index = heads.indexOf(QStringLiteral("纬度"));
+	int z_index = heads.indexOf(QStringLiteral("高度"));
+	int picname_index = heads.indexOf(QStringLiteral("照片名称"));
+
+
+	for (int i = 2; i < intRows - 2; i += 2)
+	{
+		QStringList allEnvDataList_i = allEnvDataList[i].toStringList();
+		if (!allEnvDataList_i[picname_index].isEmpty() && !allEnvDataList_i[log_index].isEmpty())
+		{
+			res[allEnvDataList_i[picname_index]] = allEnvDataList_i[log_index] + QStringLiteral(",") + allEnvDataList_i[lat_index] + QStringLiteral(",") + allEnvDataList_i[z_index];
+			ui.textEdit_CloudLog->insertPlainText(allEnvDataList_i[picname_index] + QStringLiteral("：") + res[allEnvDataList_i[picname_index]] + QStringLiteral("\n"));
+		}
+	}
+
+	workbook->dynamicCall("Close (Boolean)", false);
+	excel.dynamicCall("Quit()");
+	OleUninitialize();
+
+	return res;
+}
+
+std::vector<std::vector<QString>> MainControl::LoadImageJsonDescription()
 {
 	QString imagedes = ui.label_Bird_ResDir->text() + QStringLiteral("/图像信息.json");
 	std::vector<std::vector<QString>> res;
@@ -178,7 +298,7 @@ std::vector<std::vector<QString>> MainControl::LoadImageDescription()
 	return res;
 }
 
-std::vector<std::tuple<QString, QString>> MainControl::LoadFlightInfomation()
+std::vector<std::tuple<QString, QString>> MainControl::LoadFlightJsonInfomation()
 {
 	QString filename = ui.lineEdit_FlightInfomation->text();
 	std::vector<std::tuple<QString, QString>> res;
@@ -369,8 +489,35 @@ void MainControl::SubmitCloudWarningReport()
 	file.close();
 }
 
+
+/*    测试代码
+QString dir = QStandardPaths::writableLocation(QStandardPaths::DesktopLocation);
+std::vector<QString> paths;
+paths.push_back(dir + QStringLiteral("/新建文本文档.txt"));
+paths.push_back(dir + QStringLiteral("/线路信息.txt"));
+paths.push_back(dir + QStringLiteral("/data-20181220-042719检测结果.pdf"));
+paths.push_back(dir + QStringLiteral("/gui-config.json"));
+setWindowTitle(dir);
+ArchiveFiles(dir + QStringLiteral("/我a.zip"), paths);
+return;
+*/
+void MainControl::ArchiveFiles(QString name, std::vector<QString> paths)
+{
+	struct zip_t *zip = zip_open(name.toLocal8Bit().data(), ZIP_DEFAULT_COMPRESSION_LEVEL, 'w');
+	for (int i = 0; i < paths.size(); ++i)
+	{
+		zip_entry_open(zip, QFileInfo(paths[i]).fileName().toLocal8Bit().data());
+		{
+			zip_entry_fwrite(zip, paths[i].toLocal8Bit().data());
+		}
+		zip_entry_close(zip);
+	}
+	zip_close(zip);
+}
+
 void MainControl::CloudUpLoadProj()
 {
+
 	QString projpath = ui.lineEdit_projpath->text();
 	QString projdir = projpath + QStringLiteral("/") + ServerFunc::GetProjectCode() +  QStringLiteral("/mds");
 	QString output_dir = ui.label_Cloud_ResultDir->text();
@@ -415,7 +562,8 @@ void MainControl::CloudUpLoadProj()
 
 void MainControl::CloudRun()
 {
-	LoadImageDescription();
+	LoadFlightInfomation();
+	return;
 	ui.textEdit_CloudLog->clear();
 	
 	QStringList args;
@@ -469,7 +617,7 @@ void MainControl::CloudRun()
 
 void MainControl::GetFlightInfomationPath()
 {
-	QString path = QFileDialog::getOpenFileName(this, QStringLiteral("请选择航行路径文件..."), QFileInfo(ui.lineEdit_FlightInfomation->text()).absoluteDir().path(), QStringLiteral("Flight Infomation(*.json)"));
+	QString path = QFileDialog::getOpenFileName(this, QStringLiteral("请选择航行路径文件..."), QFileInfo(ui.lineEdit_FlightInfomation->text()).absoluteDir().path(), QStringLiteral("Flight Infomation(*.xlsx *.xls)"));
 	if (path.length() == 0) {
 		return;
 	}

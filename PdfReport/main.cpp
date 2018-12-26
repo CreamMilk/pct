@@ -397,7 +397,7 @@ void GenerateCloudHtml(QString json_path, QString html_path)
     QString last_Section;
 
     // utf8格式的
-	QFile inputFile(QStringLiteral(":/PdfReport/Resources/Birdtemplate.html"));
+	QFile inputFile(QStringLiteral(":/PdfReport/Resources/Cloudtemplate.html"));
     QString json_dir = GetfilePath(json_path);
 
 	// 读取.html模板全部内容

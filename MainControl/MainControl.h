@@ -15,13 +15,18 @@ public:
 	void LoadSetting();
 
 	
-	std::vector<std::vector<QString>> LoadImageDescription();
-	std::vector<std::tuple<QString, QString>>  LoadFlightInfomation();	// 经纬高，时间戳
+	std::vector<std::map<QString, QString>> LoadImageDescription();
+	std::map<QString, QString>  LoadFlightInfomation();
+
+	std::vector<std::vector<QString>> LoadImageJsonDescription();
+	std::vector<std::tuple<QString, QString>>  LoadFlightJsonInfomation();	
 
 	void LoadAirRouteInfo();
 	void SaveAirRouteInfo();
 
 	void SubmitCloudWarningReport();
+	void ArchiveFiles(QString name, std::vector<QString> paths);
+
 
 protected:
 	virtual void closeEvent(QCloseEvent *event) override;

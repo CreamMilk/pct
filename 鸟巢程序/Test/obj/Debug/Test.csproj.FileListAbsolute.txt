@@ -16,3 +16,9 @@ F:\project\powerline\鸟巢程序\Test\obj\Debug\Test.pdb
 F:\project\powerline\鸟巢程序\Test\bin\Debug\Test.exe
 F:\project\powerline\鸟巢程序\Test\bin\Debug\Test.pdb
 F:\project\powerline\鸟巢程序\Test\obj\Debug\Test.csprojResolveAssemblyReference.cache
+F:\project\powerline\solution\pct\鸟巢程序\Test\bin\Debug\Test.exe.config
+F:\project\powerline\solution\pct\鸟巢程序\Test\obj\Debug\Test.exe
+F:\project\powerline\solution\pct\鸟巢程序\Test\obj\Debug\Test.pdb
+F:\project\powerline\solution\pct\鸟巢程序\Test\bin\Debug\Test.exe
+F:\project\powerline\solution\pct\鸟巢程序\Test\bin\Debug\Test.pdb
+F:\project\powerline\solution\pct\鸟巢程序\Test\obj\Debug\Test.csprojResolveAssemblyReference.cache
