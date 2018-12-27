@@ -537,7 +537,6 @@ void MainControl::SubmitCloudWarningReport()
 	responseData = reply->readAll();
 	QString response_str = QString::fromUtf8(responseData.data());
 
-	QMessageBox::information(this, "", response_str, 0);
 	file.close();
 }
 
@@ -616,9 +615,6 @@ void MainControl::CloudUpLoadProj()
 
 void MainControl::CloudRun()
 {
-	WriteFlightPath(ui.label_Cloud_ResultDir->text() + QStringLiteral("/·ÉÐÐÂ·¾¶.json"));
-	return;
-
 	ui.textEdit_CloudLog->clear();
 	
 	QStringList args;
