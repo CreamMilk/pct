@@ -21,6 +21,8 @@
 #include <QFile>
 #include <QAxObject>
 #include <QAxWidget>
+#include <QDirIterator>
+#include <QPainter>
 #include <windows.h>
 #include "CommonFuns.h"
 #include "ServerFunc.h"
@@ -62,6 +64,9 @@ void MainControl::SaveSetting()
 	pt.put(("点云.铁塔数据目录"), ui.lineEdit_Cloud_TowerDir->text().toLocal8Bit().data());
 	pt.put(("点云.结果目录"), ui.label_Cloud_ResultDir->text().toLocal8Bit().data());
 	pt.put(("点云.样本目录"), ui.lineEdit_Cloud_ClassDir->text().toLocal8Bit().data());
+
+	pt.put(("可见光.照片目录"), ui.lineEdit_Bird_BirdDir->text().toLocal8Bit().data());
+	pt.put(("可见光.结果目录"), ui.label_Bird_ResDir->text().toLocal8Bit().data());
 
 	std::ofstream ofs(filename.toLocal8Bit().data(), std::fstream::out);
 	boost::property_tree::write_json(ofs, pt);
@@ -124,6 +129,10 @@ void MainControl::LoadSetting()
 		ui.lineEdit_Cloud_TowerDir->setText(QString::fromUtf8(dianyun.get_optional<std::string>(ChartSetConv::C2W("铁塔数据目录")).value().c_str()));
 		ui.label_Cloud_ResultDir->setText(QString::fromUtf8(dianyun.get_optional<std::string>(ChartSetConv::C2W("结果目录")).value().c_str()));
 		ui.lineEdit_Cloud_ClassDir->setText(QString::fromUtf8(dianyun.get_optional<std::string>(ChartSetConv::C2W("样本目录")).value().c_str()));
+
+		boost::property_tree::ptree kejianguang = pt.get_child(ChartSetConv::C2W("可见光"));
+		ui.lineEdit_Bird_BirdDir->setText(QString::fromUtf8(kejianguang.get_optional<std::string>(ChartSetConv::C2W("照片目录")).value().c_str()));
+		ui.label_Bird_ResDir->setText(QString::fromUtf8(kejianguang.get_optional<std::string>(ChartSetConv::C2W("结果目录")).value().c_str()));
 	}
 	catch (...) {
 		return;
@@ -457,10 +466,8 @@ void MainControl::LoadAirRouteInfo()
 	file.close();
 }
 
-void MainControl::SaveAirRouteInfo()
+void MainControl::SaveAirRouteInfo(QString filename)
 {
-	QString filename = ui.label_Cloud_ResultDir->text() + QStringLiteral("/线路信息.txt");
-
 	QFile file(filename);
 	// Trying to open in WriteOnly and Text mode
 	if (!file.open(QFile::WriteOnly | QFile::Text))
@@ -643,7 +650,7 @@ void MainControl::CloudRun()
 	statusBar()->showMessage(QFileInfo(las_path).baseName() + QStringLiteral(".las分析中..."), 0);
 
 	FileUtil::ReMakeDir(ui.label_Cloud_ResultDir->text());
-	SaveAirRouteInfo();
+	SaveAirRouteInfo(ui.label_Cloud_ResultDir->text() + QStringLiteral("/线路信息.txt"));
 
 
 	QStringList mycmd;
@@ -681,14 +688,21 @@ void MainControl::GetFlightInfomationPath()
 
 void MainControl::CloudReadyReadStandardOutput()
 {
-	ui.textEdit_CloudLog->insertPlainText(QTextCodec::codecForName("GB2312")->toUnicode(cloud_process_->readAll()));
 	ui.textEdit_CloudLog->moveCursor(QTextCursor::End);
+	ui.textEdit_CloudLog->insertPlainText(QTextCodec::codecForName("GB2312")->toUnicode(cloud_process_->readAll()));
 }
 
 void MainControl::BridReadyReadStandardOutput()
 {
-	ui.textEdit_BridLog->insertPlainText(QTextCodec::codecForName("GB2312")->toUnicode(brid_process_->readAll()));
+	QString cmd_print = QTextCodec::codecForName("GB2312")->toUnicode(brid_process_->readAll());
+	if (0 == cmd_print.indexOf(QStringLiteral("识别结果：")))
+	{
+		pic_res_.push_back(cmd_print.right(cmd_print.length() - 5));
+	}
+
+
 	ui.textEdit_BridLog->moveCursor(QTextCursor::End);
+	ui.textEdit_BridLog->insertPlainText(cmd_print);
 }
 
 void MainControl::CloudFinished(int exitcode, QProcess::ExitStatus status)
@@ -710,7 +724,164 @@ void MainControl::CloudOpenResultDir()
 	QDesktopServices::openUrl(QUrl(QStringLiteral("file:") + ui.label_Cloud_ResultDir->text(), QUrl::TolerantMode));
 }
 
+void MainControl::BirdGetBirdDir()
+{
+	QString path = QFileDialog::getExistingDirectory(this, QStringLiteral("请选择照片目录..."), ui.lineEdit_Bird_BirdDir->text());
+	if (path.length() == 0) {
+		return;
+	}
+
+	ui.lineEdit_Bird_BirdDir->setText(path);
+	ui.label_Bird_ResDir->setText(path);
+}
+
+void MainControl::SalePictures(QString in_path, QString out_path)
+{
+	QDirIterator it(in_path, QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot);	//遍历所有目录和文件
+	while (it.hasNext())//存在
+	{
+		QString name = it.next();//读取		
+		QFileInfo info(name);
+		if (!info.isDir())
+		{
+			if (info.suffix().toLower() == "jpg" || info.suffix().toLower() == "bmp" || info.suffix().toLower() == "png" || info.suffix().toLower() == "jpeg")
+			{
+				QPixmap pix;
+				pix.load(name);;
+				qreal width = pix.width();
+				qreal height = pix.height();
+				pix = pix.scaled(1440, 960, Qt::KeepAspectRatio);
+				pix.save(out_path + QStringLiteral("/") + info.fileName());
+			}
+		}
+	}
+}
+
+void MainControl::LabelPicture(QString name, QString label, int x, int y)
+{
+	QPainter painter;//注意不要加入(this)，this指针直接在mainwindow绘图
+
+	QImage image(name);//定义图片，并在图片上绘图方便显示
+
+	painter.begin(&image);
+
+	QPen pen;
+	pen.setWidth(3);
+	pen.setColor(Qt::red);
+	painter.setPen(pen);
+	QFont font;
+	font.setPointSize(18);
+	painter.setFont(font);
+
+	painter.drawRect(x, y, 50, 50);//矩形
+	painter.drawText(x, y - 15, label);
+	painter.end();
+
+	image.save(name);
+}
+
+void MainControl::LabelPictures(QString in_path)
+{
+	QDirIterator it(in_path, QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot);	//遍历所有目录和文件
+
+	int step = 0;
+	while (it.hasNext() && step < pic_res_.size())
+	{
+		QString name = it.next();//读取		
+		QString res_str = pic_res_[step];
+		if (!res_str.isEmpty())
+		{
+			QFileInfo info(name);
+			if (info.suffix().toLower() == "jpg" || info.suffix().toLower() == "bmp" || info.suffix().toLower() == "png" || info.suffix().toLower() == "jpeg")
+			{
+				QStringList res_list = res_str.split('&');
+				for (int i = 0; i < res_list.size(); ++i)
+				{
+					QString single = res_list[i];
+					if (res_list[i].isEmpty())
+						continue;
+					if (0 == single.indexOf(QStringLiteral("鸟巢@")))
+					{
+						QStringList xy = single.right(single.length() - 3).split(',');
+						LabelPicture(name, QStringLiteral("鸟巢"), xy[0].toInt(), xy[1].toInt());
+					}
+					else if(0 == single.indexOf(QStringLiteral("绝缘子@")))
+					{
+						QStringList xy = single.right(single.length() - 4).split(',');
+						LabelPicture(name, QStringLiteral("绝缘子"), xy[0].toInt(), xy[1].toInt());
+					}
+				}
+			}
+		}
+		++step;
+	}
+}
+
 void MainControl::BirdRun()
 {
 	ui.textEdit_BridLog->clear();
+	pic_res_.clear();
+
+
+	QString app_dir = QApplication::applicationDirPath();
+	QString pic_dir = ui.lineEdit_Bird_BirdDir->text();
+	QString res_dir = ui.label_Bird_ResDir->text();
+	QString resimgs_dir = ui.label_Bird_ResDir->text() + QStringLiteral("/images");
+	if (!QDir().exists(pic_dir))
+	{
+		QMessageBox::information(this, QStringLiteral("鸿业提示"), QStringLiteral("请选则照片目录。"), 0);
+		return;
+	}
+	ui.pushButton_brid_run->setEnabled(false);
+	FileUtil::ReMakeDir(resimgs_dir);
+	SalePictures(pic_dir, resimgs_dir);
+	
+
+	statusBar()->showMessage(QFileInfo(pic_dir).baseName() + QStringLiteral("目录照片分析中..."), 0);
+	
+	SaveAirRouteInfo(res_dir + QStringLiteral("/线路信息.txt"));
+	
+	QStringList args;
+	QStringList mycmd;
+	mycmd << resimgs_dir;
+	args << mycmd;
+
+
+	brid_process_->start(app_dir + QStringLiteral("/ImageRecognition/可见光检测.exe"), args);
+	brid_process_->waitForStarted();
+
+	while (!ui.pushButton_brid_run->isEnabled())
+	{
+		QApplication::processEvents();
+	}
+
+	LabelPictures(resimgs_dir);
+
+	ExportBridsPdf();
+
+
+
+	WriteFlightPath(res_dir + QStringLiteral("/飞行路径.json"));
+	statusBar()->showMessage(QFileInfo(pic_dir).baseName() + QStringLiteral("目录照片分析完成。 返回值=") + QString::number(brid_rescode_) + QStringLiteral("，是否异常退出=") + QString::number(brid_exitstatus_), 0);
+}
+
+void MainControl::BirdOpenResultDir()
+{
+	QDesktopServices::openUrl(QUrl(QStringLiteral("file:") + ui.label_Bird_ResDir->text(), QUrl::TolerantMode));
+}
+
+void MainControl::ExportBridsPdf()
+{
+	QString app_dir = QApplication::applicationDirPath();
+
+
+	QStringList args;
+	QStringList mycmd;
+	mycmd << ui.label_Bird_ResDir->text() + QStringLiteral("/可见光检测结果.json");
+	args << mycmd;
+
+	QProcess process;
+	process.start(app_dir + QStringLiteral("/PdfReport/PdfReport.exe"), args);
+
+	process.waitForFinished(15000);
 }

@@ -13,7 +13,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{58CDD847-DE3B-439A-8D48-D2B4F3EDD692}</ProjectGuid>
     <Keyword>Qt4VSv1.0</Keyword>
-    <ProjectName>电力巡检v1.0</ProjectName>
+    <ProjectName>故障检测分析</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">

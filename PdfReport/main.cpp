@@ -28,36 +28,6 @@
 #include <QTimer>
 #include <QDir>
 
-// µãÔÆ¼ì²â
-#define XIANLUXINXI_FRONT 15
-#define XIANLUXINXI_TEMPLATE 26
-
-#define YUNXINGGUIFAN_FRONT 34
-#define YUNXINGGUIFAN_TEMPLATE 39
-
-#define TULIZONGBIAO_FRONT 50
-#define TULIZONGBIAO_TEMPLATE 55
-
-#define YINHUANZONGTU_FRONTTEMPLATE 60
-
-#define YINHUANMINGXI_FRONT 75
-#define YINHUANMINGXI_TEMPLATE 86
-#define YINHUANMINGXI_OTHER 100
-
-#define YINHUANXIANGQING_FRONT 113
-#define YINHUANXIANGQING_TEMPLATE 132
-
-// ¿É¼û¹âÄñ³²¼ì²â
-#define BIRDLINEINFO_FRONT 15
-#define BIRDLINEINFO_TEMPLATE 26
-
-#define BIRDMINGXI_FRONT 36
-#define BIRDMINGXI_TEMPLATE 43
-
-#define BIRDXIANGQING_FRONT 47
-#define BIRDXIANGQING_TEMPLATE 92
-
-
 boost::property_tree::ptree pt;
 QString g_checktype;
 QString g_jsonpath;
@@ -149,7 +119,7 @@ int main(int argc, char *argv[])
     {
         return EXIT_FAILURE;
     }
-	if (g_checktype == QStringLiteral("bird"))
+	if (g_checktype == QStringLiteral("brid"))
 	{
 		GenerateBirdHtml(g_jsonpath, g_htmlpath);
 	}
@@ -417,29 +387,29 @@ void GenerateCloudHtml(QString json_path, QString html_path)
 	for (int nLine = 0; nLine < strList.size(); nLine++)
 	{
 		QString line = strList.at(nLine);
-		if (nLine <= XIANLUXINXI_FRONT)
+		if (nLine <= 15)
 			xianluxinxi_front += (line);
-		else if (nLine <= XIANLUXINXI_TEMPLATE)
+		else if (nLine <= 26)
 			xianluxinxi_template += (line);
-		else if (nLine <= YUNXINGGUIFAN_FRONT)
+		else if (nLine <= 34)
 			yunxingguifan_front += (line);
-		else if (nLine <= YUNXINGGUIFAN_TEMPLATE)
+		else if (nLine <= 39)
 			yunxingguifan_template += (line);
-		else if (nLine <= TULIZONGBIAO_FRONT)
+		else if (nLine <= 50)
 			tulizongbiao_front += (line);
-		else if (nLine <= TULIZONGBIAO_TEMPLATE)
+		else if (nLine <= 55)
 			tulizongbiao_template += (line);
-		else if (nLine <= YINHUANZONGTU_FRONTTEMPLATE)
+		else if (nLine <= 60)
 			yinhuanzongtu_fronttemplate += (line);
-		else if (nLine <= YINHUANMINGXI_FRONT)
+		else if (nLine <= 75)
 			yinhuanmingxi_front += (line);
-		else if (nLine <= YINHUANMINGXI_TEMPLATE)
+		else if (nLine <= 86)
 			yinhuanmingxi_template += (line);
-		else if (nLine <= YINHUANMINGXI_OTHER)
+		else if (nLine <= 100)
 			yinhuanmingxi_other += (line);
-		else if (nLine <= YINHUANXIANGQING_FRONT)
+		else if (nLine <= 113)
 			yinhuanxiangqing_front += (line);
-		else if (nLine <= YINHUANXIANGQING_TEMPLATE)
+		else if (nLine <= 132)
 			yinhuanxiangqing_template += (line);
 		else
 			last_Section += (line);
@@ -628,17 +598,17 @@ void GenerateBirdHtml(QString json_path, QString html_path)
 	for (int nLine = 0; nLine < strList.size(); nLine++)
 	{
 		QString line = strList.at(nLine);
-		if (nLine <= BIRDLINEINFO_FRONT)
+		if (nLine <= 15)
 			BirdLineInfo_front += (line);
-		else if (nLine <= BIRDLINEINFO_TEMPLATE)
+		else if (nLine <= 20)
 			BirdLineInfo_template += (line);
-		else if (nLine <= BIRDMINGXI_FRONT)
+		else if (nLine <= 30)
 			BirdMingXi_front += (line);
-		else if (nLine <= BIRDMINGXI_TEMPLATE)
+		else if (nLine <= 37)
 			BirdMingXi_template += (line);
-		else if (nLine <= BIRDXIANGQING_FRONT)
+		else if (nLine <= 40)
 			BirdXiangQing_front += (line);
-		else if (nLine <= BIRDXIANGQING_TEMPLATE)
+		else if (nLine <= 85)
 			BirdXiangQing_template += (line);
 		else
 			last_Section += (line);

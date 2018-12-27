@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>电力巡检v1.0</string>
+   <string>自主巡检智能数据交互平台 —— 故障检测分析</string>
   </property>
   <property name="styleSheet">
    <string notr="true"/>
@@ -574,7 +574,7 @@
              <item>
               <widget class="QLabel" name="label_6">
                <property name="text">
-                <string>鸟巢目录：</string>
+                <string>照片目录：</string>
                </property>
               </widget>
              </item>
@@ -745,8 +745,8 @@
    <slot>CloudGetCloudsPath()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>492</x>
-     <y>339</y>
+     <x>605</x>
+     <y>329</y>
     </hint>
     <hint type="destinationlabel">
      <x>565</x>
@@ -761,8 +761,8 @@
    <slot>CloudGetTowersDir()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>492</x>
-     <y>370</y>
+     <x>605</x>
+     <y>360</y>
     </hint>
     <hint type="destinationlabel">
      <x>565</x>
@@ -825,8 +825,8 @@
    <slot>BirdGetBirdDir()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>492</x>
-     <y>339</y>
+     <x>605</x>
+     <y>329</y>
     </hint>
     <hint type="destinationlabel">
      <x>565</x>
@@ -873,8 +873,8 @@
    <slot>CloudGetClassDir()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>492</x>
-     <y>401</y>
+     <x>605</x>
+     <y>391</y>
     </hint>
     <hint type="destinationlabel">
      <x>565</x>
@@ -889,8 +889,8 @@
    <slot>RefreshProj()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>505</x>
-     <y>146</y>
+     <x>305</x>
+     <y>204</y>
     </hint>
     <hint type="destinationlabel">
      <x>585</x>
@@ -905,8 +905,8 @@
    <slot>BirdUpLoadProj()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>463</x>
-     <y>543</y>
+     <x>484</x>
+     <y>576</y>
     </hint>
     <hint type="destinationlabel">
      <x>625</x>
@@ -921,8 +921,8 @@
    <slot>GetFlightInfomationPath()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>452</x>
-     <y>266</y>
+     <x>618</x>
+     <y>268</y>
     </hint>
     <hint type="destinationlabel">
      <x>543</x>

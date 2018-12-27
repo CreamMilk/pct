@@ -14,6 +14,7 @@ public:
 	void SaveSetting();
 	void LoadSetting();
 
+
 	
 	std::map<QString, std::map<QString, QString>> LoadImageDescription();
 	std::map<QString, QString>  LoadFlightInfomation();
@@ -22,10 +23,15 @@ public:
 	std::vector<std::tuple<QString, QString>>  LoadFlightJsonInfomation();	
 
 
+	void ExportBridsPdf();
+	void SalePictures(QString in_path, QString out_path);
+
+	void LabelPicture(QString name, QString label, int x, int y);
+	void LabelPictures(QString in_path);
 	void WriteFlightPath(QString filename);
 	void LoadAirRouteInfo();
-	void SaveAirRouteInfo();
 
+	void SaveAirRouteInfo(QString filename);
 	void SubmitCloudWarningReport();
 	void ArchiveFiles(QString name, std::vector<QString> paths);
 
@@ -50,9 +56,9 @@ void CloudRun();
 void CloudOpenResultDir();
 
 // 
-// void BirdGetBirdDir();
+ void BirdGetBirdDir();
  void BirdRun();
-// void BirdOpenResultDir();
+ void BirdOpenResultDir();
 
 void RefreshProj();
 
@@ -66,6 +72,7 @@ private:
 	QProcess *brid_process_;
 	int brid_rescode_;
 	QProcess::ExitStatus brid_exitstatus_;
+	std::vector<QString> pic_res_;
 
 	Ui::MainControlClass ui;
 };
