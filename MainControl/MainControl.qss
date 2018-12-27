@@ -334,3 +334,12 @@ QSlider::sub-page:horizontal {
 QSlider::sub-page:vertical {
     background: rgb(246, 134, 86);
 }
+* {
+    font-family: "Microsoft YaHei";
+}
+*{outline:0px;}QWidget#frmMain{background:#FFFFFF;}
+QPushButton{border-style:none;padding:10px;border-radius:5px;color:#3498DB;background:#FAFAFA;}
+QPushButton:hover{color:#5DACE4;background:#E5FEFF;}
+QPushButton:pressed{color:#2483C7;background:#A0DAFB;}
+QLineEdit{border-style:none;padding:6px;border-radius:5px;border:2px solid #DCE4EC;}
+QLineEdit:focus{border:2px solid #1ABC9C;}

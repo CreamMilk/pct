@@ -15,12 +15,14 @@ public:
 	void LoadSetting();
 
 	
-	std::vector<std::map<QString, QString>> LoadImageDescription();
+	std::map<QString, std::map<QString, QString>> LoadImageDescription();
 	std::map<QString, QString>  LoadFlightInfomation();
 
 	std::vector<std::vector<QString>> LoadImageJsonDescription();
 	std::vector<std::tuple<QString, QString>>  LoadFlightJsonInfomation();	
 
+
+	void WriteFlightPath(QString filename);
 	void LoadAirRouteInfo();
 	void SaveAirRouteInfo();
 

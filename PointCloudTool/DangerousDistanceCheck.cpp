@@ -846,7 +846,7 @@ void DangerousDistanceCheck::showNearCheck()
      pt.put_child("隐患列表", errpt_array);
 
 	 std::cout << "setting.outputdir" << setting.outputdir << std::endl;
-	 std::string json_path = setting.outputdir + "\\检测结果.json";
+	 std::string json_path = setting.outputdir + "\\点云检测结果.json";
 	 std::cout << "json_path" << json_path << std::endl;
      std::ofstream ofs(json_path, fstream::out);
      boost::property_tree::write_json(ofs, pt);

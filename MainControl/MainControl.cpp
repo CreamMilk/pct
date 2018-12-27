@@ -130,9 +130,9 @@ void MainControl::LoadSetting()
 	}
 }
 
-std::vector<std::map<QString, QString>> MainControl::LoadImageDescription()
+std::map<QString, std::map<QString, QString>> MainControl::LoadImageDescription()
 {
-	std::vector<std::map<QString, QString>> res;
+	std::map<QString, std::map<QString, QString>> res;
 	QString filepath = ui.lineEdit_FlightInfomation->text();
 	if (!QFile(filepath).exists())
 	{
@@ -174,9 +174,11 @@ std::vector<std::map<QString, QString>> MainControl::LoadImageDescription()
 			//ui.textEdit_CloudLog->insertPlainText(heads[j] + QStringLiteral("：") + allEnvDataList_i[j] + QStringLiteral("\t"));
 		}
 		//ui.textEdit_CloudLog->insertPlainText(QStringLiteral("\n"));
-		if (!point_info[QStringLiteral("经度")].isEmpty())
+		if (!point_info[QStringLiteral("经度")].isEmpty() && !point_info[QStringLiteral("照片名称")].isEmpty())
 		{
-			res.push_back(point_info);
+			point_info[QStringLiteral("经度")] = point_info[QStringLiteral("经度")].replace('E', "").replace('W', '-');
+			point_info[QStringLiteral("纬度")] = point_info[QStringLiteral("纬度")].replace('N', "").replace('S', '-');
+			res[point_info[QStringLiteral("照片名称")]] = point_info;
 		}
 		
 	}
@@ -186,6 +188,50 @@ std::vector<std::map<QString, QString>> MainControl::LoadImageDescription()
 	OleUninitialize();
 
 	return res;
+}
+
+void MainControl::WriteFlightPath(QString filename)
+{
+	boost::property_tree::ptree pt;
+	
+	std::map<QString, QString> flight_info = LoadFlightInfomation();
+	if (!flight_info.size())
+		return;
+
+	boost::property_tree::ptree errpt_array;
+	for (std::map<QString, QString>::iterator it = flight_info.begin(); it != flight_info.end(); ++it)
+	{
+		boost::property_tree::ptree point_pt;
+		point_pt.put("position", it->second.toLocal8Bit().data());
+		point_pt.put("time", it->first.toLocal8Bit().data());
+
+		errpt_array.push_back(std::make_pair("", point_pt));
+	}
+	pt.put_child("roamPoints", errpt_array);
+
+	std::ofstream ofs(filename.toLocal8Bit().data(), std::fstream::out);
+	boost::property_tree::write_json(ofs, pt);
+	ofs.close();
+	// 转成utf8
+	std::string json;
+	std::ifstream ifs(filename.toLocal8Bit().data(), std::ifstream::in);
+	if (ifs.is_open())
+	{
+		std::stringstream buffer;
+		buffer << ifs.rdbuf();
+		json = buffer.str();
+		ifs.close();
+	}
+
+
+	ofs.clear();
+	ofs.open(filename.toLocal8Bit().data(), std::ios::out | std::ios::binary);
+	if (ofs.is_open())
+	{
+		json = ChartSetConv::C2W(json);
+		ofs << json;
+		ofs.close();
+	}
 }
 
 std::map<QString, QString> MainControl::LoadFlightInfomation()
@@ -224,16 +270,16 @@ std::map<QString, QString> MainControl::LoadFlightInfomation()
 	int log_index = heads.indexOf(QStringLiteral("经度"));
 	int lat_index = heads.indexOf(QStringLiteral("纬度"));
 	int z_index = heads.indexOf(QStringLiteral("高度"));
-	int picname_index = heads.indexOf(QStringLiteral("照片名称"));
+	int time_index = heads.indexOf(QStringLiteral("时间戳"));
 
 
 	for (int i = 2; i < intRows - 2; i += 2)
 	{
 		QStringList allEnvDataList_i = allEnvDataList[i].toStringList();
-		if (!allEnvDataList_i[picname_index].isEmpty() && !allEnvDataList_i[log_index].isEmpty())
+		if (!allEnvDataList_i[time_index].isEmpty() && !allEnvDataList_i[log_index].isEmpty())
 		{
-			res[allEnvDataList_i[picname_index]] = allEnvDataList_i[log_index] + QStringLiteral(",") + allEnvDataList_i[lat_index] + QStringLiteral(",") + allEnvDataList_i[z_index];
-			ui.textEdit_CloudLog->insertPlainText(allEnvDataList_i[picname_index] + QStringLiteral("：") + res[allEnvDataList_i[picname_index]] + QStringLiteral("\n"));
+			res[allEnvDataList_i[time_index]] = allEnvDataList_i[log_index].replace("E", "").replace('W', '-') + QStringLiteral(",") + allEnvDataList_i[lat_index].replace("N", "").replace('S', '-') + QStringLiteral(",") + allEnvDataList_i[z_index];
+			//ui.textEdit_CloudLog->insertPlainText(allEnvDataList_i[picname_index] + QStringLiteral("：") + res[allEnvDataList_i[picname_index]] + QStringLiteral("\n"));
 		}
 	}
 
@@ -449,6 +495,20 @@ void MainControl::SubmitCloudWarningReport()
 	QString output_dir = ui.label_Cloud_ResultDir->text();
 	//QTextCodec* codec = QTextCodec::codecForName("UTF-8");
 
+
+	// 准备数据
+	QString resdir = ui.label_Cloud_ResultDir->text();
+	QString flightpath_path = resdir + QStringLiteral("/飞行路径.json");
+	std::vector<QString> paths;
+	paths.push_back(resdir + QStringLiteral("/点云检测结果.pdf"));
+	paths.push_back(resdir + QStringLiteral("/点云检测结果.json"));
+	if (QFile::exists(flightpath_path))
+		paths.push_back(flightpath_path);
+
+	QString zip_file = ui.label_Cloud_ResultDir->text() + QStringLiteral("/") + QDir(ui.label_Cloud_ResultDir->text()).dirName() + QStringLiteral(".zip");
+	ArchiveFiles(zip_file, paths);
+
+	// 组包提交数据
 	std::shared_ptr<QNetworkAccessManager> proc_manager = std::make_shared<QNetworkAccessManager>();
 	std::shared_ptr<QHttpMultiPart> multiPart = std::make_shared<QHttpMultiPart>(QHttpMultiPart::FormDataType);
 	
@@ -457,35 +517,27 @@ void MainControl::SubmitCloudWarningReport()
 	ProjectCode.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant(QStringLiteral("form-data; name=\"ProjectCode\"")));
 	ProjectCode.setBody(ServerFunc::GetProjectCode().toUtf8());
 
-	QHttpPart pdfFile;
-	pdfFile.setHeader(QNetworkRequest::ContentTypeHeader, QVariant(QStringLiteral("application/pdf")));
-	pdfFile.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant(QStringLiteral("form-data; name=\"File\"")));
-	QFile file(output_dir + QStringLiteral("/检测结果.pdf"));
+	QHttpPart zipFile;
+	zipFile.setHeader(QNetworkRequest::ContentTypeHeader, QVariant(QStringLiteral("application/zip")));
+	zipFile.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant(QStringLiteral("form-data; name=\"File\"; filename=\"Archive.zip\"")));
+	QFile file(zip_file);
 	file.open(QIODevice::ReadOnly);
-	pdfFile.setBodyDevice(&file);
-
-	QHttpPart FlyCode;
-	FlyCode.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant(QStringLiteral("form-data; name=\"FlyCode\"")));
-	FlyCode.setBody(QDir(output_dir).dirName().toUtf8());
-
-	QHttpPart DisplyFileName;
-	DisplyFileName.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant(QStringLiteral("form-data; name=\"DisplyFileName\"")));
-	DisplyFileName.setBody(QDir(output_dir).dirName().toUtf8());
+	zipFile.setBodyDevice(&file);
 
 
 	multiPart->append(ProjectCode);
-	multiPart->append(pdfFile);
-	multiPart->append(FlyCode);
-	multiPart->append(DisplyFileName);
+	multiPart->append(zipFile);
 
 
-	QNetworkReply *reply = proc_manager->post(QNetworkRequest(QUrl(ui.lineEdit_server_ip->text())), multiPart.get());
+	QNetworkReply *reply = proc_manager->post(QNetworkRequest(QUrl(QStringLiteral("http://") + ui.lineEdit_server_ip->text() + QStringLiteral("/api/gisdata/process"))), multiPart.get());
 	QByteArray responseData;
 	QEventLoop eventLoop;
 	connect(proc_manager.get(), SIGNAL(finished(QNetworkReply*)), &eventLoop, SLOT(quit()));
 	eventLoop.exec();
 	responseData = reply->readAll();
 	QString response_str = QString::fromUtf8(responseData.data());
+
+	QMessageBox::information(this, "", response_str, 0);
 	file.close();
 }
 
@@ -504,9 +556,12 @@ return;
 void MainControl::ArchiveFiles(QString name, std::vector<QString> paths)
 {
 	struct zip_t *zip = zip_open(name.toLocal8Bit().data(), ZIP_DEFAULT_COMPRESSION_LEVEL, 'w');
+
+	QString filename = QFileInfo(name).fileName();
+	QString basename = QFileInfo(name).baseName();
 	for (int i = 0; i < paths.size(); ++i)
 	{
-		zip_entry_open(zip, QFileInfo(paths[i]).fileName().toLocal8Bit().data());
+		zip_entry_open(zip, (basename + QStringLiteral("/") + QFileInfo(paths[i]).fileName()).toLocal8Bit().data());
 		{
 			zip_entry_fwrite(zip, paths[i].toLocal8Bit().data());
 		}
@@ -533,7 +588,7 @@ void MainControl::CloudUpLoadProj()
 		QMessageBox::information(this, QStringLiteral("鸿业提示"), QStringLiteral("请先分析点云。"));
 		return;
 	}
-	if (!QFile::exists(output_dir + QStringLiteral("/检测结果.pdf")))
+	if (!QFile::exists(output_dir + QStringLiteral("/点云检测结果.pdf")))
 	{
 		
 		return;
@@ -554,7 +609,6 @@ void MainControl::CloudUpLoadProj()
 	FileUtil::CopyDirectory(output_dir + QStringLiteral("/others"), projdir + QStringLiteral("/others"));
 	FileUtil::CopyDirectory(output_dir + QStringLiteral("/towers"), projdir + QStringLiteral("/towers"));
 	FileUtil::CopyDirectory(output_dir + QStringLiteral("/vegets"), projdir + QStringLiteral("/vegets"));
-	QFile::copy(output_dir + QStringLiteral("/检测结果.json"), projdir + QStringLiteral("/检测结果.json"));
 
 	SubmitCloudWarningReport();
 	
@@ -562,8 +616,9 @@ void MainControl::CloudUpLoadProj()
 
 void MainControl::CloudRun()
 {
-	LoadFlightInfomation();
+	WriteFlightPath(ui.label_Cloud_ResultDir->text() + QStringLiteral("/飞行路径.json"));
 	return;
+
 	ui.textEdit_CloudLog->clear();
 	
 	QStringList args;
@@ -611,6 +666,9 @@ void MainControl::CloudRun()
 	{
 		QApplication::processEvents();
 	}
+
+
+	WriteFlightPath(ui.label_Cloud_ResultDir->text() + QStringLiteral("/飞行路径.json"));
 
 	statusBar()->showMessage(QFileInfo(las_path).baseName() + QStringLiteral(".las分析完成。 返回值=") + QString::number(cloud_rescode_) + QStringLiteral("，是否异常退出=") + QString::number(cloud_exitstatus_), 0);
 }

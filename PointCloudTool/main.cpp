@@ -148,7 +148,7 @@ int main(int argc, char *argv[])
 
         // 导出pdf
         std::string pdfexe_path = setting.appdir + "PdfReport\\PdfReport.exe";
-        std::string json_path = setting.outputdir + "\\检测结果.json";
+        std::string json_path = setting.outputdir + "\\点云检测结果.json";
         if (!boost::filesystem::exists(boost::filesystem::path(pdfexe_path)))
         {
             std::cout << "未能找到 " << pdfexe_path << "，导出pdf失败！";
@@ -209,7 +209,7 @@ int main(int argc, char *argv[])
 
 			// 导出pdf
 			std::string pdfexe_path = setting.appdir + "PdfReport\\PdfReport.exe";
-			std::string json_path = setting.outputdir + "\\检测结果.json";
+			std::string json_path = setting.outputdir + "\\点云检测结果.json";
 			if (!boost::filesystem::exists(boost::filesystem::path(pdfexe_path)))
 			{
 				std::cout << "未能找到 " << pdfexe_path << "，导出pdf失败！";
