@@ -2202,12 +2202,13 @@ void pct::ConvGeopnts(std::string inputname)
 	pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
 	pct::io::Load_las(cloud, inputname);
 	pcl::PointXYZRGB * tmp_pt;
+	pct::Setting &setting = pct::Setting::ins();
 
 	std::cout << basename.toLocal8Bit().data() << std::endl;
 	for (int i = 0; i < cloud->size(); ++i)
 	{
 		tmp_pt = &cloud->at(i);
-		pct::UTMXY2LatLon(tmp_pt->x, tmp_pt->y);
+		pct::UTMXY2LatLon(tmp_pt->x, tmp_pt->y, setting.zone, setting. southhemi);
 		if (0 == i)
 		{
 			std::cout << (QString::number(tmp_pt->x, 'f', 8) + QStringLiteral(",") + QString::number(tmp_pt->y, 'f', 8)

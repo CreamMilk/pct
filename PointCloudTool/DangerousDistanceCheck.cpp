@@ -481,7 +481,7 @@ void DangerousDistanceCheck::TooNearCheck()
          c.id = (QStringLiteral("ball") + QString::number(i + 1)).toLocal8Bit().data();
          double x = c.cen.x;
          double y = c.cen.y;
-         pct::UTMXY2LatLon(x, y);
+         pct::UTMXY2LatLon(x, y, setting.zone, setting.southhemi);
          //CoorConv::WGS84Corr latlon;
          //CoorConv::UTMXYToLatLon(c.cen.x, c.cen.y, 50, false, latlon);
          //c.description = QString().sprintf("%.7f  %.7f  %.1f  %.1f\n", CoorConv::RadToDeg(latlon.lat), CoorConv::RadToDeg(latlon.log), c.cen.z, c.radiu).toStdString();
@@ -760,7 +760,7 @@ void DangerousDistanceCheck::showNearCheck()
 	pt.put("高程颜色俯视图路径", "images/高程颜色俯视图.png");
 	pt.put("高程颜色侧视图路径", "images/高程颜色侧视图.png");
 
-	pct::UTMXY2LatLon(latlon_cloudmid.x, latlon_cloudmid.y);
+	pct::UTMXY2LatLon(latlon_cloudmid.x, latlon_cloudmid.y, setting.zone, setting.southhemi);
 	sstr.clear();
 	sstr.str("");
 	sstr << std::fixed << setprecision(8) << latlon_cloudmid.x << "," << latlon_cloudmid.y << "," << std::fixed << setprecision(1) << latlon_cloudmid.z;
@@ -792,7 +792,7 @@ void DangerousDistanceCheck::showNearCheck()
          sstr.str("");
          double x = balls_[i].cen.x;
          double y = balls_[i].cen.y;
-         pct::UTMXY2LatLon(x, y);
+         pct::UTMXY2LatLon(x, y, setting.zone, setting.southhemi);
          sstr << std::fixed << setprecision(8) << x << "," << y << "," << std::fixed << setprecision(1) << balls_[i].cen.z;
          std::cout << sstr.str() << std::endl;
          errpt_child.put("隐患坐标", sstr.str());
@@ -813,8 +813,8 @@ void DangerousDistanceCheck::showNearCheck()
 
 		 pcl::PointXYZRGB latlon_nearst_linept = balls_[i].nearst.linept;
 		 pcl::PointXYZRGB latlon_nearst_otherpt = balls_[i].nearst.otherpt;
-		 pct::UTMXY2LatLon(latlon_nearst_linept.x, latlon_nearst_linept.y);
-		 pct::UTMXY2LatLon(latlon_nearst_otherpt.x, latlon_nearst_otherpt.y);
+		 pct::UTMXY2LatLon(latlon_nearst_linept.x, latlon_nearst_linept.y, setting.zone, setting.southhemi);
+		 pct::UTMXY2LatLon(latlon_nearst_otherpt.x, latlon_nearst_otherpt.y, setting.zone, setting.southhemi);
 
 
 		 errpt_child.put("最近隐患.电力线点", (QString::number(latlon_nearst_linept.x, 'f', 8) + QStringLiteral(",") + QString::number(latlon_nearst_linept.y, 'f', 8)

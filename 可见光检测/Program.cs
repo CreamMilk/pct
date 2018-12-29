@@ -40,6 +40,10 @@ namespace Test
         }
         static void Main(string[] args)
         {
+            System.Diagnostics.Stopwatch stopwatch = new System.Diagnostics.Stopwatch();
+            stopwatch.Start(); //  开始监视代码运行时间
+
+
             var files = Directory.GetFiles(args[0], "*.*", SearchOption.AllDirectories).Where(s => s.ToLower().EndsWith(".jpg")
                 || s.ToLower().EndsWith(".png") || s.ToLower().EndsWith(".bmp") || s.ToLower().EndsWith(".jpeg"));
 
@@ -64,7 +68,18 @@ namespace Test
              }
              Console.Out.WriteLine("可见光图像分析完成。");
 
-             System.Diagnostics.Process.GetCurrentProcess().Kill();
+
+
+//             TimeSpan timespan;
+//             do
+//             {
+//                 timespan = stopwatch.Elapsed; //  获取当前实例测量得出的总时间
+//             } while (timespan.TotalSeconds > 5);
+//             
+//        
+             stopwatch.Stop(); //  停止监视
+ 
+              System.Diagnostics.Process.GetCurrentProcess().Kill();
         }
     }
 }

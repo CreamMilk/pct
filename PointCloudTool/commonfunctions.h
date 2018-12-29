@@ -63,9 +63,9 @@ namespace pct
     std::wstring String2WString(const std::string& s);
     std::string WString2String(const std::wstring& ws);
     bool DelDir(const QString &path);
-	void UTMXY2LatLon(double &x, double &y, int zone = 50, bool southhemi = false);
-	void UTMXY2LatLon(float &x, float &y, int zone = 50, bool southhemi = false);
-	void LatLon2UTMXY(double &x, double &y, int zone = 50);
+	void UTMXY2LatLon(double &x, double &y, int zone, bool southhemi );
+	void UTMXY2LatLon(float &x, float &y, int zone , bool southhemi);
+	void LatLon2UTMXY(double &x, double &y, int zone);
     double getLonDistance(float fLati1, float fLong1, float fLati2, float fLong2);
     void ExtractCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, pcl::PointIndicesPtr inices, pcl::PointCloud<pcl::PointXYZRGB>::Ptr out_cloud);
 	pcl::PointXYZRGB GetMiddlePoint(pcl::PointXYZRGB min, pcl::PointXYZRGB max);

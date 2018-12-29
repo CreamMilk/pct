@@ -426,7 +426,7 @@ void PositionCorrection(std::vector <pct::TowerInfo>& towerClusters)
 			{
 				double tower_k_log = towerClusters[k].cen.x;
 				double tower_k_lat = towerClusters[k].cen.y;
-				pct::UTMXY2LatLon(tower_k_log, tower_k_lat);
+				pct::UTMXY2LatLon(tower_k_log, tower_k_lat, setting.zone, setting.southhemi);
 				double offset = pct::getLonDistance(j_log, j_lat, tower_k_log, tower_k_lat);
 
 
@@ -514,6 +514,7 @@ void LoadTowers(QString filepath, std::vector <std::tuple<double, double>> &towe
 
 void SaveTowers(QString filepath, std::vector <pct::TowerInfo> &towerClusters)
 {
+	pct::Setting &setting = pct::Setting::ins();
     std::cout << "SaveTowers()" << filepath.toLocal8Bit().data() << std::endl;
     if (!filepath.isEmpty()){
         if (QFile::exists(filepath))
@@ -550,7 +551,7 @@ void SaveTowers(QString filepath, std::vector <pct::TowerInfo> &towerClusters)
             double x = tower_iter->cen.x;
             double y = tower_iter->cen.y;
             QList<QVariant> aRowData;//保存一行数据
-            pct::UTMXY2LatLon(x, y);
+			pct::UTMXY2LatLon(x, y, setting.zone, setting.southhemi);
 
             aRowData.append(QVariant(QString::fromLocal8Bit(tower_iter->tower_no.c_str())));
             aRowData.append(QVariant(x));
@@ -581,6 +582,7 @@ void SaveTowers(QString filepath, std::vector <pct::TowerInfo> &towerClusters)
 
 void SaveLines(QString filepath, std::vector <pct::LineInfo> &lineClusters)
 {
+	pct::Setting &setting = pct::Setting::ins();
     std::cout << "SaveLines()" << filepath.toLocal8Bit().data() << std::endl;
     if (!filepath.isEmpty()){
         if (QFile::exists(filepath))
@@ -620,8 +622,8 @@ void SaveLines(QString filepath, std::vector <pct::LineInfo> &lineClusters)
             double endx = line_iter->end.x;
             double endy = line_iter->end.y;
             QList<QVariant> aRowData;//保存一行数据
-            pct::UTMXY2LatLon(stax, stay);
-            pct::UTMXY2LatLon(endx, endy);
+			pct::UTMXY2LatLon(stax, stay, setting.zone, setting.southhemi);
+			pct::UTMXY2LatLon(endx, endy, setting.zone, setting.southhemi);
 
             aRowData.append(QVariant(QString::fromLocal8Bit(line_iter->getLineNo().c_str()).remove('#').replace('-','_')));
             aRowData.append(QVariant(stax));
@@ -732,6 +734,10 @@ bool ReadyClassifOpts(pct::Setting& setting, boost::program_options::variables_m
 
     setsettingitem(gridsize, float, false, 0.3);
 
+	setsettingitem(zone, int, true, 50);
+
+	setsettingitem(southhemi, bool, false, false);
+
     return true;
 }
 
@@ -826,6 +832,9 @@ bool ReadPoscorrectOpts(pct::Setting& setting, boost::program_options::variables
 
     setsettingitem(stampcorrectcell, bool, false, true);
 
+	setsettingitem(zone, int, true, 50);
+
+	setsettingitem(southhemi, bool, false, false);
 
     return true;
 }
@@ -840,9 +849,9 @@ bool ParserCmdline(int argc, char *argv[])
      boost::program_options::options_description opts("pointcloud tool options"
          "\n示例："
          "\n（1）" + exe_name + " --cmdtype train --classdir classdir --gridsize 0.3"
-         "\n（2）" + exe_name + " --cmdtype classif --inputfile inputfile --outputdir outputdir --classdir classdir --method 2"
-         "\n（3）" + exe_name + " --cmdtype distancecheck --inputfile inputfile --outputdir outputdir --classdir classdir --method 2"
-         "\n（4）" + exe_name + " --cmdtype poscorrect --inputfile inputfile --overrideExcel false --stampcorrectcell true  --exceldir \"铁塔纠偏数据\"  --outputdir outputdir --classdir classdir --method 2"
+         "\n（2）" + exe_name + " --cmdtype classif --inputfile inputfile --outputdir outputdir --classdir classdir --method 2 --zone 50 --southhemi false"
+         "\n（3）" + exe_name + " --cmdtype distancecheck --inputfile inputfile --outputdir outputdir --classdir classdir --method 2 --zone 50 --southhemi false"
+         "\n（4）" + exe_name + " --cmdtype poscorrect --inputfile inputfile --overrideExcel false --stampcorrectcell true  --exceldir \"铁塔纠偏数据\"  --outputdir outputdir --classdir classdir --method 2 --zone 50 --southhemi false"
          "\n参数");
 
     opts.add_options()
@@ -856,6 +865,8 @@ bool ParserCmdline(int argc, char *argv[])
         ("exceldir", boost::program_options::value<std::string>(), "纠偏塔数据目录 [std::string]")
         ("overrideExcel", boost::program_options::value<bool>(), "是否覆盖源excel [bool]")
         ("stampcorrectcell", boost::program_options::value<bool>(), "是否标记修改cell [bool]")
+		("zone", boost::program_options::value<int>(), "地理带号 [int] 例：济宁为50")
+		("southhemi", boost::program_options::value<bool>(), "是否为西南半球 [bool]")
         ("help", "帮助");
 
     try{

@@ -28,11 +28,16 @@ public:
 
 	void LabelPicture(QString name, QString label, int x, int y);
 	void LabelPictures(QString in_path);
+	void AddBridLogger(const QString& log);
+	void GenerateBirdJson();
+	void GenerateBirdPdfJson(std::map<QString, std::map<QString, QString>> &pic_info);
+	void GenerateBirdHtmlJson(std::map<QString, std::map<QString, QString>> &pic_info);
 	void WriteFlightPath(QString filename);
 	void LoadAirRouteInfo();
 
 	void SaveAirRouteInfo(QString filename);
 	void SubmitCloudWarningReport();
+	void SubmitBridWarningReport();
 	void ArchiveFiles(QString name, std::vector<QString> paths);
 
 
@@ -63,6 +68,7 @@ void CloudOpenResultDir();
 void RefreshProj();
 
 void CloudUpLoadProj();
+void BridUpLoadProj();
 private:
 	QProcess *cloud_process_;
 	int cloud_rescode_;

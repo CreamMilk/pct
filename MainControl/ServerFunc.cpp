@@ -56,6 +56,21 @@ QString ServerFunc::GetLoginInfo()
 	return QString::fromWCharArray(buffer);
 }
 
+QString ServerFunc::GetServerPort()
+{
+	QString info = GetLoginInfo();
+	if (info.isEmpty())
+		return QString();
+
+	QString serverPort;
+	QJsonParseError jsonError;//Qt5新类 
+	QJsonDocument json = QJsonDocument::fromJson(info.toStdString().c_str(), &jsonError);//Qt5新类
+	QJsonObject json_object = json.object();
+	QJsonObject info_object = json_object[QStringLiteral("userInfo")].toObject();
+	serverPort = info_object[QStringLiteral("EcpIntranetURL")].toString();
+	return serverPort;
+}
+
 QString ServerFunc::GetProjectCode()
 {
 	QString info = GetLoginInfo();

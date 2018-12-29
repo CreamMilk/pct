@@ -129,7 +129,7 @@ int main(int argc, char *argv[])
 	}
 
 	ExportPdf(g_htmlpath, g_pdfpath);
-	ExportImage(g_htmlpath, g_imgpath);
+	//ExportImage(g_htmlpath, g_imgpath);
 
     //ExportPdf("E:/project/powerline/solution/PointCloudTool/x64/Release/testdata2/data-20170519-135919-179-1-1/data-20170519-135919-179-1-1检测结果.html",
     //    "E:/project/powerline/solution/PointCloudTool/x64/Release/testdata2/data-20170519-135919-179-1-1/data-20170519-135919-179-1-1检测结果.pdf");
@@ -653,10 +653,9 @@ void GenerateBirdHtml(QString json_path, QString html_path)
 	QString strQNum3 = QString::fromLocal8Bit(strNum3.c_str());
 	QString strQNum4 = QString::fromLocal8Bit(strNum4.c_str());
 
-	QString ceshitu = QString::fromUtf8(pt.get<std::string>(to_utf8(String2WString("高程颜色侧视图路径"))).c_str());
-	QString fushitu = QString::fromUtf8(pt.get<std::string>(to_utf8(String2WString("高程颜色俯视图路径"))).c_str());
 
-	html += BirdLineInfo_template.arg(strQNum1).arg(strQNum2).arg(strQNum3).arg(strQNum4).arg(ceshitu).arg(fushitu);
+
+	html += BirdLineInfo_template.arg(strQNum1).arg(strQNum2).arg(strQNum3).arg(strQNum4);
 
 	// 将读取的.json数值赋给.html对应的内容
 	html += BirdMingXi_front;

@@ -19,24 +19,6 @@
   <widget class="QWidget" name="centralWidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout_14">
-      <item>
-       <widget class="QLabel" name="label_8">
-        <property name="text">
-         <string>服务器地址（ip:port）：</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLineEdit" name="lineEdit_server_ip">
-        <property name="text">
-         <string>192.168.6.27:8888</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </item>
-    <item>
      <layout class="QHBoxLayout" name="horizontalLayout_16">
       <item>
        <widget class="QGroupBox" name="groupBox">
@@ -45,18 +27,48 @@
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_5">
          <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_13">
+          <layout class="QHBoxLayout" name="horizontalLayout_14">
            <item>
-            <widget class="QLabel" name="label_5">
+            <widget class="QLabel" name="label_8">
              <property name="minimumSize">
               <size>
-               <width>84</width>
+               <width>0</width>
                <height>0</height>
               </size>
              </property>
              <property name="maximumSize">
               <size>
-               <width>84</width>
+               <width>16777215</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>服务端口：</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLineEdit" name="lineEdit_server_ip">
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_13">
+           <item>
+            <widget class="QLabel" name="label_20">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>0</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
                <height>16777215</height>
               </size>
              </property>
@@ -68,7 +80,7 @@
            <item>
             <widget class="QLineEdit" name="lineEdit_projpath">
              <property name="text">
-              <string>//192.168.6.27/projs</string>
+              <string/>
              </property>
             </widget>
            </item>
@@ -77,16 +89,16 @@
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_4">
            <item>
-            <widget class="QLabel" name="label_16">
+            <widget class="QLabel" name="label_21">
              <property name="minimumSize">
               <size>
-               <width>84</width>
+               <width>0</width>
                <height>0</height>
               </size>
              </property>
              <property name="maximumSize">
               <size>
-               <width>84</width>
+               <width>16777215</width>
                <height>16777215</height>
               </size>
              </property>
@@ -97,16 +109,22 @@
            </item>
            <item>
             <widget class="QLabel" name="label_projname">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
              <property name="minimumSize">
               <size>
                <width>0</width>
-               <height>20</height>
+               <height>28</height>
               </size>
              </property>
              <property name="maximumSize">
               <size>
                <width>16777215</width>
-               <height>20</height>
+               <height>28</height>
               </size>
              </property>
              <property name="text">
@@ -121,16 +139,16 @@
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_5">
              <item>
-              <widget class="QLabel" name="label_17">
+              <widget class="QLabel" name="label_22">
                <property name="minimumSize">
                 <size>
-                 <width>84</width>
+                 <width>0</width>
                  <height>0</height>
                 </size>
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>84</width>
+                 <width>16777215</width>
                  <height>16777215</height>
                 </size>
                </property>
@@ -141,16 +159,22 @@
              </item>
              <item>
               <widget class="QLabel" name="label_projcode">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
                <property name="minimumSize">
                 <size>
                  <width>0</width>
-                 <height>20</height>
+                 <height>28</height>
                 </size>
                </property>
                <property name="maximumSize">
                 <size>
                  <width>16777215</width>
-                 <height>20</height>
+                 <height>28</height>
                 </size>
                </property>
                <property name="text">
@@ -182,7 +206,7 @@
       <item>
        <widget class="QGroupBox" name="groupBox_3">
         <property name="title">
-         <string>航次信息：</string>
+         <string>航线信息：</string>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_8">
          <item>
@@ -247,32 +271,103 @@
      </layout>
     </item>
     <item>
+     <layout class="QHBoxLayout" name="horizontalLayout_15">
+      <item>
+       <widget class="QGroupBox" name="groupBox_4">
+        <property name="title">
+         <string>批次信息：</string>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout_7">
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_21">
+           <item>
+            <widget class="QLabel" name="label_18">
+             <property name="text">
+              <string>批次名：</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLineEdit" name="lineEdit_batchname"/>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_10">
+           <item>
+            <widget class="QLabel" name="label_15">
+             <property name="text">
+              <string>路径表：</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLineEdit" name="lineEdit_FlightInfomation"/>
+           </item>
+           <item>
+            <widget class="QPushButton" name="pushButton_FlightInfomation">
+             <property name="text">
+              <string>选择路径</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QGroupBox" name="groupBox_5">
+        <property name="title">
+         <string>地理信息：</string>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout_9">
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_22">
+           <item>
+            <widget class="QLabel" name="label_19">
+             <property name="text">
+              <string>带号：</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLineEdit" name="lineEdit_zone"/>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_23">
+           <item>
+            <widget class="QRadioButton" name="radioButton_north">
+             <property name="text">
+              <string>北半球</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QRadioButton" name="radioButton_south">
+             <property name="text">
+              <string>南半球</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
      <widget class="QGroupBox" name="groupBox_2">
       <property name="title">
        <string>检测：</string>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_6">
-       <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_15">
-         <item>
-          <widget class="QLabel" name="label_15">
-           <property name="text">
-            <string>路径表：</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLineEdit" name="lineEdit_FlightInfomation"/>
-         </item>
-         <item>
-          <widget class="QPushButton" name="pushButton_FlightInfomation">
-           <property name="text">
-            <string>选择路径</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
        <item>
         <widget class="QTabWidget" name="tabWidget">
          <property name="styleSheet">
@@ -456,13 +551,13 @@
                <property name="minimumSize">
                 <size>
                  <width>0</width>
-                 <height>20</height>
+                 <height>28</height>
                 </size>
                </property>
                <property name="maximumSize">
                 <size>
                  <width>16777215</width>
-                 <height>20</height>
+                 <height>28</height>
                 </size>
                </property>
                <property name="text">
@@ -902,7 +997,7 @@
    <sender>pushButton_bird_upload</sender>
    <signal>clicked()</signal>
    <receiver>MainControlClass</receiver>
-   <slot>BirdUpLoadProj()</slot>
+   <slot>BridUpLoadProj()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>484</x>
@@ -942,7 +1037,7 @@
   <slot>BirdOpenResultDir()</slot>
   <slot>CloudGetClassDir()</slot>
   <slot>RefreshProj()</slot>
-  <slot>BirdUpLoadProj()</slot>
+  <slot>BridUpLoadProj()</slot>
   <slot>GetFlightInfomationPath()</slot>
  </slots>
 </ui>

@@ -3,6 +3,8 @@
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
+#include <QMessageBox>
+
 
 
 std::string ChartSetConv::to_utf8(const wchar_t* buffer, int len)
@@ -121,8 +123,9 @@ bool FileUtil::CopyDirectory(const QString &fromDir, const QString &toDir)
 {
 	QDir sourceDir(fromDir);
 	QDir targetDir(toDir);
+
 	if (!targetDir.exists()){    /**< 如果目标目录不存在，则进行创建 */
-		if (!targetDir.mkdir(targetDir.absolutePath()))
+		if (!targetDir.mkpath(targetDir.absolutePath()))
 			return false;
 	}
 
@@ -150,4 +153,40 @@ bool FileUtil::CopyDirectory(const QString &fromDir, const QString &toDir)
 		}
 	}
 	return true;
+}
+
+
+// 角度转弧度
+double GeoUtil::rad(double d)
+{
+	const double PI = 3.1415926535898;
+	return d * PI / 180.0;
+}
+// 传入两个经纬度，计算之间的大致直线距离
+double GeoUtil::GetLoglatDistance(float fLati1, float fLong1, float fLati2, float fLong2)
+{
+	const float EARTH_RADIUS = 6378.137;
+
+	double radLat1 = rad(fLati1);
+	double radLat2 = rad(fLati2);
+	double a = radLat1 - radLat2;
+	double b = rad(fLong1) - rad(fLong2);
+	double s = 2 * asin(sqrt(pow(sin(a / 2), 2) + cos(radLat1)*cos(radLat2)*pow(sin(b / 2), 2)));
+	s = s * EARTH_RADIUS;
+	s = (int)(s * 10000000) / 10000;
+	return s;
+}
+
+
+std::map<QString, std::vector<boost::property_tree::ptree>>::iterator 
+GeoUtil::GetNearImage(std::map<QString, std::vector<boost::property_tree::ptree>> &pos_images, double log, double lat, double z, double yuzhi)
+{
+	std::map<QString, std::vector<boost::property_tree::ptree>>::iterator it = pos_images.end();
+	for (it = pos_images.begin(); it != pos_images.end(); ++it)
+	{
+		QStringList loglat = it->first.split(',');
+		if (GeoUtil::GetLoglatDistance(loglat[0].toDouble(), loglat[1].toDouble(), log, lat) < yuzhi)
+			return it;
+	}
+	return it;
 }

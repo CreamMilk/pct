@@ -1,6 +1,9 @@
 #pragma once
 #include <string>
 #include <QString>
+#include <map>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
 
 class ChartSetConv
 {
@@ -27,3 +30,13 @@ public:
 	void static ReMakeDir(QString dir);
 	bool static CopyDirectory(const QString &fromDir, const QString &toDir);
 };
+
+
+class GeoUtil
+{
+public:
+	double static rad(double d);
+	double static GetLoglatDistance(float fLati1, float fLong1, float fLati2, float fLong2);
+	std::map<QString, std::vector<boost::property_tree::ptree>>::iterator static GetNearImage(std::map<QString, std::vector<boost::property_tree::ptree>> &pos_images, double log, double lat, double z, double yuzhi = 5);
+};
+

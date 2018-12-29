@@ -125,6 +125,9 @@ namespace pct
         bool stampcorrectcell;  // 是否标记修改cell [bool]
 		QString tower_excle;
 		QString line_excel;
+		int zone;
+		bool southhemi;
+
     };
 
 
