@@ -678,6 +678,15 @@ void pct::FindGroundIndices(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, pcl::P
     }
 }
 
+std::tuple<unsigned char, unsigned char, unsigned char> GetMidColor(std::tuple<unsigned char, unsigned char, unsigned char>&c1, std::tuple<unsigned char, unsigned char, unsigned char>&c2, double f)
+{
+	std::tuple<unsigned char, unsigned char, unsigned char> res;
+	std::get<0>(res) = std::get<0>(c1) +(std::get<0>(c2)-std::get<0>(c1)) * f;
+	std::get<1>(res) = std::get<1>(c1) +(std::get<1>(c2)-std::get<1>(c1)) * f;
+	std::get<2>(res) = std::get<2>(c1) +(std::get<2>(c2)-std::get<2>(c1)) * f;
+	return res;
+}
+
 void pct::ScreenshotHeightColor(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud, QString pic_dir, math::vec *axis_vec)
 {
 	if (nullptr == axis_vec)
@@ -693,27 +702,92 @@ void pct::ScreenshotHeightColor(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud
 	pcl::getMinMax3D(*cloud, min, max);
 	vec cen((min.x + max.x) / 2.f, (min.y + max.y) / 2.f, (min.z + max.z) / 2.f);
 
-	uchar staC[3] = { 0, 255, 255 };
-	uchar endC[3] = { 255, 0, 0 };
-	short subR = endC[0] - staC[0];
-	short subG = endC[1] - staC[1];
-	short subB = endC[2] - staC[2];
-
-
 	double heig = max.z - min.z;
 	if (heig == 0)
 		return;
 
-	std::cout << "ScreenshotHeightColor heig = " << heig << "\t cloud->size() = " << cloud->size() << std::endl;
+
+	std::vector<std::tuple<unsigned char, unsigned char, unsigned char>> height_colors(10);
+	height_colors[0] = std::tuple<unsigned char, unsigned char, unsigned char>(127, 0, 255);
+	height_colors[1] = std::tuple<unsigned char, unsigned char, unsigned char>(0, 0, 255);
+	height_colors[2] = std::tuple<unsigned char, unsigned char, unsigned char>(0, 127, 255);
+	height_colors[3] = std::tuple<unsigned char, unsigned char, unsigned char>(0, 255, 255);
+	height_colors[4] = std::tuple<unsigned char, unsigned char, unsigned char>(0, 255, 127);
+	height_colors[5] = std::tuple<unsigned char, unsigned char, unsigned char>(0, 255, 0);
+	height_colors[6] = std::tuple<unsigned char, unsigned char, unsigned char>(127, 255, 0);
+	height_colors[7] = std::tuple<unsigned char, unsigned char, unsigned char>(255, 255, 0);
+	height_colors[8] = std::tuple<unsigned char, unsigned char, unsigned char>(255, 127, 0);
+	height_colors[9] = std::tuple<unsigned char, unsigned char, unsigned char>(255, 0, 0);
+
+	std::vector<double> heights(10);
+	heights[0] = 2;
+	heights[1] = 3;
+	heights[2] = 4;
+	heights[3] = 8;
+	heights[4] = 9;
+	heights[5] = 10;
+	heights[6] = 11;
+	heights[7] = 12;
+	heights[8] = 13;
+	heights[9] = 100;
+
 	for (int i = 0; i < cloud->size(); ++i)
 	{
 		pcl::PointXYZRGB &pt = cloud->at(i);
-		double l = (pt.z - min.z) / heig;
-		pt.r = (subR)* (l)+staC[0];
-		pt.b = (subG)* (l)+staC[1];
-		pt.g = (subB)* (l)+staC[2];
-	}
+		double subz = pt.z - min.z;
+		std::tuple<unsigned char, unsigned char, unsigned char> c;
+		if (subz < heights[1])
+		{
+			c = GetMidColor(height_colors[0], height_colors[1], (subz - heights[0]) / (heights[1] - heights[0]));
+ 		}
+		else if (subz < heights[2])
+		{
+			c = GetMidColor(height_colors[1], height_colors[2], (subz - heights[1]) / (heights[2] - heights[1]));
+			pt.r = std::get<0>(c);
+			pt.g = std::get<1>(c);
+			pt.b = std::get<2>(c);
+		}
+		else if (subz < heights[3])
+		{
+			c = GetMidColor(height_colors[2], height_colors[3], (subz - heights[2]) / (heights[3] - heights[2]));
+		}
+		else if (subz < heights[4])
+		{
+			c = GetMidColor(height_colors[3], height_colors[4], (subz - heights[3]) / (heights[4] - heights[3]));
 
+		}
+		else if (subz < heights[5])
+		{
+			c = GetMidColor(height_colors[4], height_colors[5], (subz - heights[4]) / (heights[5] - heights[4]));
+		}
+		else if (subz < heights[6])
+		{
+			c = GetMidColor(height_colors[5], height_colors[6], (subz - heights[5]) / (heights[6] - heights[5]));
+		}
+		else if (subz < heights[7])
+		{
+			c = GetMidColor(height_colors[6], height_colors[7], (subz - heights[6]) / (heights[7] - heights[6]));
+		}
+		else if (subz < heights[8])
+		{
+			c = GetMidColor(height_colors[7], height_colors[8], (subz - heights[7]) / (heights[8] - heights[7]));
+			pt.r = std::get<0>(c);
+			pt.g = std::get<1>(c);
+			pt.b = std::get<2>(c);
+		}
+		//else if (subz < heights[9])
+		//{
+			//c = GetMidColor(height_colors[8], height_colors[9], (subz - heights[8]) / (heights[9] - heights[8]));
+
+		//}
+		else
+		{
+			c = GetMidColor(height_colors[8], height_colors[9], (subz - heights[8]) / (heig - heights[8]));
+		}
+		pt.r = std::get<0>(c);
+		pt.g = std::get<1>(c);
+		pt.b = std::get<2>(c);
+	}
 
 	boost::shared_ptr<pcl::visualization::PCLVisualizer> view(new pcl::visualization::PCLVisualizer("HeightColor"));
 
