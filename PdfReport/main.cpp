@@ -348,6 +348,9 @@ void GenerateCloudHtml(QString json_path, QString html_path)
 	// 线路信息
 	QString xianluxinxi_front;
 	QString xianluxinxi_template;
+	// 检测结论
+	QString jiancejielun_front;
+	QString jiancejielun_template;
 	// 运行规范
     QString yunxingguifan_front;
     QString yunxingguifan_template;
@@ -391,25 +394,29 @@ void GenerateCloudHtml(QString json_path, QString html_path)
 			xianluxinxi_front += (line);
 		else if (nLine <= 26)
 			xianluxinxi_template += (line);
-		else if (nLine <= 34)
-			yunxingguifan_front += (line);
+		else if (nLine <= 28) //
+			jiancejielun_front += (line);
+		else if (nLine <= 30)
+			jiancejielun_template += (line);
 		else if (nLine <= 39)
+			yunxingguifan_front += (line);
+		else if (nLine <= 44)
 			yunxingguifan_template += (line);
-		else if (nLine <= 50)
-			tulizongbiao_front += (line);
 		else if (nLine <= 55)
-			tulizongbiao_template += (line);
+			tulizongbiao_front += (line);
 		else if (nLine <= 60)
+			tulizongbiao_template += (line);
+		else if (nLine <= 65)
 			yinhuanzongtu_fronttemplate += (line);
-		else if (nLine <= 75)
+		else if (nLine <= 80)
 			yinhuanmingxi_front += (line);
-		else if (nLine <= 86)
+		else if (nLine <= 91)
 			yinhuanmingxi_template += (line);
-		else if (nLine <= 100)
+		else if (nLine <= 105)
 			yinhuanmingxi_other += (line);
-		else if (nLine <= 113)
+		else if (nLine <= 118)
 			yinhuanxiangqing_front += (line);
-		else if (nLine <= 132)
+		else if (nLine <= 137)
 			yinhuanxiangqing_template += (line);
 		else
 			last_Section += (line);
@@ -436,6 +443,11 @@ void GenerateCloudHtml(QString json_path, QString html_path)
         return;
     }
     
+	boost::property_tree::ptree juliyaoqiu_pt = pt.get_child(to_utf8(String2WString("距离要求")));
+	boost::property_tree::ptree tuliyanse_pt = pt.get_child(to_utf8(String2WString("图例颜色")));
+	boost::property_tree::ptree yinhuanliebiao_pt = pt.get_child(to_utf8(String2WString("隐患列表")));
+
+
 	QString html;
 	html += xianluxinxi_front;
 
@@ -459,12 +471,16 @@ void GenerateCloudHtml(QString json_path, QString html_path)
 
 	html += xianluxinxi_template.arg(strQNum1).arg(strQNum2).arg(strQNum3).arg(strQNum4).arg(ceshitu).arg(fushitu);
 	
+	html += jiancejielun_front;
+	html += jiancejielun_template.arg(yinhuanliebiao_pt.size()).arg(yinhuanliebiao_pt.size() == 0 ? QStringLiteral("合格") : QStringLiteral("不合格"));
+
+
+
 	// 将读取的.json数值赋给.html对应的内容
     QString zongtu = QString::fromUtf8(pt.get<std::string>(to_utf8(String2WString("xy平面图路径"))).c_str());
 
     html += yunxingguifan_front;
-    boost::property_tree::ptree traversee_pt = pt.get_child(to_utf8(String2WString("距离要求")));
-    for (boost::property_tree::ptree::iterator it = traversee_pt.begin(); it != traversee_pt.end(); ++it)
+	for (boost::property_tree::ptree::iterator it = juliyaoqiu_pt.begin(); it != juliyaoqiu_pt.end(); ++it)
     {
         //遍历读出数据
         QString key = QString::fromUtf8(it->first.c_str());
@@ -474,9 +490,8 @@ void GenerateCloudHtml(QString json_path, QString html_path)
     }
 
     html += tulizongbiao_front;
-    traversee_pt = pt.get_child(to_utf8(String2WString("图例颜色")));
     int serial = 0;
-    for (boost::property_tree::ptree::iterator it = traversee_pt.begin(); it != traversee_pt.end(); ++it)
+	for (boost::property_tree::ptree::iterator it = tuliyanse_pt.begin(); it != tuliyanse_pt.end(); ++it)
     {
         //遍历读出数据
         QString key = QString::fromUtf8(it->first.c_str());
@@ -502,8 +517,7 @@ void GenerateCloudHtml(QString json_path, QString html_path)
       html += yinhuanzongtu_fronttemplate.arg(zongtu);
   
       html += yinhuanmingxi_front;
-      traversee_pt = pt.get_child(to_utf8(String2WString("隐患列表")));
-      BOOST_FOREACH(boost::property_tree::ptree::value_type &cvt, traversee_pt)
+	  BOOST_FOREACH(boost::property_tree::ptree::value_type &cvt, yinhuanliebiao_pt)
       {
           QString yinhuanzuobiao = QString::fromUtf8(cvt.second.get<std::string>(to_utf8(String2WString("隐患坐标"))).c_str()).remove(' ').replace(',', "<br/>");
           QString taganqujian = QString::fromUtf8(cvt.second.get<std::string>(to_utf8(String2WString("塔杆区间"))).c_str()).remove(' ').replace('-', "<br/>-<br/>");
@@ -521,7 +535,7 @@ void GenerateCloudHtml(QString json_path, QString html_path)
       }
 	  html += yinhuanmingxi_other;
 
-	  BOOST_FOREACH(boost::property_tree::ptree::value_type &cvt, traversee_pt)
+	  BOOST_FOREACH(boost::property_tree::ptree::value_type &cvt, yinhuanliebiao_pt)
 	  {
 		  html += yinhuanxiangqing_front;
 		  QString yinhuanzuobiao = QString::fromUtf8(cvt.second.get<std::string>(to_utf8(String2WString("隐患坐标"))).c_str()).remove(' ').replace(',', "<br/>");

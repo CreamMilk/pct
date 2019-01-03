@@ -2196,8 +2196,9 @@ void pct::mergeBalls(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr allCrashPoint,
 
 void pct::ConvGeopnts(std::string inputname)
 {
-	QString basename = QFileInfo(inputname.c_str()).baseName();
-	std::string outputdir = (QFileInfo(inputname.c_str()).absoluteDir().absolutePath() + QStringLiteral("/") + basename).toLocal8Bit().data();
+	QFileInfo input_fileinfo(QString::fromLocal8Bit(inputname.c_str()));
+	QString basename = input_fileinfo.baseName();
+	std::string outputdir = (input_fileinfo.absoluteDir().absolutePath() + QStringLiteral("/") + basename).toLocal8Bit().data();
 	std::string outputname = outputdir + "_geo.las";
 	pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
 	pct::io::Load_las(cloud, inputname);
@@ -2235,7 +2236,7 @@ void pct::ConvGeopnts(std::string inputname)
 			break;
 	}
 
-	QString errpath = QString(outputdir.c_str()) + basename + QStringLiteral("_geo_pnts");
+	QString errpath = QString::fromLocal8Bit(outputdir.c_str()) + basename + QStringLiteral("_geo_pnts");
 	std::cout << errpath.toLocal8Bit().data() << std::endl;
 	start = std::chrono::system_clock::now();
 	while (!QFile::rename(errpath, QString::fromLocal8Bit(outputdir.c_str())))

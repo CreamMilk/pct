@@ -72,7 +72,13 @@ int main(int argc, char *argv[])
     {
         return EXIT_FAILURE;
     }
-    std::cout << "ParserCmdline" << std::endl;
+	else
+	{
+		std::cout << "input£º" << setting.inputfile << std::endl;
+		std::cout << "output£º" << setting.outputdir.c_str() << std::endl;
+		std::cout << "output£º" << setting.exceldir << std::endl;
+	}
+    
 
 
     if (setting.cmdtype == "train")

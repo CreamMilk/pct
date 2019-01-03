@@ -29,6 +29,7 @@
 #include "CommonFuns.h"
 #include "ServerFunc.h"
 #include "zip.h"
+#include <chrono>
 
 MainControl::MainControl(QWidget *parent)
 	: QMainWindow(parent)
@@ -488,10 +489,16 @@ void MainControl::SaveAirRouteInfo(QString filename)
 {
 	QFile file(filename);
 	// Trying to open in WriteOnly and Text mode
-	if (!file.open(QFile::WriteOnly | QFile::Text))
+
+	//Sleep(1000);
+	std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
+	while (!file.open(QFile::WriteOnly | QFile::Text))
 	{
-		return;
+		std::cout << "pct::DelDir(pic_dir)" << std::endl;
+		if (std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - start).count() > 5)
+			return;
 	}
+
 
 	QTextStream out(&file);
 	out << QStringLiteral("ÏßÂ·Ãû³Æ=") << ui.lineEdit_Circuit_Name->text() << QStringLiteral("\n");

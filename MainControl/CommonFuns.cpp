@@ -4,7 +4,8 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QMessageBox>
-
+#include <chrono>
+#include <iostream>
 
 
 std::string ChartSetConv::to_utf8(const wchar_t* buffer, int len)
@@ -111,11 +112,33 @@ bool FileUtil::DelDir(const QString &path)
 
 void FileUtil::ReMakeDir(QString dir)
 {
-	FileUtil::DelDir(dir);
+	std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
 
-	if (!QDir().exists(dir))
+	//删文件等30秒
+	while (!FileUtil::DelDir(dir))
 	{
-		QDir().mkpath(dir);
+		std::cout << "pct::DelDir(pic_dir)" << std::endl;
+		if (std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - start).count() > 30)
+			return;
+	}
+
+	//等待磁盘刷新5秒
+	start = std::chrono::system_clock::now();
+	while (QDir().exists(dir))
+	{
+		std::cout << "QDir().exists(dir)" << std::endl;
+		if (std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - start).count() > 5)
+			return;
+	}
+
+
+	//创建文件夹5秒
+	start = std::chrono::system_clock::now();
+	while (!QDir().mkpath(dir))
+	{
+		std::cout << "QDir().exists(dir)" << std::endl;
+		if (std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - start).count() > 5)
+			return;
 	}
 }
 
