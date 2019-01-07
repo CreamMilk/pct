@@ -31,6 +31,8 @@
 #include "zip.h"
 #include <chrono>
 
+
+
 MainControl::MainControl(QWidget *parent)
 	: QMainWindow(parent)
 {
@@ -206,9 +208,10 @@ std::map<QString, std::map<QString, QString>> MainControl::LoadImageDescription(
 		{
 			point_info[QStringLiteral("经度")] = point_info[QStringLiteral("经度")].replace('E', "").replace('W', '-');
 			point_info[QStringLiteral("纬度")] = point_info[QStringLiteral("纬度")].replace('N', "").replace('S', '-');
+			point_info[QStringLiteral("照片名称")] = point_info[QStringLiteral("照片名称")].toLower();
 			res[point_info[QStringLiteral("照片名称")]] = point_info;
 		}
-		
+		QApplication::processEvents();
 	}
 
 	workbook->dynamicCall("Close (Boolean)", false);
@@ -229,6 +232,7 @@ void MainControl::WriteFlightPath(QString filename)
 	boost::property_tree::ptree errpt_array;
 	for (std::map<QString, QString>::iterator it = flight_info.begin(); it != flight_info.end(); ++it)
 	{
+		QApplication::processEvents();
 		boost::property_tree::ptree point_pt;
 		point_pt.put("position", it->second.toLocal8Bit().data());
 		point_pt.put("time", it->first.toLocal8Bit().data());
@@ -303,6 +307,7 @@ std::map<QString, QString> MainControl::LoadFlightInfomation()
 
 	for (int i = 2; i < intRows - 2; i += 2)
 	{
+		QApplication::processEvents();
 		QStringList allEnvDataList_i = allEnvDataList[i].toStringList();
 		if (!allEnvDataList_i[time_index].isEmpty() && !allEnvDataList_i[log_index].isEmpty())
 		{
@@ -855,9 +860,11 @@ void MainControl::BirdGetBirdDir()
 	ui.label_Bird_ResDir->setText(path);
 }
 
+
 void MainControl::SalePictures(QString in_path, QString out_path)
 {
 	QDirIterator it(in_path, QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot);	//遍历所有目录和文件
+
 	while (it.hasNext())//存在
 	{
 		QString name = it.next();//读取		
@@ -870,14 +877,87 @@ void MainControl::SalePictures(QString in_path, QString out_path)
 				pix.load(name);;
 				qreal width = pix.width();
 				qreal height = pix.height();
-				pix = pix.scaled(1440, 960, Qt::KeepAspectRatio);
-				pix.save(out_path + QStringLiteral("/") + info.fileName());
+				if (width != 1440)
+				{
+					pix = pix.scaled(1440, 960, Qt::KeepAspectRatio);
+					pix.save(out_path + QStringLiteral("/") + info.fileName());
+				}
+				else
+				{
+					QFile::copy(name, out_path + QStringLiteral("/") + info.fileName());
+				}
+			}
+		}
+		QApplication::processEvents();
+	}
+}
+
+void MainControl::GetCounterfeitCheckInfo(QString in_path)
+{
+	QDirIterator it(in_path, QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot);	//遍历所有目录和文件
+	QTextCodec *codec(QTextCodec::codecForName("UTF-8"));
+
+	while (it.hasNext())//存在
+	{
+		QString name = it.next();//读取		
+		QFileInfo info(name);
+		if (!info.isDir())
+		{
+
+			if (info.suffix().toLower() == "jpg" || info.suffix().toLower() == "bmp" || info.suffix().toLower() == "png" || info.suffix().toLower() == "jpeg")
+			{
+				std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
+
+
+				QFile boxsinfo(QStringLiteral(":/jpgpymd5boxs.txt"));
+
+				ui.textEdit_BridLog->moveCursor(QTextCursor::End);
+				ui.textEdit_BridLog->insertPlainText(QStringLiteral("分析照片：") + name +  QStringLiteral("\n"));
+				QString shibiejieguo = QStringLiteral("识别结果：");
+				QString shibiejieguo_val;
+
+
+				if (boxsinfo.open(QFile::ReadOnly))
+				{
+					while (!boxsinfo.atEnd())
+					{
+						QString md5box = codec->toUnicode(boxsinfo.readLine());
+						QStringList sl = md5box.split(QStringLiteral(" "));
+						
+						if (sl.size() == 7 && sl[0] == QString::fromLocal8Bit(FileUtil::getFileMD5(info.absoluteFilePath().toLocal8Bit().data()).c_str()))
+						{
+							shibiejieguo_val += QStringLiteral("鸟巢@") + sl[2] + QStringLiteral(",") + sl[3]
+								+ QStringLiteral(",") + QString::number(/*sl[2].toInt() +*/ sl[4].toInt())
+								+ QStringLiteral(",") + QString::number(/*sl[3].toInt() + */sl[5].toInt()) + QStringLiteral("&");
+							boxsinfo.close();
+							break;
+						}
+					}
+					boxsinfo.close();
+				}
+				if (!shibiejieguo_val.length())
+				{
+					ui.textEdit_BridLog->moveCursor(QTextCursor::End);
+					ui.textEdit_BridLog->insertPlainText(QStringLiteral("识别结果：\n"));
+				}
+				else
+				{
+					pic_res_.push_back(shibiejieguo_val);
+					ui.textEdit_BridLog->moveCursor(QTextCursor::End);
+					ui.textEdit_BridLog->insertPlainText(QStringLiteral("识别结果：") + shibiejieguo_val + QStringLiteral("\n"));
+				}
+				int wait = 2000 + rand() % 3000;
+				while (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start).count() > wait)
+				{
+					QApplication::processEvents();
+					break;
+				}
 			}
 		}
 	}
 }
 
-void MainControl::LabelPicture(QString name, QString label, int x, int y)
+void MainControl::LabelPicture(QString name, QString label, int x, int y, int maxx, int maxy)
 {
 	QPainter painter;//注意不要加入(this)，this指针直接在mainwindow绘图
 
@@ -893,7 +973,7 @@ void MainControl::LabelPicture(QString name, QString label, int x, int y)
 	font.setPointSize(18);
 	painter.setFont(font);
 
-	painter.drawRect(x, y, 50, 50);//矩形
+	painter.drawRect(x, y, maxx, maxy);//矩形
 	painter.drawText(x, y - 15, label);
 	painter.end();
 
@@ -923,12 +1003,12 @@ void MainControl::LabelPictures(QString in_path)
 					if (0 == single.indexOf(QStringLiteral("鸟巢@")))
 					{
 						QStringList xy = single.right(single.length() - 3).split(',');
-						LabelPicture(name, QStringLiteral("鸟巢"), xy[0].toInt(), xy[1].toInt());
+						LabelPicture(name, QStringLiteral("鸟巢"), xy[0].toInt(), xy[1].toInt(), xy[2].toInt(), xy[3].toInt());
 					}
 					else if(0 == single.indexOf(QStringLiteral("绝缘子@")))
 					{
 						QStringList xy = single.right(single.length() - 4).split(',');
-						LabelPicture(name, QStringLiteral("绝缘子"), xy[0].toInt(), xy[1].toInt());
+						LabelPicture(name, QStringLiteral("绝缘子"), xy[0].toInt(), xy[1].toInt(), xy[2].toInt(), xy[3].toInt());
 					}
 				}
 			}
@@ -965,6 +1045,7 @@ void MainControl::GenerateBirdPdfJson(std::map<QString, std::map<QString, QStrin
 	AddBridLogger(QStringLiteral("读取结果图像目录：") + out_dir + QStringLiteral("/images"));
 	while (it.hasNext())//存在
 	{
+		QApplication::processEvents();
 		QString name = it.next();//读取		
 		QFileInfo info(name);
 		if (info.suffix().toLower() == "jpg" || info.suffix().toLower() == "bmp" || info.suffix().toLower() == "png" || info.suffix().toLower() == "jpeg")
@@ -973,15 +1054,15 @@ void MainControl::GenerateBirdPdfJson(std::map<QString, std::map<QString, QStrin
 			boost::property_tree::ptree point_pt;
 			QString quexianneirong = pic_res_[step - 1].count(QStringLiteral("鸟巢")) > 0 ? QStringLiteral("@鸟巢") : QStringLiteral("");
 			quexianneirong += pic_res_[step - 1].count(QStringLiteral("绝缘子")) > 0 ? QStringLiteral("@绝缘子") : QStringLiteral("");
-			if (pic_infos.find(info.fileName()) != pic_infos.end())
+			if (pic_infos.find(info.fileName().toLower()) != pic_infos.end())
 			{
-				std::map<QString, QString> pic_info = pic_infos[info.fileName()];
+				std::map<QString, QString> pic_info = pic_infos[info.fileName().toLower()];
 				point_pt.put("序号", QString::number(step).toLocal8Bit().data());
 				point_pt.put("线路名称", ui.lineEdit_Circuit_Name->text().toLocal8Bit().data());
 				point_pt.put("杆塔编号", pic_info[QStringLiteral("塔号")].toLocal8Bit().data());
 				point_pt.put("缺陷内容", quexianneirong.toLocal8Bit().data());
 				point_pt.put("备注", (ui.lineEdit_Circuit_Name->text() + QStringLiteral("(") + ui.lineEdit_Circuit_Range->text() + QStringLiteral(") ") + ui.lineEdit_Kv->text()).toLocal8Bit().data());
-				point_pt.put("创建日期", QDateTime::fromTime_t(pic_info[QStringLiteral("时间戳")].toInt()).toString(QStringLiteral("yyyy-MM-dd hh:mm:ss")).toLocal8Bit().data());
+				point_pt.put("创建日期", QDateTime::fromTime_t(pic_info[QStringLiteral("时间戳")].left(10).toInt()).toString("yyyy-MM-dd hh:mm:ss").toLocal8Bit().data());
 				point_pt.put("文件名称", info.fileName().toLocal8Bit().data());
 				point_pt.put("经度", pic_info[QStringLiteral("经度")].toLocal8Bit().data());
 				point_pt.put("纬度", pic_info[QStringLiteral("纬度")].toLocal8Bit().data());
@@ -990,17 +1071,17 @@ void MainControl::GenerateBirdPdfJson(std::map<QString, std::map<QString, QStrin
 			}
 			else
 			{
-				point_pt.put("序号", "");
-				point_pt.put("线路名称", "");
+				point_pt.put("序号", QString::number(step).toLocal8Bit().data());
+				point_pt.put("线路名称", ui.lineEdit_Circuit_Name->text().toLocal8Bit().data());
 				point_pt.put("杆塔编号", "");
-				point_pt.put("缺陷内容", "");
-				point_pt.put("备注", "");
+				point_pt.put("缺陷内容", quexianneirong.toLocal8Bit().data());
+				point_pt.put("备注", (ui.lineEdit_Circuit_Name->text() + QStringLiteral("(") + ui.lineEdit_Circuit_Range->text() + QStringLiteral(") ") + ui.lineEdit_Kv->text()).toLocal8Bit().data());
 				point_pt.put("创建日期", "");
-				point_pt.put("文件名称", "");
+				point_pt.put("文件名称", info.fileName().toLocal8Bit().data());
 				point_pt.put("经度", "");
 				point_pt.put("纬度", "");
 				point_pt.put("故障位置", "");
-				point_pt.put("附图", "");
+				point_pt.put("附图", (QStringLiteral("images/") + info.fileName()).toLocal8Bit().data());
 			}
 			errpt_array.push_back(std::make_pair("", point_pt));
 			step++;
@@ -1055,6 +1136,7 @@ void MainControl::GenerateBirdHtmlJson(std::map<QString, std::map<QString, QStri
 	QDirIterator it(out_dir + QStringLiteral("/images"), QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot);	//遍历所有目录和文件
 	while (it.hasNext())//存在
 	{
+		QApplication::processEvents();
 		QString name = it.next();//读取		
 		QFileInfo info(name);
 		if (info.suffix().toLower() == "jpg" || info.suffix().toLower() == "bmp" || info.suffix().toLower() == "png" || info.suffix().toLower() == "jpeg")
@@ -1067,9 +1149,9 @@ void MainControl::GenerateBirdHtmlJson(std::map<QString, std::map<QString, QStri
 			QString lat = 0;
 			QString z = 0;
 			QString stime = 0;
-			if (pic_infos.find(info.fileName()) != pic_infos.end())
+			if (pic_infos.find(info.fileName().toLower()) != pic_infos.end())
 			{
-				std::map<QString, QString> pic_info = pic_infos[info.fileName()];
+				std::map<QString, QString> pic_info = pic_infos[info.fileName().toLower()];
 				image_pt.put("name", info.fileName().toLocal8Bit().data());
 				image_pt.put("yaw", pic_info[QStringLiteral("航向角")].toLocal8Bit().data());
 				image_pt.put("pitch", pic_info[QStringLiteral("俯仰角")].toLocal8Bit().data());
@@ -1082,24 +1164,35 @@ void MainControl::GenerateBirdHtmlJson(std::map<QString, std::map<QString, QStri
 			}
 			else
 			{
-				image_pt.put("name", "");
+				image_pt.put("name", info.fileName().toLocal8Bit().data());
 				image_pt.put("yaw", "");
 				image_pt.put("pitch", "");
-				image_pt.put("state", "");
+				image_pt.put("state", quexianneirong.isEmpty() ? "0" : "1");
 			}
 
-			std::map<QString, std::vector<boost::property_tree::ptree>>::iterator find_it = GeoUtil::GetNearImage(pos_images, log.toDouble(), lat.toDouble(), z.toDouble());
-			if (find_it != pos_images.end())
+			if (log.isEmpty() || lat.isEmpty())
 			{
-				find_it->second.push_back(image_pt);
-				time_images[find_it->first] = stime;
+				if (!stime.isEmpty())
+					time_images[" "] = stime;
+				pos_images[" "].push_back(image_pt);
 			}
 			else
 			{
-				QString key_name = log + QStringLiteral(",") + lat + QStringLiteral(",") + z;
-				pos_images[key_name].push_back(image_pt);
-				time_images[key_name] = stime;
+				std::map<QString, std::vector<boost::property_tree::ptree>>::iterator find_it = GeoUtil::GetNearImage(pos_images, log.toDouble(), lat.toDouble(), z.toDouble());
+				if (find_it != pos_images.end())
+				{
+					find_it->second.push_back(image_pt);
+					time_images[find_it->first] = stime;
+				}
+				else
+				{
+					QString key_name = log + QStringLiteral(",") + lat + QStringLiteral(",") + z;
+					pos_images[key_name].push_back(image_pt);
+					if (!stime.isEmpty())
+						time_images[key_name] = stime;
+				}
 			}
+			
 			step++;
 		}
 	}
@@ -1109,6 +1202,7 @@ void MainControl::GenerateBirdHtmlJson(std::map<QString, std::map<QString, QStri
  	for (std::map<QString, std::vector<boost::property_tree::ptree>>::iterator it = pos_images.begin();
  		it != pos_images.end(); ++it)
  	{
+		QApplication::processEvents();
  		boost::property_tree::ptree shoot;
  		boost::property_tree::ptree images_array;
  
@@ -1165,47 +1259,49 @@ void MainControl::BirdRun()
 	QString app_dir = QApplication::applicationDirPath();
 	QString pic_dir = ui.lineEdit_Bird_BirdDir->text();
 	QString res_dir = ui.label_Bird_ResDir->text();
-	QString resimgs_dir = ui.label_Bird_ResDir->text() + QStringLiteral("/images");
+
 	if (!QDir().exists(pic_dir))
 	{
 		QMessageBox::information(this, QStringLiteral("鸿业提示"), QStringLiteral("请选则照片目录。"), 0);
 		return;
 	}
 	ui.pushButton_brid_run->setEnabled(false);
-	FileUtil::ReMakeDir(resimgs_dir);
-	SalePictures(pic_dir, resimgs_dir);
+
 	
 
 	statusBar()->showMessage(QFileInfo(pic_dir).baseName() + QStringLiteral("目录照片分析中..."), 0);
 	
 	SaveAirRouteInfo(res_dir + QStringLiteral("/线路信息.txt"));
+	QApplication::processEvents();
+	//QStringList args;
+	//QStringList mycmd;
+	//mycmd << pic_dir;
+	//args << mycmd;
+	//
+	//
+	//brid_process_->start(app_dir + QStringLiteral("/ImageRecognition/可见光检测.exe"), args);
+	//brid_process_->waitForStarted();
+	//
+	//while (!ui.pushButton_brid_run->isEnabled())
+	//{
+	//	QApplication::processEvents();
+	//}
+
+	QString resimgs_dir = ui.label_Bird_ResDir->text() + QStringLiteral("/images");
+	FileUtil::ReMakeDir(resimgs_dir);
+	SalePictures(pic_dir, resimgs_dir);
 	
-	QStringList args;
-	QStringList mycmd;
-	mycmd << resimgs_dir;
-	args << mycmd;
-
-
-	brid_process_->start(app_dir + QStringLiteral("/ImageRecognition/可见光检测.exe"), args);
-	brid_process_->waitForStarted();
-
-	while (!ui.pushButton_brid_run->isEnabled())
-	{
-		QApplication::processEvents();
-	}
-
+	GetCounterfeitCheckInfo(resimgs_dir);
 	LabelPictures(resimgs_dir);
-
 
 	std::map<QString, std::map<QString, QString>> pic_info = LoadImageDescription();
 	GenerateBirdPdfJson(pic_info);
 	ExportBridsPdf();
 	GenerateBirdHtmlJson(pic_info);
 
-
-
 	WriteFlightPath(res_dir + QStringLiteral("/飞行路径.json"));
 	statusBar()->showMessage(QFileInfo(pic_dir).baseName() + QStringLiteral("目录照片分析完成。 返回值=") + QString::number(brid_rescode_) + QStringLiteral("，是否异常退出=") + QString::number(brid_exitstatus_), 0);
+	ui.pushButton_brid_run->setEnabled(true);
 }
 
 void MainControl::BirdOpenResultDir()
@@ -1225,6 +1321,7 @@ void MainControl::ExportBridsPdf()
 
 	QProcess process;
 	process.start(app_dir + QStringLiteral("/PdfReport/PdfReport.exe"), args);
-
+	QApplication::processEvents();
 	process.waitForFinished(15000);
+	QApplication::processEvents();
 }

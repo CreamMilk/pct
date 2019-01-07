@@ -2,5 +2,6 @@
     <qresource prefix="/">
         <file>MainControl.qss</file>
         <file>HCity.ico</file>
+        <file>jpgpymd5boxs.txt</file>
     </qresource>
 </RCC>

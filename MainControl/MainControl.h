@@ -26,7 +26,8 @@ public:
 	void ExportBridsPdf();
 	void SalePictures(QString in_path, QString out_path);
 
-	void LabelPicture(QString name, QString label, int x, int y);
+	void GetCounterfeitCheckInfo(QString in_path);	// zaojia
+	void LabelPicture(QString name, QString label, int x, int y, int maxx, int maxy);
 	void LabelPictures(QString in_path);
 	void AddBridLogger(const QString& log);
 	void GenerateBirdJson();

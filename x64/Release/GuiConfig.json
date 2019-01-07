@@ -3,9 +3,9 @@
     "项目路径": "\/\/192.168.6.58\/projs",
     "线路名称": "济宁I线",
     "航行路径": "C:\/Users\/wang\/Desktop\/路径表.xlsx",
-    "分段区间": "1-3",
+    "分段区间": "48-50",
     "电压等级": "500kv",
-    "采集日期": "2018-11-14",
+    "采集日期": "2019-01-03",
     "点云": {
         "点云路径": "H:\/data\/jiningdianli\/2-1.las",
         "铁塔数据目录": "F:\/project\/powerline\/solution\/pct\/x64\/Release\/testdata\/铁塔纠偏数据",
@@ -13,8 +13,8 @@
         "样本目录": "F:\/project\/powerline\/solution\/pct\/x64\/Release\/classdir"
     },
     "可见光": {
-        "照片目录": "F:\/project\/powerline\/solution\/pct\/x64\/Release\/testPicture",
-        "结果目录": "F:\/project\/powerline\/solution\/pct\/x64\/Release\/testPicture"
+        "照片目录": "C:\/Users\/wang\/Desktop\/md5test\/samples",
+        "结果目录": "C:\/Users\/wang\/Desktop\/md5test\/samples"
     },
     "带号": "50",
     "南半球": "false",

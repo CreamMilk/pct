@@ -28,6 +28,7 @@ class FileUtil
 public:
 	bool static DelDir(const QString &path);
 	void static ReMakeDir(QString dir);
+	std::string static getFileMD5(const std::string& filename);
 	bool static CopyDirectory(const QString &fromDir, const QString &toDir);
 };
 

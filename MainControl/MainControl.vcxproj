@@ -88,6 +88,7 @@
     </ClCompile>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MainControl.cpp" />
+    <ClCompile Include="md5.cpp" />
     <ClCompile Include="ServerFunc.cpp" />
     <ClCompile Include="zip.c" />
   </ItemGroup>
@@ -147,6 +148,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CommonFuns.h" />
+    <ClInclude Include="md5.h" />
+    <ClInclude Include="md5global.h" />
     <ClInclude Include="miniz.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="ServerFunc.h" />
