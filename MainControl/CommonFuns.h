@@ -41,3 +41,14 @@ public:
 	std::map<QString, std::vector<boost::property_tree::ptree>>::iterator static GetNearImage(std::map<QString, std::vector<boost::property_tree::ptree>> &pos_images, double log, double lat, double z, double yuzhi = 5);
 };
 
+
+
+
+class ImgUtil
+{
+public:
+	void static ReSizeImage(std::string src, std::string dst, int width);
+
+};
+
+

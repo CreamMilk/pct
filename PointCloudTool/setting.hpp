@@ -97,12 +97,12 @@ namespace pct
            
             BOOST_FOREACH(const boost::property_tree::ptree::value_type &leixing, dangerdistance)
             {
-                QString key(leixing.first.c_str());
+                QString key = QString::fromUtf8(leixing.first.c_str());
                 QString val(leixing.second.get_value_optional<std::string>().value().c_str());
 
                 val.remove(" ");
                 QStringList split_val = val.split(',');
-                distances.insert(std::make_pair(leixing.first, std::tuple<float, float>(split_val[0].toFloat(), split_val[1].toFloat())));
+				distances.insert(std::make_pair(key.toLocal8Bit().data(), std::tuple<float, float>(split_val[0].toFloat(), split_val[1].toFloat())));
             }
             return distances;
         }

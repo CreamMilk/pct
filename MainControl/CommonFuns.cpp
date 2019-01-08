@@ -15,6 +15,9 @@
 #include <iomanip>
 #include <exception>
 
+#include<opencv2\opencv.hpp>   
+#include<opencv2\highgui\highgui.hpp>
+
 std::string ChartSetConv::to_utf8(const wchar_t* buffer, int len)
 {
 	int nChars = ::WideCharToMultiByte(
@@ -273,8 +276,26 @@ GeoUtil::GetNearImage(std::map<QString, std::vector<boost::property_tree::ptree>
 	for (it = pos_images.begin(); it != pos_images.end(); ++it)
 	{
 		QStringList loglat = it->first.split(',');
-		if (GeoUtil::GetLoglatDistance(loglat[0].toDouble(), loglat[1].toDouble(), log, lat) < yuzhi)
+		if (loglat.size() == 2 && GeoUtil::GetLoglatDistance(loglat[0].toDouble(), loglat[1].toDouble(), log, lat) < yuzhi)
 			return it;
 	}
 	return it;
+}
+
+void ImgUtil::ReSizeImage(std::string src, std::string dst, int width)
+{
+	cv::Mat img = cv::imread(src);
+	int w = img.cols;
+	int h = img.rows;
+	if (w == width)
+	{
+		cv::imwrite(dst, img);
+		return;
+	}
+
+	double n = n = width / float(w);
+	int new_h = int(h*n);
+	cv::Mat res_img;
+	cv::resize(img, res_img, cv::Size(width, new_h), 0, 0, cv::INTER_AREA);
+	cv::imwrite(dst, res_img);
 }

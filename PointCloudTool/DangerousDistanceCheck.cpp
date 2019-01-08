@@ -109,14 +109,17 @@ void DangerousDistanceCheck::TooNearCheck()
      unsigned char crash_other_g = *(((unsigned char *)&color) + 1);
      unsigned char crash_other_b = *(((unsigned char *)&color) + 0);
 
-	 float ground_horizontal_distance = std::get<0>(class_disatances["ground"]);
-	 float ground_vertical_distance = std::get<1>(class_disatances["ground"]);
+	 float ground_horizontal_distance = std::get<0>(class_disatances["地面"]);
+	 float ground_vertical_distance = std::get<1>(class_disatances["地面"]);
 	 float ground_duijiaoxian_distance = std::sqrt(std::pow(ground_horizontal_distance, 2) + std::pow(ground_vertical_distance, 2));
 
-	 float object_horizontal_distance = std::get<0>(class_disatances["veget"]);
-	 float object_vertical_distance = std::get<1>(class_disatances["veget"]);
+	 float object_horizontal_distance = std::get<0>(class_disatances["植被"]);
+	 float object_vertical_distance = std::get<1>(class_disatances["植被"]);
 	 float object_duijiaoxian_distance = std::sqrt(std::pow(object_horizontal_distance, 2) + std::pow(object_vertical_distance, 2));
  
+	 std::cout << "地面垂直标准：" << ground_vertical_distance << std::endl;
+	 std::cout << "植被垂直标准：" << object_vertical_distance << std::endl;
+
      std::vector<int> sectionBeginSet;
      int stepindex = 0;
      pcl::PointCloud<pcl::PointXYZRGB>::Ptr groundObject(new pcl::PointCloud<pcl::PointXYZRGB>);
@@ -739,17 +742,29 @@ void DangerousDistanceCheck::showNearCheck()
 
 
     // 导出json
+	boost::property_tree::ptree pt;
     std::map<std::string, std::tuple<float, float>> class_diastances = setting.get_distances();
     std::stringstream sstr;
     sstr.setf(ios::fixed, ios::floatfield);
     sstr << fixed << setprecision(1);
-    sstr << std::get<0>(class_diastances["ground"]) << "," << std::get<1>(class_diastances["ground"]);
-    boost::property_tree::ptree pt;
-    pt.put("距离要求.地面", sstr.str());
-    sstr.clear();
-    sstr.str("");
-    sstr << std::get<0>(class_diastances["veget"]) << "," << std::get<1>(class_diastances["veget"]);
-    pt.put("距离要求.植被", sstr.str());
+
+	for (std::map<std::string, std::tuple<float, float>>::iterator dis_it = class_diastances.begin(); dis_it != class_diastances.end(); ++dis_it)
+	{
+		std::string name = dis_it->first;
+		
+		sstr << std::get<0>(class_diastances[name]) << "," << std::get<1>(class_diastances[name]);
+		cout << std::string("距离要求.") + name << sstr.str() << std::endl;
+		pt.put(std::string("距离要求.") + name, sstr.str());
+		sstr.clear();
+		sstr.str("");
+	}
+	//sstr << std::get<0>(class_diastances["ground"]) << "," << std::get<1>(class_diastances["ground"]);
+	//
+	//pt.put("距离要求.地面", sstr.str());
+	//sstr.clear();
+	//sstr.str("");
+	//sstr << std::get<0>(class_diastances["veget"]) << "," << std::get<1>(class_diastances["veget"]);
+	//pt.put("距离要求.植被", sstr.str());
     pt.put("图例颜色.地面", setting.cls_strcolor(ground_str));
     pt.put("图例颜色.铁塔", setting.cls_strcolor(tower_str));
     pt.put("图例颜色.电力线", setting.cls_strcolor(power_line_str));

@@ -32,9 +32,10 @@
 #include <chrono>
 
 
-
 MainControl::MainControl(QWidget *parent)
 	: QMainWindow(parent)
+	, brid_rescode_(0)
+	, cloud_rescode_(0)
 {
 	ui.setupUi(this);
 	setWindowIcon(QIcon(QStringLiteral(":/HCity.ico")));
@@ -521,7 +522,7 @@ void MainControl::RefreshProj()
 	QString serverport = ServerFunc::GetServerPort();
 	if (projcode.isEmpty())
 	{
-		QMessageBox::information(this, QStringLiteral("鸿业提示"), QStringLiteral("请登录鸿程后切换当前项目。"));
+		QMessageBox::information(this, QStringLiteral("鸿业提示"), QStringLiteral("请登录鸿城后切换当前项目。"));
 		return;
 	}
 	ui.label_projname->setText(projname);
@@ -693,6 +694,7 @@ void MainControl::BridUpLoadProj()
 	}
 
 	SubmitBridWarningReport();
+	statusBar()->showMessage(QFileInfo(output_dir).baseName() + QStringLiteral("分析结果上传成功。"), 0);
 }
 
 void MainControl::CloudUpLoadProj()
@@ -740,7 +742,7 @@ void MainControl::CloudUpLoadProj()
 	FileUtil::CopyDirectory(output_dir + QStringLiteral("/vegets"), projdir + QStringLiteral("/") + batch_name + QStringLiteral("/vegets"));
 
 	SubmitCloudWarningReport();
-	
+	statusBar()->showMessage(QFileInfo(output_dir).baseName() + QStringLiteral("分析结果上传成功。"), 0);
 }
 
 void MainControl::CloudRun()
@@ -785,6 +787,7 @@ void MainControl::CloudRun()
 
 	args << mycmd;
 	ui.pushButton_cloud_run->setEnabled(false);
+	ui.pushButton_cloud_upload->setEnabled(false);
 
 	cloud_process_->start(app_dir + QStringLiteral("/PointCloudTool.exe"), args);
 	cloud_process_->waitForStarted();
@@ -835,6 +838,7 @@ void MainControl::CloudFinished(int exitcode, QProcess::ExitStatus status)
 	cloud_rescode_ = exitcode;
 	cloud_exitstatus_ = status;
 	ui.pushButton_cloud_run->setEnabled(true);
+	ui.pushButton_cloud_upload->setEnabled(true);
 }
 
 void MainControl::BridFinished(int exitcode, QProcess::ExitStatus status)
@@ -860,7 +864,6 @@ void MainControl::BirdGetBirdDir()
 	ui.label_Bird_ResDir->setText(path);
 }
 
-
 void MainControl::SalePictures(QString in_path, QString out_path)
 {
 	QDirIterator it(in_path, QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot);	//遍历所有目录和文件
@@ -873,19 +876,9 @@ void MainControl::SalePictures(QString in_path, QString out_path)
 		{
 			if (info.suffix().toLower() == "jpg" || info.suffix().toLower() == "bmp" || info.suffix().toLower() == "png" || info.suffix().toLower() == "jpeg")
 			{
-				QPixmap pix;
-				pix.load(name);;
-				qreal width = pix.width();
-				qreal height = pix.height();
-				if (width != 1440)
-				{
-					pix = pix.scaled(1440, 960, Qt::KeepAspectRatio);
-					pix.save(out_path + QStringLiteral("/") + info.fileName());
-				}
-				else
-				{
-					QFile::copy(name, out_path + QStringLiteral("/") + info.fileName());
-				}
+				ImgUtil::ReSizeImage(info.absoluteFilePath().toLocal8Bit().data()
+					, (out_path + QStringLiteral("/") + info.fileName()).toLocal8Bit().data()
+					, 1440);
 			}
 		}
 		QApplication::processEvents();
@@ -937,6 +930,7 @@ void MainControl::GetCounterfeitCheckInfo(QString in_path)
 				}
 				if (!shibiejieguo_val.length())
 				{
+					pic_res_.push_back(QStringLiteral(""));
 					ui.textEdit_BridLog->moveCursor(QTextCursor::End);
 					ui.textEdit_BridLog->insertPlainText(QStringLiteral("识别结果：\n"));
 				}
@@ -946,11 +940,11 @@ void MainControl::GetCounterfeitCheckInfo(QString in_path)
 					ui.textEdit_BridLog->moveCursor(QTextCursor::End);
 					ui.textEdit_BridLog->insertPlainText(QStringLiteral("识别结果：") + shibiejieguo_val + QStringLiteral("\n"));
 				}
-				int wait = 2000 + rand() % 3000;
-				while (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start).count() > wait)
+				int wait = 3000 + rand() % 3000;
+				//QMessageBox::information(this, QString::number(wait), QString::number(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start).count()), 0);
+				while (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start).count() < wait)
 				{
 					QApplication::processEvents();
-					break;
 				}
 			}
 		}
@@ -1173,8 +1167,8 @@ void MainControl::GenerateBirdHtmlJson(std::map<QString, std::map<QString, QStri
 			if (log.isEmpty() || lat.isEmpty())
 			{
 				if (!stime.isEmpty())
-					time_images[" "] = stime;
-				pos_images[" "].push_back(image_pt);
+					time_images[""] = stime;
+				pos_images[""].push_back(image_pt);
 			}
 			else
 			{
@@ -1266,6 +1260,7 @@ void MainControl::BirdRun()
 		return;
 	}
 	ui.pushButton_brid_run->setEnabled(false);
+	ui.pushButton_bird_upload->setEnabled(false);
 
 	
 
@@ -1302,6 +1297,10 @@ void MainControl::BirdRun()
 	WriteFlightPath(res_dir + QStringLiteral("/飞行路径.json"));
 	statusBar()->showMessage(QFileInfo(pic_dir).baseName() + QStringLiteral("目录照片分析完成。 返回值=") + QString::number(brid_rescode_) + QStringLiteral("，是否异常退出=") + QString::number(brid_exitstatus_), 0);
 	ui.pushButton_brid_run->setEnabled(true);
+	ui.pushButton_bird_upload->setEnabled(true);
+
+	ui.textEdit_BridLog->moveCursor(QTextCursor::End);
+	ui.textEdit_BridLog->insertPlainText(QStringLiteral("鸟巢分析结束。\n"));
 }
 
 void MainControl::BirdOpenResultDir()
