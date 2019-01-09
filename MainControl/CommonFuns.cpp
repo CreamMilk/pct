@@ -289,7 +289,8 @@ void ImgUtil::ReSizeImage(std::string src, std::string dst, int width)
 	int h = img.rows;
 	if (w == width)
 	{
-		cv::imwrite(dst, img);
+		QFile::copy(QString::fromLocal8Bit(src.c_str()), QString::fromLocal8Bit(dst.c_str()));
+		//cv::imwrite(dst, img);
 		return;
 	}
 
