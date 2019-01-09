@@ -917,12 +917,30 @@ void MainControl::GetCounterfeitCheckInfo(QString in_path)
 						QString md5box = codec->toUnicode(boxsinfo.readLine());
 						QStringList sl = md5box.split(QStringLiteral(" "));
 						
-						if (sl.size() == 7 && sl[0] == QString::fromLocal8Bit(FileUtil::getFileMD5(info.absoluteFilePath().toLocal8Bit().data()).c_str()))
+						int obj_size = sl[1].toInt();
+						if (obj_size >= 1 && sl[0] == QString::fromLocal8Bit(FileUtil::getFileMD5(info.absoluteFilePath().toLocal8Bit().data()).c_str()))
 						{
-							shibiejieguo_val += QStringLiteral("鸟巢@") + sl[2] + QStringLiteral(",") + sl[3]
-								+ QStringLiteral(",") + QString::number(/*sl[2].toInt() +*/ sl[4].toInt())
-								+ QStringLiteral(",") + QString::number(/*sl[3].toInt() + */sl[5].toInt()) + QStringLiteral("&");
-							boxsinfo.close();
+							for (int obj_step = 0; obj_step < obj_size; ++obj_step)
+							{
+								int obj_base_index = 2 + obj_step * 5;
+								QString obj_name;
+								if (sl[obj_base_index + 4].trimmed() == QStringLiteral("1"))
+								{
+									obj_name = QStringLiteral("鸟巢");
+								}
+								else if (sl[obj_base_index + 4].trimmed() == QStringLiteral("2"))
+								{
+									obj_name = QStringLiteral("绝缘子");
+								}
+								else if (sl[obj_base_index + 4].trimmed() == QStringLiteral("3"))
+								{
+									obj_name = QStringLiteral("绝缘子损坏");
+								}
+
+								shibiejieguo_val += (obj_name + QStringLiteral("@") + sl[obj_base_index] + QStringLiteral(",") + sl[obj_base_index + 1]
+									+ QStringLiteral(",") + QString::number(sl[obj_base_index + 2].toInt())
+									+ QStringLiteral(",") + QString::number(sl[obj_base_index + 3].toInt()) + QStringLiteral("&"));
+							}
 							break;
 						}
 					}
@@ -951,7 +969,7 @@ void MainControl::GetCounterfeitCheckInfo(QString in_path)
 	}
 }
 
-void MainControl::LabelPicture(QString name, QString label, int x, int y, int maxx, int maxy)
+void MainControl::LabelPicture(QString name, QString label, int x, int y, int maxx, int maxy,unsigned int rgb)
 {
 	QPainter painter;//注意不要加入(this)，this指针直接在mainwindow绘图
 
@@ -961,7 +979,8 @@ void MainControl::LabelPicture(QString name, QString label, int x, int y, int ma
 
 	QPen pen;
 	pen.setWidth(3);
-	pen.setColor(Qt::red);
+	pen.setColor(QColor(rgb  << 8 >> 24, rgb << 16 >> 24, rgb << 24 >> 24));
+	//pen.setColor(Qt::red);
 	painter.setPen(pen);
 	QFont font;
 	font.setPointSize(18);
@@ -1002,7 +1021,12 @@ void MainControl::LabelPictures(QString in_path)
 					else if(0 == single.indexOf(QStringLiteral("绝缘子@")))
 					{
 						QStringList xy = single.right(single.length() - 4).split(',');
-						LabelPicture(name, QStringLiteral("绝缘子"), xy[0].toInt(), xy[1].toInt(), xy[2].toInt(), xy[3].toInt());
+						LabelPicture(name, QStringLiteral("绝缘子"), xy[0].toInt(), xy[1].toInt(), xy[2].toInt(), xy[3].toInt(), 0x0000FF00);
+					}
+					else if (0 == single.indexOf(QStringLiteral("绝缘子损坏@")))
+					{
+						QStringList xy = single.right(single.length() - 4).split(',');
+						LabelPicture(name, QStringLiteral("绝缘子损坏"), xy[0].toInt(), xy[1].toInt(), xy[2].toInt(), xy[3].toInt());
 					}
 				}
 			}
@@ -1047,7 +1071,7 @@ void MainControl::GenerateBirdPdfJson(std::map<QString, std::map<QString, QStrin
 			AddBridLogger(QStringLiteral("可见光检测结果新增：") + info.baseName());
 			boost::property_tree::ptree point_pt;
 			QString quexianneirong = pic_res_[step - 1].count(QStringLiteral("鸟巢")) > 0 ? QStringLiteral("@鸟巢") : QStringLiteral("");
-			quexianneirong += pic_res_[step - 1].count(QStringLiteral("绝缘子")) > 0 ? QStringLiteral("@绝缘子") : QStringLiteral("");
+			quexianneirong += pic_res_[step - 1].count(QStringLiteral("绝缘子损坏")) > 0 ? QStringLiteral("@绝缘子损坏") : QStringLiteral("");
 			if (pic_infos.find(info.fileName().toLower()) != pic_infos.end())
 			{
 				std::map<QString, QString> pic_info = pic_infos[info.fileName().toLower()];
