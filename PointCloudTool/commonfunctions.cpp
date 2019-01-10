@@ -797,7 +797,7 @@ void pct::ScreenshotHeightColor(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud
 
 	pcl::visualization::Camera camera;
 	view->getCameraParameters(camera);
-	float cameralen = (vec(camera.focal[0], camera.focal[1], camera.focal[2]) - vec(camera.pos[0], camera.pos[1], camera.pos[2])).Length();
+	float cameralen = (vec(camera.focal[0], camera.focal[1], camera.focal[2]) - vec(camera.pos[0], camera.pos[1], camera.pos[2])).Length() * 0.75;
 
 	math::vec horizontal_seevec = axis_vec[1];  // 全局水平观看方向
 	horizontal_seevec.z = 0;
