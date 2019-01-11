@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>639</width>
-    <height>631</height>
+    <height>713</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -661,7 +661,7 @@
          </widget>
          <widget class="QWidget" name="tab_2">
           <attribute name="title">
-           <string>鸟巢分析</string>
+           <string>照片分析</string>
           </attribute>
           <layout class="QVBoxLayout" name="verticalLayout_4">
            <item>
