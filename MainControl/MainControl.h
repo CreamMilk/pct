@@ -77,8 +77,7 @@ private:
 
 
 	QProcess *brid_process_;
-	int brid_rescode_;
-	QProcess::ExitStatus brid_exitstatus_;
+	int brid_status_;
 	std::vector<QString> pic_res_;
 
 	Ui::MainControlClass ui;

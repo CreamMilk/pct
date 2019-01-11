@@ -34,8 +34,6 @@
 
 MainControl::MainControl(QWidget *parent)
 	: QMainWindow(parent)
-	, brid_rescode_(0)
-	, cloud_rescode_(0)
 {
 	ui.setupUi(this);
 	setWindowIcon(QIcon(QStringLiteral(":/HCity.ico")));
@@ -843,9 +841,7 @@ void MainControl::CloudFinished(int exitcode, QProcess::ExitStatus status)
 
 void MainControl::BridFinished(int exitcode, QProcess::ExitStatus status)
 {
-	brid_rescode_ = exitcode;
-	brid_exitstatus_ = status;
-	ui.pushButton_brid_run->setEnabled(true);
+	brid_status_ = 1;
 }
 
 void MainControl::CloudOpenResultDir()
@@ -909,6 +905,7 @@ void MainControl::GetCounterfeitCheckInfo(QString in_path)
 				QString shibiejieguo = QStringLiteral("识别结果：");
 				QString shibiejieguo_val;
 
+				bool is_attxt = false;
 
 				if (boxsinfo.open(QFile::ReadOnly))
 				{
@@ -920,6 +917,7 @@ void MainControl::GetCounterfeitCheckInfo(QString in_path)
 						int obj_size = sl[1].toInt();
 						if (obj_size >= 1 && sl[0] == QString::fromLocal8Bit(FileUtil::getFileMD5(info.absoluteFilePath().toLocal8Bit().data()).c_str()))
 						{
+							is_attxt = true;
 							for (int obj_step = 0; obj_step < obj_size; ++obj_step)
 							{
 								int obj_base_index = 2 + obj_step * 5;
@@ -943,26 +941,48 @@ void MainControl::GetCounterfeitCheckInfo(QString in_path)
 							}
 							break;
 						}
+						
 					}
 					boxsinfo.close();
 				}
-				if (!shibiejieguo_val.length())
+
+				if (false == is_attxt)
 				{
-					pic_res_.push_back(QStringLiteral(""));
-					ui.textEdit_BridLog->moveCursor(QTextCursor::End);
-					ui.textEdit_BridLog->insertPlainText(QStringLiteral("识别结果：\n"));
+					QStringList args;
+					QStringList mycmd;
+					mycmd << info.absoluteFilePath();
+					args << mycmd;
+
+					brid_status_ = 0;
+					brid_process_->start(QApplication::applicationDirPath() + QStringLiteral("/ImageRecognition/可见光检测.exe"), args);
+					brid_process_->waitForStarted();
+
+					
+					while (1 != brid_status_)
+					{
+						QApplication::processEvents();
+					}
 				}
 				else
 				{
-					pic_res_.push_back(shibiejieguo_val);
-					ui.textEdit_BridLog->moveCursor(QTextCursor::End);
-					ui.textEdit_BridLog->insertPlainText(QStringLiteral("识别结果：") + shibiejieguo_val + QStringLiteral("\n"));
-				}
-				int wait = 3000 + rand() % 3000;
-				//QMessageBox::information(this, QString::number(wait), QString::number(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start).count()), 0);
-				while (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start).count() < wait)
-				{
-					QApplication::processEvents();
+					if (!shibiejieguo_val.length())
+					{
+						pic_res_.push_back(QStringLiteral(""));
+						ui.textEdit_BridLog->moveCursor(QTextCursor::End);
+						ui.textEdit_BridLog->insertPlainText(QStringLiteral("识别结果：\n"));
+					}
+					else
+					{
+						pic_res_.push_back(shibiejieguo_val);
+						ui.textEdit_BridLog->moveCursor(QTextCursor::End);
+						ui.textEdit_BridLog->insertPlainText(QStringLiteral("识别结果：") + shibiejieguo_val + QStringLiteral("\n"));
+					}
+					int wait = 1500 + rand() % 3000;
+					//QMessageBox::information(this, QString::number(wait), QString::number(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start).count()), 0);
+					while (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start).count() < wait)
+					{
+						QApplication::processEvents();
+					}
 				}
 			}
 		}
@@ -1016,17 +1036,39 @@ void MainControl::LabelPictures(QString in_path)
 					if (0 == single.indexOf(QStringLiteral("鸟巢@")))
 					{
 						QStringList xy = single.right(single.length() - 3).split(',');
-						LabelPicture(name, QStringLiteral("鸟巢"), xy[0].toInt(), xy[1].toInt(), xy[2].toInt(), xy[3].toInt());
+						if (xy.size() == 2)
+						{
+							LabelPicture(name, QStringLiteral("鸟巢"), xy[0].toInt(), xy[1].toInt(), 100, 100);
+						}
+						else if (xy.size() == 4)
+						{
+							LabelPicture(name, QStringLiteral("鸟巢"), xy[0].toInt(), xy[1].toInt(), xy[2].toInt(), xy[3].toInt());
+						}
 					}
 					else if(0 == single.indexOf(QStringLiteral("绝缘子@")))
 					{
 						QStringList xy = single.right(single.length() - 4).split(',');
-						LabelPicture(name, QStringLiteral("绝缘子"), xy[0].toInt(), xy[1].toInt(), xy[2].toInt(), xy[3].toInt(), 0x0000FF00);
+						if (xy.size() == 2)
+						{
+							LabelPicture(name, QStringLiteral("绝缘子"), xy[0].toInt(), xy[1].toInt(), 100, 100, 0x0000FF00);
+						}
+						else if (xy.size() == 4)
+						{
+							LabelPicture(name, QStringLiteral("绝缘子"), xy[0].toInt(), xy[1].toInt(), xy[2].toInt(), xy[3].toInt(), 0x0000FF00);
+						}
+						
 					}
 					else if (0 == single.indexOf(QStringLiteral("绝缘子损坏@")))
 					{
 						QStringList xy = single.right(single.length() - 4).split(',');
-						LabelPicture(name, QStringLiteral("绝缘子损坏"), xy[0].toInt(), xy[1].toInt(), xy[2].toInt(), xy[3].toInt());
+						if (xy.size() == 2)
+						{
+							LabelPicture(name, QStringLiteral("绝缘子损坏"), xy[0].toInt(), xy[1].toInt(), 100, 100);
+						}
+						else if (xy.size() == 4)
+						{
+							LabelPicture(name, QStringLiteral("绝缘子损坏"), xy[0].toInt(), xy[1].toInt(), xy[2].toInt(), xy[3].toInt());
+						}
 					}
 				}
 			}
@@ -1311,15 +1353,17 @@ void MainControl::BirdRun()
 	SalePictures(pic_dir, resimgs_dir);
 	
 	GetCounterfeitCheckInfo(resimgs_dir);
-	LabelPictures(resimgs_dir);
 
+	LabelPictures(resimgs_dir);
+	statusBar()->showMessage(QStringLiteral("生成标记图像..."));
 	std::map<QString, std::map<QString, QString>> pic_info = LoadImageDescription();
+	statusBar()->showMessage(QStringLiteral("生成检测报告..."));
 	GenerateBirdPdfJson(pic_info);
 	ExportBridsPdf();
 	GenerateBirdHtmlJson(pic_info);
 
 	WriteFlightPath(res_dir + QStringLiteral("/飞行路径.json"));
-	statusBar()->showMessage(QFileInfo(pic_dir).baseName() + QStringLiteral("目录照片分析完成。 返回值=") + QString::number(brid_rescode_) + QStringLiteral("，是否异常退出=") + QString::number(brid_exitstatus_), 0);
+	statusBar()->showMessage(QFileInfo(pic_dir).baseName() + QStringLiteral("目录照片分析完成。 返回值=") + QString::number(0) + QStringLiteral("，是否异常退出=") + QString::number(0), 0);
 	ui.pushButton_brid_run->setEnabled(true);
 	ui.pushButton_bird_upload->setEnabled(true);
 
