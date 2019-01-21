@@ -14,9 +14,10 @@
 #include <memory>
 #include <iomanip>
 #include <exception>
+#include <QDirIterator>
 
-#include<opencv2\opencv.hpp>   
-#include<opencv2\highgui\highgui.hpp>
+#include "opencv2/nonfree/nonfree.hpp"  
+#include <QTextCodec>
 
 std::string ChartSetConv::to_utf8(const wchar_t* buffer, int len)
 {
@@ -246,6 +247,27 @@ bool FileUtil::CopyDirectory(const QString &fromDir, const QString &toDir)
 	return true;
 }
 
+// jpg|bmp|png|jpeg
+std::vector<QString> FileUtil::GetDirFiles(QString in_path, QString suffix)
+{
+	QStringList sl = suffix.split('|');
+
+	std::vector<QString> res;
+	QDirIterator it(in_path, QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot);	//遍历所有目录和文件
+	while (it.hasNext())//存在
+	{
+		QString name = it.next();//读取	
+		QFileInfo info(name);
+		if (!info.isDir())
+		{
+			if(sl.indexOf(info.suffix().toLower()) != -1)
+			{
+				res.push_back(info.absoluteFilePath());
+			}
+		}
+	}
+	return res;
+}
 
 // 角度转弧度
 double GeoUtil::rad(double d)
@@ -276,7 +298,7 @@ GeoUtil::GetNearImage(std::map<QString, std::vector<boost::property_tree::ptree>
 	for (it = pos_images.begin(); it != pos_images.end(); ++it)
 	{
 		QStringList loglat = it->first.split(',');
-		if (loglat.size() == 2 && GeoUtil::GetLoglatDistance(loglat[0].toDouble(), loglat[1].toDouble(), log, lat) < yuzhi)
+		if (loglat.size() == 3 && GeoUtil::GetLoglatDistance(loglat[0].toDouble(), loglat[1].toDouble(), log, lat) < yuzhi)
 			return it;
 	}
 	return it;
@@ -299,4 +321,133 @@ void ImgUtil::ReSizeImage(std::string src, std::string dst, int width)
 	cv::Mat res_img;
 	cv::resize(img, res_img, cv::Size(width, new_h), 0, 0, cv::INTER_AREA);
 	cv::imwrite(dst, res_img);
+}
+
+bool ImgUtil::ComparisonDiscript(std::string img, std::string desc)
+{
+	cv::Mat image1 = cv::imread(img);
+	cv::Mat image2 = cv::imread(desc);
+	cv::Mat imageDesc1, imageDesc2;
+	cv::SurfFeatureDetector surfDetector(6000);  //hessianThreshold,海塞矩阵阈值，并不是限定特征点的个数 
+	std::vector<cv::KeyPoint> keyPoint1, keyPoint2;
+	surfDetector.detect(image1, keyPoint1);
+	surfDetector.detect(image2, keyPoint2);
+	cv::SurfDescriptorExtractor SurfDescriptor;
+	SurfDescriptor.compute(image1, keyPoint1, imageDesc1);
+	SurfDescriptor.compute(image2, keyPoint2, imageDesc2);
+
+	cv::FlannBasedMatcher matcher;
+	std::vector<cv::DMatch> matchePoints;
+
+	matcher.match(imageDesc1, imageDesc2, matchePoints, cv::Mat());
+
+	std::sort(matchePoints.begin(), matchePoints.end());
+	int match_num = 0;
+	for (int i = 0; i < matchePoints.size(); i++)
+	{
+		//sort_dmatch.insert(matchePoints[i]);
+		if (matchePoints[i].distance < 0.005)
+		{
+			match_num++;
+		}
+	}
+
+	std::vector<cv::DMatch> goodMatchePoints;
+	for (int i = 0; i < matchePoints.size()/2; i++)
+	{
+		goodMatchePoints.push_back(matchePoints[i]);
+	}
+
+
+	if (match_num / (double)keyPoint1.size() > 0.95)
+	{
+		//绘制最优匹配点
+		cv::Mat imageOutput;
+		drawMatches(image1, keyPoint1, image2, keyPoint2, goodMatchePoints, imageOutput, cv::Scalar::all(-1),
+			cv::Scalar::all(-1), std::vector<char>(), cv::DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS);
+		imageOutput.resize(720, 480);
+		cv::namedWindow("Mathch Points", 0);
+		cv::imshow("Mathch Points", imageOutput);
+		QMessageBox::information(0, QString::number(match_num), QString::number(keyPoint1.size()) + QStringLiteral(" ") + QString::number(keyPoint2.size()), 0);
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+bool ImgUtil::ComparisonDiscript(cv::Mat &imageDesc1, cv::Mat &imageDesc2)
+{
+	cv::FlannBasedMatcher matcher;
+	std::vector<cv::DMatch> matchePoints;
+
+	matcher.match(imageDesc1, imageDesc2, matchePoints, cv::Mat());
+
+	if (!matchePoints.size())
+		return false;
+
+	std::sort(matchePoints.begin(), matchePoints.end());
+	int match_num = 0;
+	for (int i = 0; i < matchePoints.size(); i++)
+	{
+		if (matchePoints[i].distance < 0.04)
+		{
+			match_num++;
+		}
+	}
+
+	if (match_num / (double)imageDesc1.rows > 0.1)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+void ImgUtil::GetImagesDescript()
+{
+	QString prefix = QStringLiteral("C:/Users/wang/Desktop/keypointdesc/samples/");
+	QFile boxsinfo(QStringLiteral(":/jpgpymd5boxs.txt"));
+	QTextCodec *codec(QTextCodec::codecForName("gb2312"));
+
+	if (boxsinfo.open(QFile::ReadOnly))
+	{
+		while (!boxsinfo.atEnd())
+		{
+			QString md5box = codec->toUnicode(boxsinfo.readLine()).split(' ')[0];
+
+			QString filename = prefix + QFileInfo(md5box).baseName() + QStringLiteral(".jpg");
+			QString destname = prefix + QFileInfo(md5box).baseName() + QStringLiteral(".bmp");
+
+			cv::Mat image = cv::imread(filename.toLocal8Bit().data());
+			cv::Mat imageDesc1;
+			//提取特征点  
+			cv::SurfFeatureDetector surfDetector(6000);  //hessianThreshold,海塞矩阵阈值，并不是限定特征点的个数 
+			std::vector<cv::KeyPoint> keyPoint1;
+			surfDetector.detect(image, keyPoint1);
+			cv::SurfDescriptorExtractor SurfDescriptor;
+			SurfDescriptor.compute(image, keyPoint1, imageDesc1);
+			cv::imwrite(destname.toLocal8Bit().data(), imageDesc1);
+		}
+		boxsinfo.close();
+	}
+
+
+}
+
+cv::Mat ImgUtil::GetImageDescript(QString file)
+{
+	cv::Mat image = cv::imread(file.toLocal8Bit().data());
+	cv::Mat imageDesc1;
+	//提取特征点  
+	cv::SurfFeatureDetector surfDetector(4000);  //hessianThreshold,海塞矩阵阈值，并不是限定特征点的个数 
+	std::vector<cv::KeyPoint> keyPoint1;
+	surfDetector.detect(image, keyPoint1);
+	cv::SurfDescriptorExtractor SurfDescriptor;
+	SurfDescriptor.compute(image, keyPoint1, imageDesc1);
+
+	return imageDesc1;
 }

@@ -1,20 +1,20 @@
 {
     "服务器地址端口": "192.168.6.69:8086",
-    "项目路径": "\/\/192.168.6.58\/projs",
-    "线路名称": "获塔线",
-    "航行路径": "C:\/Users\/wang\/Desktop\/路径表.xlsx",
-    "分段区间": "69-71",
+    "项目路径": "\\\\WIN-GBJCJBH5ON8\\projs2",
+    "线路名称": "济宁I线",
+    "航行路径": "C:\/Users\/wang\/Desktop\/北航项目程序打包\/数据\/测试数据\/济宁数据\/路径表.xlsx",
+    "分段区间": "48-50",
     "电压等级": "500kv",
     "采集日期": "2019-01-05",
     "点云": {
-        "点云路径": "H:\/data\/1220云雀测试数据\/500kV获塔线69#-71#.las",
-        "铁塔数据目录": "F:\/project\/powerline\/solution\/pct\/x64\/Release\/testdata\/铁塔纠偏数据",
-        "结果目录": "H:\/data\/1220云雀测试数据\/500kV获塔线69#-71#",
-        "样本目录": "F:\/project\/powerline\/solution\/pct\/x64\/Release\/classdir"
+        "点云路径": "C:\/Users\/wang\/Desktop\/北航项目程序打包\/数据\/测试数据\/济宁数据\/las\/2-1.las",
+        "铁塔数据目录": "C:\/Users\/wang\/Desktop\/北航项目程序打包\/数据\/测试数据\/济宁数据\/待纠偏数据",
+        "结果目录": "C:\/Users\/wang\/Desktop\/北航项目程序打包\/数据\/测试数据\/济宁数据\/las\/2-1",
+        "样本目录": "C:\/Users\/wang\/Desktop\/北航项目程序打包\/数据\/测试数据\/济宁数据\/classdir"
     },
     "可见光": {
-        "照片目录": "F:\/project\/powerline\/solution\/pct\/x64\/Release\/testdata\/testPicture",
-        "结果目录": "F:\/project\/powerline\/solution\/pct\/x64\/Release\/testdata\/testPicture"
+        "照片目录": "C:\/Users\/wang\/Desktop\/北航项目程序打包\/数据\/测试数据\/济宁数据\/pics",
+        "结果目录": "C:\/Users\/wang\/Desktop\/北航项目程序打包\/数据\/测试数据\/济宁数据\/pics"
     },
     "带号": "50",
     "南半球": "false",

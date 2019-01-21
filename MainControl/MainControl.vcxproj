@@ -69,7 +69,7 @@
       <OutputFile>$(OutDir)\$(ProjectName).exe</OutputFile>
       <AdditionalLibraryDirectories>$(SolutionDir)..\Dependence\5.10\5.10.1\msvc2013_64\lib;$(SolutionDir)..\Dependence\opencv2.4.12\opencv\build\x64\vc12\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>$(SolutionDir)..\Dependence\5.10\5.10.1\msvc2013_64\lib\qtmain.lib;$(SolutionDir)..\Dependence\5.10\5.10.1\msvc2013_64\lib\Qt5Core.lib;$(SolutionDir)..\Dependence\5.10\5.10.1\msvc2013_64\lib\Qt5Gui.lib;$(SolutionDir)..\Dependence\5.10\5.10.1\msvc2013_64\lib\Qt5Widgets.lib;$(SolutionDir)..\Dependence\5.10\5.10.1\msvc2013_64\lib\Qt5Network.lib;$(SolutionDir)\..\Dependence\5.10\5.10.1\msvc2013_64\lib\Qt5AxContainer.lib;$(SolutionDir)\..\Dependence\5.10\5.10.1\msvc2013_64\lib\Qt5AxBase.lib;opencv_highgui2412.lib;opencv_imgproc2412.lib;opencv_core2412.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(SolutionDir)..\Dependence\5.10\5.10.1\msvc2013_64\lib\qtmain.lib;$(SolutionDir)..\Dependence\5.10\5.10.1\msvc2013_64\lib\Qt5Core.lib;$(SolutionDir)..\Dependence\5.10\5.10.1\msvc2013_64\lib\Qt5Gui.lib;$(SolutionDir)..\Dependence\5.10\5.10.1\msvc2013_64\lib\Qt5Widgets.lib;$(SolutionDir)..\Dependence\5.10\5.10.1\msvc2013_64\lib\Qt5Network.lib;$(SolutionDir)\..\Dependence\5.10\5.10.1\msvc2013_64\lib\Qt5AxContainer.lib;$(SolutionDir)\..\Dependence\5.10\5.10.1\msvc2013_64\lib\Qt5AxBase.lib;opencv_core2412.lib;opencv_highgui2412.lib;opencv_imgproc2412.lib;opencv_nonfree2412.lib;opencv_legacy2412.lib;opencv_features2d2412.lib;opencv_flann2412.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

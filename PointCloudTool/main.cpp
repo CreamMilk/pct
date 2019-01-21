@@ -436,7 +436,7 @@ void PositionCorrection(std::vector <pct::TowerInfo>& towerClusters)
 				double offset = pct::getLonDistance(j_log, j_lat, tower_k_log, tower_k_lat);
 
 
-				if (offset < 30 && offset > 0.2)    //  30米内误差大于20厘米
+				if (offset < 30 && offset > 0.001)    //  30米内误差大于20厘米
 				{
 					
 					towerClusters[k].tower_no = worksheet->querySubObject("Cells(int,int)", j + 2, 4)->dynamicCall("Value()").toString().toLocal8Bit().data();

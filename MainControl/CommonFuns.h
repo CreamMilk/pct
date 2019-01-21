@@ -4,6 +4,7 @@
 #include <map>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
+#include<opencv2\opencv.hpp>   
 
 class ChartSetConv
 {
@@ -30,6 +31,7 @@ public:
 	void static ReMakeDir(QString dir);
 	std::string static getFileMD5(const std::string& filename);
 	bool static CopyDirectory(const QString &fromDir, const QString &toDir);
+	std::vector<QString> static GetDirFiles(QString in_path, QString suffix);
 };
 
 
@@ -48,7 +50,10 @@ class ImgUtil
 {
 public:
 	void static ReSizeImage(std::string src, std::string dst, int width);
-
+	bool static ComparisonDiscript(std::string img1, std::string img2);
+	bool static ComparisonDiscript(cv::Mat &imageDesc1, cv::Mat &imageDesc2);
+	void static GetImagesDescript();
+	cv::Mat static GetImageDescript(QString file);
 };
 
 

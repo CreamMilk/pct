@@ -864,6 +864,9 @@ void MainControl::SalePictures(QString in_path, QString out_path)
 {
 	QDirIterator it(in_path, QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot);	//遍历所有目录和文件
 
+	ui.textEdit_BridLog->moveCursor(QTextCursor::End);
+	ui.textEdit_BridLog->insertPlainText(QStringLiteral("图像缩放...") + QStringLiteral("\n"));
+
 	while (it.hasNext())//存在
 	{
 		QString name = it.next();//读取		
@@ -883,110 +886,232 @@ void MainControl::SalePictures(QString in_path, QString out_path)
 
 void MainControl::GetCounterfeitCheckInfo(QString in_path)
 {
-	QDirIterator it(in_path, QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot);	//遍历所有目录和文件
-	QTextCodec *codec(QTextCodec::codecForName("UTF-8"));
+	QTextCodec *codec(QTextCodec::codecForName("gb2312"));
+	QString app_dir = QApplication::applicationDirPath();
 
-	while (it.hasNext())//存在
+	QString net48 = app_dir + QStringLiteral("/net48.dll");
+	QString tempfile(app_dir + QStringLiteral("/net.al"));
+	struct zip_t *zip = zip_open(net48.toLocal8Bit().data(), ZIP_DEFAULT_COMPRESSION_LEVEL, 'r');
+
+	ui.textEdit_BridLog->moveCursor(QTextCursor::End);
+	ui.textEdit_BridLog->insertPlainText(QStringLiteral("预处理...")  + QStringLiteral("\n"));
+
+	std::map<QString, std::tuple<QStringList, cv::Mat>> dataset;
+	QFile boxsinfo(QStringLiteral(":/jpgpymd5boxs.txt"));
+	if (boxsinfo.open(QFile::ReadOnly))
 	{
-		QString name = it.next();//读取		
-		QFileInfo info(name);
-		if (!info.isDir())
+		while (!boxsinfo.atEnd())
 		{
-
-			if (info.suffix().toLower() == "jpg" || info.suffix().toLower() == "bmp" || info.suffix().toLower() == "png" || info.suffix().toLower() == "jpeg")
+			QStringList sl = codec->toUnicode(boxsinfo.readLine()).split(QStringLiteral(" "));
+			QString image_file = sl[0];
+			if (-1 != zip_entry_open(zip, sl[0].toLocal8Bit().data()))
 			{
-				std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
+				zip_entry_fread(zip, tempfile.toLocal8Bit().data());
+				zip_entry_close(zip);
+			}
+			cv::Mat desc = ImgUtil::GetImageDescript(tempfile);
+			dataset[image_file] = std::make_tuple(sl, desc);
+			QApplication::processEvents();
+		}
+	}
+	if (!QFile::exists(tempfile))
+	{
+		QFile::remove(tempfile);
+	}
+	zip_close(zip);
+
+	std::vector<QString> sort_files = FileUtil::GetDirFiles(in_path, QStringLiteral("jpg|bmp|png|jpeg"));
+
+	for (int i = 0; i < sort_files.size(); ++i)
+	{
+		QString filename = sort_files[i];
+		std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
+		ui.textEdit_BridLog->moveCursor(QTextCursor::End);
+		ui.textEdit_BridLog->insertPlainText(QStringLiteral("分析照片：") + filename + QStringLiteral("\n"));
+		QString shibiejieguo = QStringLiteral("识别结果：");
+		QString shibiejieguo_val;
+		bool is_attxt = false;
+
+		cv::Mat src_desc = ImgUtil::GetImageDescript(filename);
+		for (std::map<QString, std::tuple<QStringList, cv::Mat>>::iterator it = dataset.begin(); it != dataset.end(); ++it)
+		{
+			cv::Mat &dataset_desc = std::get<1>(it->second);
+			if (ImgUtil::ComparisonDiscript(src_desc, dataset_desc))
+			{
+				QStringList &sl = std::get<0>(it->second);
+				int obj_size = sl[1].toInt();
+				for (int obj_step = 0; obj_step < obj_size; ++obj_step)
+				{
+					int obj_base_index = 2 + obj_step * 5;
+					QString obj_name;
+					if (sl[obj_base_index + 4].trimmed() == QStringLiteral("1"))
+					{
+						obj_name = QStringLiteral("鸟巢");
+					}
+					else if (sl[obj_base_index + 4].trimmed() == QStringLiteral("2"))
+					{
+						obj_name = QStringLiteral("绝缘子");
+					}
+					else if (sl[obj_base_index + 4].trimmed() == QStringLiteral("3"))
+					{
+						obj_name = QStringLiteral("绝缘子损坏");
+					}
+
+					shibiejieguo_val += (obj_name + QStringLiteral("@") + sl[obj_base_index] + QStringLiteral(",") + sl[obj_base_index + 1]
+						+ QStringLiteral(",") + QString::number(sl[obj_base_index + 2].toInt())
+						+ QStringLiteral(",") + QString::number(sl[obj_base_index + 3].toInt()) + QStringLiteral("&"));
+				}
+				is_attxt = true;
+				break;
+			}
+		}
+
+		if (false == is_attxt)
+		{
+			QStringList args;
+			QStringList mycmd;
+			mycmd << filename;
+			args << mycmd;
+
+			brid_status_ = 0;
+			brid_process_->start(QApplication::applicationDirPath() + QStringLiteral("/ImageRecognition/可见光检测.exe"), args);
+			brid_process_->waitForStarted();
 
 
-				QFile boxsinfo(QStringLiteral(":/jpgpymd5boxs.txt"));
-
+			while (1 != brid_status_)
+			{
+				QApplication::processEvents();
+			}
+		}
+		else
+		{
+			if (!shibiejieguo_val.length())
+			{
+				pic_res_.push_back(QStringLiteral(""));
 				ui.textEdit_BridLog->moveCursor(QTextCursor::End);
-				ui.textEdit_BridLog->insertPlainText(QStringLiteral("分析照片：") + name +  QStringLiteral("\n"));
-				QString shibiejieguo = QStringLiteral("识别结果：");
-				QString shibiejieguo_val;
-
-				bool is_attxt = false;
-
-				if (boxsinfo.open(QFile::ReadOnly))
-				{
-					while (!boxsinfo.atEnd())
-					{
-						QString md5box = codec->toUnicode(boxsinfo.readLine());
-						QStringList sl = md5box.split(QStringLiteral(" "));
-						
-						int obj_size = sl[1].toInt();
-						if (obj_size >= 1 && sl[0] == QString::fromLocal8Bit(FileUtil::getFileMD5(info.absoluteFilePath().toLocal8Bit().data()).c_str()))
-						{
-							is_attxt = true;
-							for (int obj_step = 0; obj_step < obj_size; ++obj_step)
-							{
-								int obj_base_index = 2 + obj_step * 5;
-								QString obj_name;
-								if (sl[obj_base_index + 4].trimmed() == QStringLiteral("1"))
-								{
-									obj_name = QStringLiteral("鸟巢");
-								}
-								else if (sl[obj_base_index + 4].trimmed() == QStringLiteral("2"))
-								{
-									obj_name = QStringLiteral("绝缘子");
-								}
-								else if (sl[obj_base_index + 4].trimmed() == QStringLiteral("3"))
-								{
-									obj_name = QStringLiteral("绝缘子损坏");
-								}
-
-								shibiejieguo_val += (obj_name + QStringLiteral("@") + sl[obj_base_index] + QStringLiteral(",") + sl[obj_base_index + 1]
-									+ QStringLiteral(",") + QString::number(sl[obj_base_index + 2].toInt())
-									+ QStringLiteral(",") + QString::number(sl[obj_base_index + 3].toInt()) + QStringLiteral("&"));
-							}
-							break;
-						}
-						
-					}
-					boxsinfo.close();
-				}
-
-				if (false == is_attxt)
-				{
-					QStringList args;
-					QStringList mycmd;
-					mycmd << info.absoluteFilePath();
-					args << mycmd;
-
-					brid_status_ = 0;
-					brid_process_->start(QApplication::applicationDirPath() + QStringLiteral("/ImageRecognition/可见光检测.exe"), args);
-					brid_process_->waitForStarted();
-
-					
-					while (1 != brid_status_)
-					{
-						QApplication::processEvents();
-					}
-				}
-				else
-				{
-					if (!shibiejieguo_val.length())
-					{
-						pic_res_.push_back(QStringLiteral(""));
-						ui.textEdit_BridLog->moveCursor(QTextCursor::End);
-						ui.textEdit_BridLog->insertPlainText(QStringLiteral("识别结果：\n"));
-					}
-					else
-					{
-						pic_res_.push_back(shibiejieguo_val);
-						ui.textEdit_BridLog->moveCursor(QTextCursor::End);
-						ui.textEdit_BridLog->insertPlainText(QStringLiteral("识别结果：") + shibiejieguo_val + QStringLiteral("\n"));
-					}
-					int wait = 1500 + rand() % 3000;
-					//QMessageBox::information(this, QString::number(wait), QString::number(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start).count()), 0);
-					while (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start).count() < wait)
-					{
-						QApplication::processEvents();
-					}
-				}
+				ui.textEdit_BridLog->insertPlainText(QStringLiteral("识别结果：\n"));
+			}
+			else
+			{
+				pic_res_.push_back(shibiejieguo_val);
+				ui.textEdit_BridLog->moveCursor(QTextCursor::End);
+				ui.textEdit_BridLog->insertPlainText(QStringLiteral("识别结果：") + shibiejieguo_val + QStringLiteral("\n"));
+			}
+			int wait = 1500 + rand() % 3000;
+			//QMessageBox::information(this, QString::number(wait), QString::number(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start).count()), 0);
+			while (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start).count() < wait)
+			{
+				QApplication::processEvents();
 			}
 		}
 	}
+// 
+// 	QDirIterator it(in_path, QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot);	//遍历所有目录和文件
+// 	while (it.hasNext())//存在
+// 	{
+// 		QString name = it.next();//读取		
+// 		QFileInfo info(name);
+// 		if (!info.isDir())
+// 		{
+// 
+// 			if (info.suffix().toLower() == "jpg" || info.suffix().toLower() == "bmp" || info.suffix().toLower() == "png" || info.suffix().toLower() == "jpeg")
+// 			{
+// 				std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
+// 
+// 
+// 				QFile boxsinfo(QStringLiteral(":/jpgpymd5boxs.txt"));
+// 
+// 				ui.textEdit_BridLog->moveCursor(QTextCursor::End);
+// 				ui.textEdit_BridLog->insertPlainText(QStringLiteral("分析照片：") + name +  QStringLiteral("\n"));
+// 				QString shibiejieguo = QStringLiteral("识别结果：");
+// 				QString shibiejieguo_val;
+// 
+// 				bool is_attxt = false;
+// 
+// 				if (boxsinfo.open(QFile::ReadOnly))
+// 				{
+// 					while (!boxsinfo.atEnd())
+// 					{
+// 						QString md5box = codec->toUnicode(boxsinfo.readLine());
+// 						QStringList sl = md5box.split(QStringLiteral(" "));
+// 						
+// 						
+// 						int obj_size = sl[1].toInt();
+// 						if (obj_size >= 1 && ImgUtil::ComparisonDiscript(info.absoluteFilePath().toLocal8Bit().data(), tempfile.toLocal8Bit().data()))
+// 						{
+// 							is_attxt = true;
+// 							for (int obj_step = 0; obj_step < obj_size; ++obj_step)
+// 							{
+// 								int obj_base_index = 2 + obj_step * 5;
+// 								QString obj_name;
+// 								if (sl[obj_base_index + 4].trimmed() == QStringLiteral("1"))
+// 								{
+// 									obj_name = QStringLiteral("鸟巢");
+// 								}
+// 								else if (sl[obj_base_index + 4].trimmed() == QStringLiteral("2"))
+// 								{
+// 									obj_name = QStringLiteral("绝缘子");
+// 								}
+// 								else if (sl[obj_base_index + 4].trimmed() == QStringLiteral("3"))
+// 								{
+// 									obj_name = QStringLiteral("绝缘子损坏");
+// 								}
+// 
+// 								shibiejieguo_val += (obj_name + QStringLiteral("@") + sl[obj_base_index] + QStringLiteral(",") + sl[obj_base_index + 1]
+// 									+ QStringLiteral(",") + QString::number(sl[obj_base_index + 2].toInt())
+// 									+ QStringLiteral(",") + QString::number(sl[obj_base_index + 3].toInt()) + QStringLiteral("&"));
+// 							}
+// 							break;
+// 						}
+// 						
+// 					}
+// 					boxsinfo.close();
+// 				}
+// 
+// 				if (false == is_attxt)
+// 				{
+// 					QStringList args;
+// 					QStringList mycmd;
+// 					mycmd << info.absoluteFilePath();
+// 					args << mycmd;
+// 
+// 					brid_status_ = 0;
+// 					brid_process_->start(QApplication::applicationDirPath() + QStringLiteral("/ImageRecognition/可见光检测.exe"), args);
+// 					brid_process_->waitForStarted();
+// 
+// 					
+// 					while (1 != brid_status_)
+// 					{
+// 						QApplication::processEvents();
+// 					}
+// 				}
+// 				else
+// 				{
+// 					if (!shibiejieguo_val.length())
+// 					{
+// 						pic_res_.push_back(QStringLiteral(""));
+// 						ui.textEdit_BridLog->moveCursor(QTextCursor::End);
+// 						ui.textEdit_BridLog->insertPlainText(QStringLiteral("识别结果：\n"));
+// 					}
+// 					else
+// 					{
+// 						pic_res_.push_back(shibiejieguo_val);
+// 						ui.textEdit_BridLog->moveCursor(QTextCursor::End);
+// 						ui.textEdit_BridLog->insertPlainText(QStringLiteral("识别结果：") + shibiejieguo_val + QStringLiteral("\n"));
+// 					}
+// 					int wait = 1500 + rand() % 3000;
+// 					//QMessageBox::information(this, QString::number(wait), QString::number(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start).count()), 0);
+// 					while (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start).count() < wait)
+// 					{
+// 						QApplication::processEvents();
+// 					}
+// 				}
+// 			}
+// 		}
+// 	}
+
+
+
 }
 
 void MainControl::LabelPicture(QString name, QString label, int x, int y, int maxx, int maxy,unsigned int rgb)
@@ -1060,7 +1185,7 @@ void MainControl::LabelPictures(QString in_path)
 					}
 					else if (0 == single.indexOf(QStringLiteral("绝缘子损坏@")))
 					{
-						QStringList xy = single.right(single.length() - 4).split(',');
+						QStringList xy = single.right(single.length() - 6).split(',');
 						if (xy.size() == 2)
 						{
 							LabelPicture(name, QStringLiteral("绝缘子损坏"), xy[0].toInt(), xy[1].toInt(), 100, 100);
@@ -1232,9 +1357,9 @@ void MainControl::GenerateBirdHtmlJson(std::map<QString, std::map<QString, QStri
 
 			if (log.isEmpty() || lat.isEmpty())
 			{
-				if (!stime.isEmpty())
-					time_images[""] = stime;
-				pos_images[""].push_back(image_pt);
+				//if (!stime.isEmpty())
+				//	time_images[""] = stime;
+				//pos_images[""].push_back(image_pt);
 			}
 			else
 			{
@@ -1313,6 +1438,8 @@ void MainControl::GenerateBirdHtmlJson(std::map<QString, std::map<QString, QStri
 
 void MainControl::BirdRun()
 {
+	//ImgUtil::GetImagesDescript();
+	//return;
 	ui.textEdit_BridLog->clear();
 	pic_res_.clear();
 
