@@ -20,10 +20,10 @@ namespace pct
             return s;
         }
 
-    private:
+    //private:
         Setting()
             :gridsize(0),
-            reclassif(false),
+            reclassif(true),
             overrideExcel(false),
             stampcorrectcell(true)
         {

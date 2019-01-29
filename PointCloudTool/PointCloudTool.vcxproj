@@ -94,6 +94,7 @@
     <ClCompile Include="pctio.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="commonfunctions.cpp" />
+    <ClCompile Include="PointCloudToolInterface.cpp" />
     <ClCompile Include="Polyhedron\Color_ramp.cpp">
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o ".\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp"</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing QPowerLineClassification.h...</Message>
@@ -119,6 +120,7 @@
     <ClInclude Include="mydef.h" />
     <ClInclude Include="commonfunctions.h" />
     <ClInclude Include="pctio.h" />
+    <ClInclude Include="PointCloudToolInterface.h" />
     <ClInclude Include="types\mytypes.h" />
     <ClInclude Include="setting.hpp" />
   </ItemGroup>

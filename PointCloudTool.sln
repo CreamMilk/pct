@@ -11,9 +11,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PdfReport", "PdfReport\PdfR
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MergePointCloud", "MergePointCloud\MergePointCloud.vcxproj", "{40089B44-73E4-4982-A4C6-8B98DF237B8F}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "电力巡检v1.0", "MainControl\MainControl.vcxproj", "{58CDD847-DE3B-439A-8D48-D2B4F3EDD692}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "故障检测分析", "MainControl\MainControl.vcxproj", "{58CDD847-DE3B-439A-8D48-D2B4F3EDD692}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "可见光检测", "可见光检测\可见光检测.csproj", "{FC84CCD3-8545-4281-95DD-B1D1F63DBBBC}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PointCloudToolTest", "PointCloudToolTest\PointCloudToolTest.vcxproj", "{62B10B17-E53B-4BE1-B70F-4448337EFE21}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -100,6 +102,19 @@ Global
 		{FC84CCD3-8545-4281-95DD-B1D1F63DBBBC}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{FC84CCD3-8545-4281-95DD-B1D1F63DBBBC}.Release|Win32.ActiveCfg = Release|Any CPU
 		{FC84CCD3-8545-4281-95DD-B1D1F63DBBBC}.Release|x64.ActiveCfg = Release|Any CPU
+		{62B10B17-E53B-4BE1-B70F-4448337EFE21}.Debug|Any CPU.ActiveCfg = Debug|Win32
+		{62B10B17-E53B-4BE1-B70F-4448337EFE21}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
+		{62B10B17-E53B-4BE1-B70F-4448337EFE21}.Debug|Mixed Platforms.Build.0 = Debug|Win32
+		{62B10B17-E53B-4BE1-B70F-4448337EFE21}.Debug|Win32.ActiveCfg = Debug|Win32
+		{62B10B17-E53B-4BE1-B70F-4448337EFE21}.Debug|Win32.Build.0 = Debug|Win32
+		{62B10B17-E53B-4BE1-B70F-4448337EFE21}.Debug|x64.ActiveCfg = Debug|Win32
+		{62B10B17-E53B-4BE1-B70F-4448337EFE21}.Release|Any CPU.ActiveCfg = Release|Win32
+		{62B10B17-E53B-4BE1-B70F-4448337EFE21}.Release|Mixed Platforms.ActiveCfg = Release|Win32
+		{62B10B17-E53B-4BE1-B70F-4448337EFE21}.Release|Mixed Platforms.Build.0 = Release|Win32
+		{62B10B17-E53B-4BE1-B70F-4448337EFE21}.Release|Win32.ActiveCfg = Release|Win32
+		{62B10B17-E53B-4BE1-B70F-4448337EFE21}.Release|Win32.Build.0 = Release|Win32
+		{62B10B17-E53B-4BE1-B70F-4448337EFE21}.Release|x64.ActiveCfg = Release|x64
+		{62B10B17-E53B-4BE1-B70F-4448337EFE21}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -9,6 +9,31 @@
 #include <QString>
 #include "types/mytypes.h"
 #include <MathGeoLibFwd.h>
+#include "setting.hpp"
+
+#include <boost/foreach.hpp>
+#include <boost/typeof/typeof.hpp>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/xml_parser.hpp>
+#include <boost/filesystem.hpp>
+#include <boost/program_options/cmdline.hpp>
+#include <boost/program_options/variables_map.hpp>
+
+bool train();
+bool classif();
+void ExtractGround(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud, pcl::PointIndicesPtr cloud_indices, pcl::PointIndicesPtr ground_indices);
+void ExtractLinesAndTower(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud, pcl::PointIndicesPtr cloud_indices, pcl::PointIndicesPtr ground_indices, std::vector <pcl::PointIndices>& jlClusters, std::vector < pct::LineInfo>& lineClusters, std::vector <pct::TowerInfo>& towerClusters, std::vector <pct::VegetInfo> &vegetClusters);
+bool ReadyTrainOpts(pct::Setting& setting, boost::program_options::variables_map &vm);
+bool ReadyClassifOpts(pct::Setting& setting, boost::program_options::variables_map &vm);
+bool ReadyDistancecheckOpts(pct::Setting& setting, boost::program_options::variables_map &vm);
+bool ReadPoscorrectOpts(pct::Setting& setting, boost::program_options::variables_map &vm);
+void checkLinesDistanceDangerous(pcl::PointCloud<pcl::PointXYZRGB>::Ptr src_cloud, pcl::PointIndicesPtr ground_indices, std::vector <pct::VegetInfo>& vegetClusters, std::vector <pct::LineInfo>& lineClusters, std::vector <pct::TowerInfo>& towerClusters);
+void SaveTowers(QString filepath, std::vector <pct::TowerInfo> &towerClusters);
+void SaveLines(QString filepath, std::vector <pct::LineInfo> &towerClusters);
+void PositionCorrection(QString tower_excel);
+void PositionCorrection(std::vector <pct::TowerInfo>& towerClusters);
+void LoadTowers(QString filepath, std::vector <std::tuple<double, double>> &towerClusters);
+bool ParserCmdline(int argc, char *argv[]);
 
 namespace pct
 {
@@ -73,7 +98,6 @@ namespace pct
 	void LoadTowers(QString filepath, std::vector <std::tuple<std::string, double, double, double>> &towerClusters);
 	void LBHtoXYZ(float &xx, float &yy, float &zz);
 }
-
 
 
 
