@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>639</width>
-    <height>713</height>
+    <width>588</width>
+    <height>717</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -19,186 +19,213 @@
   <widget class="QWidget" name="centralWidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout_16">
+     <layout class="QHBoxLayout" name="horizontalLayout_16" stretch="1,1">
       <item>
        <widget class="QGroupBox" name="groupBox">
         <property name="title">
          <string>项目信息：</string>
         </property>
+        <property name="flat">
+         <bool>false</bool>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
         <layout class="QVBoxLayout" name="verticalLayout_5">
+         <property name="spacing">
+          <number>0</number>
+         </property>
+         <property name="leftMargin">
+          <number>0</number>
+         </property>
+         <property name="topMargin">
+          <number>0</number>
+         </property>
+         <property name="rightMargin">
+          <number>0</number>
+         </property>
+         <property name="bottomMargin">
+          <number>0</number>
+         </property>
          <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_14">
-           <item>
-            <widget class="QLabel" name="label_8">
-             <property name="minimumSize">
-              <size>
-               <width>0</width>
-               <height>0</height>
-              </size>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>16777215</width>
-               <height>16777215</height>
-              </size>
-             </property>
-             <property name="text">
-              <string>服务端口：</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QLineEdit" name="lineEdit_server_ip">
-             <property name="text">
-              <string/>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </item>
-         <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_13">
-           <item>
-            <widget class="QLabel" name="label_20">
-             <property name="minimumSize">
-              <size>
-               <width>0</width>
-               <height>0</height>
-              </size>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>16777215</width>
-               <height>16777215</height>
-              </size>
-             </property>
-             <property name="text">
-              <string>项目路径：</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QLineEdit" name="lineEdit_projpath">
-             <property name="text">
-              <string/>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </item>
-         <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_4">
-           <item>
-            <widget class="QLabel" name="label_21">
-             <property name="minimumSize">
-              <size>
-               <width>0</width>
-               <height>0</height>
-              </size>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>16777215</width>
-               <height>16777215</height>
-              </size>
-             </property>
-             <property name="text">
-              <string>项目名称：</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QLabel" name="label_projname">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="minimumSize">
-              <size>
-               <width>0</width>
-               <height>28</height>
-              </size>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>16777215</width>
-               <height>28</height>
-              </size>
-             </property>
-             <property name="text">
-              <string>ProjectName</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </item>
-         <item>
-          <layout class="QVBoxLayout" name="verticalLayout_3">
-           <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_5">
-             <item>
-              <widget class="QLabel" name="label_22">
-               <property name="minimumSize">
-                <size>
-                 <width>0</width>
-                 <height>0</height>
-                </size>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>16777215</width>
-                 <height>16777215</height>
-                </size>
-               </property>
-               <property name="text">
-                <string>项目编码：</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLabel" name="label_projcode">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="minimumSize">
-                <size>
-                 <width>0</width>
-                 <height>28</height>
-                </size>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>16777215</width>
-                 <height>28</height>
-                </size>
-               </property>
-               <property name="text">
-                <string>ProjectCode</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-          </layout>
-         </item>
-         <item>
-          <layout class="QHBoxLayout" name="horizontalLayout">
-           <item>
-            <widget class="QPushButton" name="pushButton_5">
-             <property name="enabled">
-              <bool>true</bool>
-             </property>
-             <property name="text">
-              <string>刷新</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
+          <widget class="QWidget" name="widget_proj" native="true">
+           <layout class="QVBoxLayout" name="verticalLayout_10">
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_14">
+              <item>
+               <widget class="QLabel" name="label_8">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>16777215</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>服务端口：</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="lineEdit_server_ip">
+                <property name="text">
+                 <string/>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_13">
+              <item>
+               <widget class="QLabel" name="label_20">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>16777215</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>项目路径：</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="lineEdit_projpath">
+                <property name="text">
+                 <string/>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_4">
+              <item>
+               <widget class="QLabel" name="label_21">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>16777215</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>项目名称：</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="label_projname">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>28</height>
+                 </size>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>16777215</width>
+                  <height>28</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>ProjectName</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QVBoxLayout" name="verticalLayout_3">
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_5">
+                <item>
+                 <widget class="QLabel" name="label_22">
+                  <property name="minimumSize">
+                   <size>
+                    <width>0</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>16777215</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>项目编码：</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="label_projcode">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="minimumSize">
+                   <size>
+                    <width>0</width>
+                    <height>28</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>16777215</width>
+                    <height>28</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>ProjectCode</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout">
+              <item>
+               <widget class="QPushButton" name="pushButton_5">
+                <property name="enabled">
+                 <bool>true</bool>
+                </property>
+                <property name="text">
+                 <string>刷新</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </widget>
          </item>
         </layout>
        </widget>
@@ -208,62 +235,89 @@
         <property name="title">
          <string>航线信息：</string>
         </property>
+        <property name="flat">
+         <bool>false</bool>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
         <layout class="QVBoxLayout" name="verticalLayout_8">
+         <property name="spacing">
+          <number>0</number>
+         </property>
+         <property name="leftMargin">
+          <number>0</number>
+         </property>
+         <property name="topMargin">
+          <number>0</number>
+         </property>
+         <property name="rightMargin">
+          <number>0</number>
+         </property>
+         <property name="bottomMargin">
+          <number>0</number>
+         </property>
          <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_17">
-           <item>
-            <widget class="QLabel" name="label_9">
-             <property name="text">
-              <string>线路名称：</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QLineEdit" name="lineEdit_Circuit_Name"/>
-           </item>
-          </layout>
-         </item>
-         <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_20">
-           <item>
-            <widget class="QLabel" name="label_10">
-             <property name="text">
-              <string>分段区间：</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QLineEdit" name="lineEdit_Circuit_Range"/>
-           </item>
-          </layout>
-         </item>
-         <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_19">
-           <item>
-            <widget class="QLabel" name="label_11">
-             <property name="text">
-              <string>电压等级：</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QLineEdit" name="lineEdit_Kv"/>
-           </item>
-          </layout>
-         </item>
-         <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_18">
-           <item>
-            <widget class="QLabel" name="label_12">
-             <property name="text">
-              <string>采集日期：</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QLineEdit" name="lineEdit_Date"/>
-           </item>
-          </layout>
+          <widget class="QWidget" name="widget_hangxian" native="true">
+           <layout class="QVBoxLayout" name="verticalLayout_11">
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_17">
+              <item>
+               <widget class="QLabel" name="label_9">
+                <property name="text">
+                 <string>线路名称：</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="lineEdit_Circuit_Name"/>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_20">
+              <item>
+               <widget class="QLabel" name="label_10">
+                <property name="text">
+                 <string>分段区间：</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="lineEdit_Circuit_Range"/>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_19">
+              <item>
+               <widget class="QLabel" name="label_11">
+                <property name="text">
+                 <string>电压等级：</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="lineEdit_Kv"/>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_18">
+              <item>
+               <widget class="QLabel" name="label_12">
+                <property name="text">
+                 <string>采集日期：</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="lineEdit_Date"/>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </widget>
          </item>
         </layout>
        </widget>
@@ -271,47 +325,74 @@
      </layout>
     </item>
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout_15">
+     <layout class="QHBoxLayout" name="horizontalLayout_15" stretch="1,1">
       <item>
        <widget class="QGroupBox" name="groupBox_4">
         <property name="title">
          <string>批次信息：</string>
         </property>
+        <property name="flat">
+         <bool>false</bool>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
         <layout class="QVBoxLayout" name="verticalLayout_7">
+         <property name="spacing">
+          <number>0</number>
+         </property>
+         <property name="leftMargin">
+          <number>0</number>
+         </property>
+         <property name="topMargin">
+          <number>0</number>
+         </property>
+         <property name="rightMargin">
+          <number>0</number>
+         </property>
+         <property name="bottomMargin">
+          <number>0</number>
+         </property>
          <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_21">
-           <item>
-            <widget class="QLabel" name="label_18">
-             <property name="text">
-              <string>批次名：</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QLineEdit" name="lineEdit_batchname"/>
-           </item>
-          </layout>
-         </item>
-         <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_10">
-           <item>
-            <widget class="QLabel" name="label_15">
-             <property name="text">
-              <string>路径表：</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QLineEdit" name="lineEdit_FlightInfomation"/>
-           </item>
-           <item>
-            <widget class="QPushButton" name="pushButton_FlightInfomation">
-             <property name="text">
-              <string>选择路径</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
+          <widget class="QWidget" name="widget_pici" native="true">
+           <layout class="QVBoxLayout" name="verticalLayout_12">
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_21">
+              <item>
+               <widget class="QLabel" name="label_18">
+                <property name="text">
+                 <string>批次名：</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="lineEdit_batchname"/>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_10">
+              <item>
+               <widget class="QLabel" name="label_15">
+                <property name="text">
+                 <string>路径表：</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="lineEdit_FlightInfomation"/>
+              </item>
+              <item>
+               <widget class="QPushButton" name="pushButton_FlightInfomation">
+                <property name="text">
+                 <string>选择路径</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </widget>
          </item>
         </layout>
        </widget>
@@ -321,41 +402,68 @@
         <property name="title">
          <string>地理信息：</string>
         </property>
+        <property name="flat">
+         <bool>false</bool>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
         <layout class="QVBoxLayout" name="verticalLayout_9">
+         <property name="spacing">
+          <number>0</number>
+         </property>
+         <property name="leftMargin">
+          <number>0</number>
+         </property>
+         <property name="topMargin">
+          <number>0</number>
+         </property>
+         <property name="rightMargin">
+          <number>0</number>
+         </property>
+         <property name="bottomMargin">
+          <number>0</number>
+         </property>
          <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_22">
-           <item>
-            <widget class="QLabel" name="label_19">
-             <property name="text">
-              <string>带号：</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QLineEdit" name="lineEdit_zone"/>
-           </item>
-          </layout>
-         </item>
-         <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_23">
-           <item>
-            <widget class="QRadioButton" name="radioButton_north">
-             <property name="text">
-              <string>北半球</string>
-             </property>
-             <property name="checked">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QRadioButton" name="radioButton_south">
-             <property name="text">
-              <string>南半球</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
+          <widget class="QWidget" name="widget_geoinfo" native="true">
+           <layout class="QVBoxLayout" name="verticalLayout_13">
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_22">
+              <item>
+               <widget class="QLabel" name="label_19">
+                <property name="text">
+                 <string>带号：</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="lineEdit_zone"/>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_23">
+              <item>
+               <widget class="QRadioButton" name="radioButton_north">
+                <property name="text">
+                 <string>北半球</string>
+                </property>
+                <property name="checked">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QRadioButton" name="radioButton_south">
+                <property name="text">
+                 <string>南半球</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </widget>
          </item>
         </layout>
        </widget>
@@ -822,7 +930,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>639</width>
+     <width>588</width>
      <height>23</height>
     </rect>
    </property>
@@ -840,8 +948,8 @@
    <slot>CloudGetCloudsPath()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>605</x>
-     <y>329</y>
+     <x>554</x>
+     <y>407</y>
     </hint>
     <hint type="destinationlabel">
      <x>565</x>
@@ -856,8 +964,8 @@
    <slot>CloudGetTowersDir()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>605</x>
-     <y>360</y>
+     <x>554</x>
+     <y>438</y>
     </hint>
     <hint type="destinationlabel">
      <x>565</x>
@@ -872,8 +980,8 @@
    <slot>CloudRun()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>233</x>
-     <y>525</y>
+     <x>264</x>
+     <y>632</y>
     </hint>
     <hint type="destinationlabel">
      <x>0</x>
@@ -888,8 +996,8 @@
    <slot>CloudOpenResultDir()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>365</x>
-     <y>525</y>
+     <x>396</x>
+     <y>632</y>
     </hint>
     <hint type="destinationlabel">
      <x>565</x>
@@ -904,8 +1012,8 @@
    <slot>CloudUpLoadProj()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>493</x>
-     <y>555</y>
+     <x>514</x>
+     <y>662</y>
     </hint>
     <hint type="destinationlabel">
      <x>565</x>
@@ -920,8 +1028,8 @@
    <slot>BirdGetBirdDir()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>605</x>
-     <y>329</y>
+     <x>554</x>
+     <y>407</y>
     </hint>
     <hint type="destinationlabel">
      <x>565</x>
@@ -936,8 +1044,8 @@
    <slot>BirdRun()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>233</x>
-     <y>525</y>
+     <x>264</x>
+     <y>632</y>
     </hint>
     <hint type="destinationlabel">
      <x>0</x>
@@ -952,8 +1060,8 @@
    <slot>BirdOpenResultDir()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>365</x>
-     <y>525</y>
+     <x>396</x>
+     <y>632</y>
     </hint>
     <hint type="destinationlabel">
      <x>565</x>
@@ -968,8 +1076,8 @@
    <slot>CloudGetClassDir()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>605</x>
-     <y>391</y>
+     <x>554</x>
+     <y>469</y>
     </hint>
     <hint type="destinationlabel">
      <x>565</x>
@@ -984,8 +1092,8 @@
    <slot>RefreshProj()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>305</x>
-     <y>204</y>
+     <x>279</x>
+     <y>220</y>
     </hint>
     <hint type="destinationlabel">
      <x>585</x>
@@ -1000,11 +1108,11 @@
    <slot>BridUpLoadProj()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>484</x>
-     <y>576</y>
+     <x>505</x>
+     <y>662</y>
     </hint>
     <hint type="destinationlabel">
-     <x>625</x>
+     <x>587</x>
      <y>543</y>
     </hint>
    </hints>
@@ -1016,12 +1124,76 @@
    <slot>GetFlightInfomationPath()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>618</x>
-     <y>268</y>
+     <x>288</x>
+     <y>313</y>
     </hint>
     <hint type="destinationlabel">
      <x>543</x>
      <y>267</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>groupBox</sender>
+   <signal>clicked(bool)</signal>
+   <receiver>MainControlClass</receiver>
+   <slot>ShowProj(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>46</x>
+     <y>53</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>733</x>
+     <y>40</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>groupBox_3</sender>
+   <signal>clicked(bool)</signal>
+   <receiver>MainControlClass</receiver>
+   <slot>ShowHangxian(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>356</x>
+     <y>47</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>688</x>
+     <y>65</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>groupBox_4</sender>
+   <signal>clicked(bool)</signal>
+   <receiver>MainControlClass</receiver>
+   <slot>ShowPici(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>53</x>
+     <y>245</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>676</x>
+     <y>247</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>groupBox_5</sender>
+   <signal>clicked(bool)</signal>
+   <receiver>MainControlClass</receiver>
+   <slot>ShowGeoInfo(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>333</x>
+     <y>242</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>731</x>
+     <y>278</y>
     </hint>
    </hints>
   </connection>
@@ -1039,5 +1211,9 @@
   <slot>RefreshProj()</slot>
   <slot>BridUpLoadProj()</slot>
   <slot>GetFlightInfomationPath()</slot>
+  <slot>ShowProj(bool)</slot>
+  <slot>ShowHangxian(bool)</slot>
+  <slot>ShowPici(bool)</slot>
+  <slot>ShowGeoInfo(bool)</slot>
  </slots>
 </ui>

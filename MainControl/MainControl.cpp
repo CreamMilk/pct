@@ -844,6 +844,26 @@ void MainControl::BridFinished(int exitcode, QProcess::ExitStatus status)
 	brid_status_ = 1;
 }
 
+void MainControl::ShowProj(bool b)
+{
+	ui.widget_proj->setHidden(!b);
+}
+
+void MainControl::ShowHangxian(bool b)
+{
+	ui.widget_hangxian->setHidden(!b);
+}
+
+void MainControl::ShowPici(bool b)
+{
+	ui.widget_pici->setHidden(!b);
+}
+
+void MainControl::ShowGeoInfo(bool b)
+{
+	ui.widget_geoinfo->setHidden(!b);
+}
+
 void MainControl::CloudOpenResultDir()
 {
 	QDesktopServices::openUrl(QUrl(QStringLiteral("file:") + ui.label_Cloud_ResultDir->text(), QUrl::TolerantMode));

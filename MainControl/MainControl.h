@@ -53,6 +53,11 @@ void BridReadyReadStandardOutput();
 void CloudFinished(int exitcode, QProcess::ExitStatus status);
 void BridFinished(int exitcode, QProcess::ExitStatus status);
 
+void ShowProj(bool b);
+void ShowHangxian(bool b);
+void ShowPici(bool b);
+void ShowGeoInfo(bool b);
+
 
 void CloudGetCloudsPath();
 void CloudGetTowersDir();
